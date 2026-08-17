@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "title": "Buffett Value Stock Screener",
+    "description": "Scores US stocks using Warren Buffett and Benjamin Graham's quantitative criteria"
+  },
+  "common": {
+    "disclaimer": "Not investment advice. All scores and intrinsic value estimates are reference calculations only — do not use them as the sole basis for investment decisions.",
+    "notAvailable": "N/A"
+  },
+  "dashboard": {
+    "title": "Buffett Value Stock Screener",
+    "subtitle": "Scores every S&P 500 stock using Warren Buffett and Benjamin Graham's quantitative criteria (ROE, ROIC, debt ratio, earnings consistency, margin of safety, and more).",
+    "asOf": "As of {date}",
+    "fixtureBanner": "⚠️ You're viewing <strong>sample (fictional) data</strong>. To switch to real data, run <code>npm run refresh</code> — no setup or API key needed. See the README for details.",
+    "emptyState": "No score data yet. Run <code>npm run refresh</code> to generate it.",
+    "filters": {
+      "sector": "Sector",
+      "allSectors": "All",
+      "minScore": "Min. total score: {score}",
+      "buyCandidateOnly": "Buy Candidates only",
+      "sortBy": "Sort by",
+      "sort": {
+        "totalScore": "Total score",
+        "qualityScore": "Quality score",
+        "valuationScore": "Valuation score",
+        "marketCap": "Market cap"
+      }
+    },
+    "tickerCount": "{count} stocks",
+    "table": {
+      "ticker": "Ticker",
+      "company": "Company",
+      "sector": "Sector",
+      "price": "Price",
+      "marketCap": "Market Cap",
+      "quality": "Quality",
+      "valuation": "Valuation",
+      "total": "Total",
+      "marginOfSafety": "Margin of Safety",
+      "detail": ""
+    },
+    "detailLink": "Details →",
+    "noResults": "No stocks match these filters."
+  },
+  "stock": {
+    "backToList": "← Back to list",
+    "buyCandidate": "Buy Candidate",
+    "companyOverview": "Company Overview",
+    "priceChart": "Price Chart",
+    "dcf": {
+      "intrinsicValue": "Intrinsic Value (DCF, per share)",
+      "currentPrice": "Current Price",
+      "marginOfSafety": "Margin of Safety",
+      "ownerEarningsNote": "Based on owner earnings of {value} per share, a 5-year growth rate of {growth}, a {discount} discount rate, and a {terminal} terminal growth rate.",
+      "noShareData": "N/A (no share count data)"
+    },
+    "quality": {
+      "title": "Quality — {max} pts"
+    },
+    "valuation": {
+      "title": "Valuation / Margin of Safety — {max} pts"
+    },
+    "criteriaTable": {
+      "actualValue": "Actual",
+      "threshold": "Threshold"
+    },
+    "news": {
+      "title": "Recent News (last 30 days)",
+      "empty": "No related news in the last 30 days."
+    }
+  },
+  "criteria": {
+    "roe": {
+      "label": "Return on Equity (ROE), 5-yr avg",
+      "threshold": "≥ 15%",
+      "explanation": "Buffett's most-watched metric — how efficiently a company turns shareholder equity into profit."
+    },
+    "roic": {
+      "label": "Return on Invested Capital (ROIC), 5-yr avg",
+      "threshold": "≥ 12%",
+      "explanation": "Return on all capital including debt — stays high in companies with a durable economic moat."
+    },
+    "grossMargin": {
+      "label": "Gross Margin — level & stability",
+      "threshold": "≥ 35%, volatility < 15%",
+      "explanation": "Companies with pricing power keep gross margins high and don't see them swing much year to year."
+    },
+    "debt": {
+      "label": "Debt Ratio & Interest Coverage",
+      "threshold": "D/E ≤ 0.5, coverage ≥ 5x",
+      "explanation": "Buffett favors low debt — it keeps bankruptcy risk low during downturns."
+    },
+    "epsConsistency": {
+      "label": "EPS Consistency (last 10 yrs)",
+      "threshold": "0 loss years, trending up",
+      "explanation": "A core Buffett principle — only buy companies with \"predictable\" earnings."
+    },
+    "fcf": {
+      "label": "Free Cash Flow (FCF)",
+      "threshold": "Positive every year, margin ≥ 10%",
+      "explanation": "What matters is cash actually generated, not accounting profit."
+    },
+    "shareCount": {
+      "label": "Share Count Trend (buybacks)",
+      "threshold": "Declining (share buybacks)",
+      "explanation": "A signal of shareholder-friendly capital allocation."
+    },
+    "currentRatio": {
+      "label": "Current Ratio",
+      "threshold": "≥ 1.5",
+      "explanation": "Short-term liquidity — can the company withstand a sudden cash crunch?"
+    },
+    "peRelative": {
+      "label": "P/E vs. own history & sector",
+      "threshold": "Current P/E below both averages",
+      "explanation": "How cheap the stock is relative to earnings, compared against its own history and its sector."
+    },
+    "peg": {
+      "label": "PEG Ratio",
+      "threshold": "< 1.0",
+      "explanation": "Valuation relative to growth — below 1 suggests undervalued relative to growth."
+    },
+    "grahamNumber": {
+      "label": "Price vs. Graham Number",
+      "threshold": "Price ≤ Graham Number",
+      "explanation": "√(22.5 × EPS × Book Value/Share) — Graham's classic upper bound for a fairly priced stock."
+    },
+    "marginOfSafety": {
+      "label": "Margin of Safety (vs. DCF intrinsic value)",
+      "threshold": "≥ 25%",
+      "explanation": "Discount to intrinsic value estimated via a simple owner-earnings DCF — the core Graham/Buffett principle."
+    }
+  },
+  "sectors": {
+    "Information Technology": "Information Technology",
+    "Communication Services": "Communication Services",
+    "Consumer Discretionary": "Consumer Discretionary",
+    "Consumer Staples": "Consumer Staples",
+    "Health Care": "Health Care",
+    "Financials": "Financials",
+    "Industrials": "Industrials",
+    "Energy": "Energy",
+    "Utilities": "Utilities",
+    "Materials": "Materials",
+    "Real Estate": "Real Estate"
+  },
+  "localeSwitcher": {
+    "en": "English",
+    "ko": "한국어"
+  }
+}

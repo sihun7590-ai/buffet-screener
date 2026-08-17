@@ -46,26 +46,41 @@ npm run refresh
 
 스코어 breakdown 외에, 종목 상세 페이지를 열 때마다 아래 정보를 실시간으로 가져와 보여줍니다 (배치 캐시에 저장하지 않고 매 방문마다 새로 조회 — 특히 뉴스는 신선도가 중요해서):
 
-- **회사 소개**: 위키피디아 문서 요약 ([lib/wikipedia.ts](lib/wikipedia.ts))
+- **회사 소개**: 위키피디아 문서 요약, 영어로만 제공 ([lib/wikipedia.ts](lib/wikipedia.ts))
 - **최근 뉴스**: Yahoo Finance 뉴스 검색에서 최근 30일 이내 관련 기사 ([lib/news.ts](lib/news.ts))
-- **주가 차트**: 최근 1년 일별 종가 추이 ([components/PriceChart.tsx](components/PriceChart.tsx))
+- **주가 차트**: TradingView의 무료 임베드 위젯 — 일봉/주봉/월봉 전환, 추세선·평행채널 등 드로잉 툴, 보조지표를 모두 기본 제공합니다 ([components/TradingViewChart.tsx](components/TradingViewChart.tsx), [lib/tradingview.ts](lib/tradingview.ts)에서 티커를 `거래소:티커` 형식으로 매핑)
+
+## 다국어 지원
+
+한국어(`ko`)와 영어(`en`)를 지원합니다 (`/ko`, `/en` 경로, [next-intl](https://next-intl.dev/) 사용). 브라우저 언어를 자동 감지해 첫 방문 시 알맞은 언어로 안내하며, 우측 상단 언어 선택기로 언제든 바꿀 수 있습니다.
+
+- `messages/ko.json`, `messages/en.json` — UI 문구 번역
+- 평가 기준(라벨/기준값/설명)은 종목마다 다르지 않고 항목당 고정이라, `data/scores.json`에는 원시 숫자만 저장하고(`CriterionResult.values`) 화면에 표시할 때 [lib/criteriaText.ts](lib/criteriaText.ts)가 해당 언어·로케일 숫자 포맷(퍼센트/통화)으로 조합합니다. 새 언어를 추가할 때 `data/scores.json`을 다시 만들 필요가 없는 구조입니다.
+- 회사 소개(위키피디아)는 아직 영어만 지원합니다 — 언어별 위키 문서명 매핑이 필요해 후속 과제로 남겨뒀습니다.
+- 새 언어를 추가하려면: (1) `i18n/routing.ts`의 `locales`에 추가, (2) `messages/{locale}.json` 작성, (3) `data/universe.json`의 `sector` 값에 대응하는 `sectors.*` 번역 추가.
 
 ## 프로젝트 구조
 
 ```
-app/page.tsx                대시보드 (스코어 랭킹 + 필터)
-app/stock/[ticker]/page.tsx 종목 상세 (기준별 breakdown + 회사소개/뉴스/차트)
-lib/xbrl.ts                  SEC EDGAR XBRL 저수준 클라이언트 (티커→CIK, 연도별 시계열 추출)
-lib/price.ts                 Yahoo Finance 시세 클라이언트 (현재가·과거 종가·차트 시계열)
-lib/sec.ts                   위 둘을 조합해 종목별 재무 데이터 번들 생성
-lib/scoring.ts               버핏/그레이엄 스코어링 로직
-lib/store.ts                 data/scores.json 캐시 read/write
-lib/wikipedia.ts             위키피디아 회사 소개 조회
-lib/news.ts                  Yahoo Finance 뉴스 검색
-components/PriceChart.tsx    주가 차트 (SVG, 별도 라이브러리 없음)
-scripts/refresh.ts           배치 갱신 스크립트 (npm run refresh)
-data/universe.json           스크리닝 대상 티커 + 회사명/섹터/위키피디아 문서명
-data/fixtures.ts             샘플 데이터 (npm run refresh -- --fixture)
+app/[locale]/page.tsx                대시보드 (스코어 랭킹 + 필터)
+app/[locale]/stock/[ticker]/page.tsx 종목 상세 (기준별 breakdown + 회사소개/뉴스/차트)
+i18n/routing.ts, navigation.ts, request.ts   next-intl 설정
+proxy.ts                              locale 자동 감지/라우팅 (Next.js의 구 "middleware")
+messages/ko.json, messages/en.json    UI 문구 번역
+lib/criteriaText.ts                   평가 기준 "실제값" 문구를 로케일에 맞게 조합
+lib/xbrl.ts                           SEC EDGAR XBRL 저수준 클라이언트 (티커→CIK, 연도별 시계열 추출)
+lib/price.ts                          Yahoo Finance 시세 클라이언트 (현재가·과거 종가)
+lib/tradingview.ts                    티커를 TradingView 심볼(거래소:티커)로 변환
+lib/sec.ts                            SEC+Yahoo를 조합해 종목별 재무 데이터 번들 생성
+lib/scoring.ts                        버핏/그레이엄 스코어링 로직
+lib/store.ts                          data/scores.json 캐시 read/write
+lib/wikipedia.ts                      위키피디아 회사 소개 조회
+lib/news.ts                           Yahoo Finance 뉴스 검색
+components/TradingViewChart.tsx       TradingView 임베드 차트
+components/LocaleSwitcher.tsx         언어 선택 드롭다운
+scripts/refresh.ts                    배치 갱신 스크립트 (npm run refresh)
+data/universe.json                    스크리닝 대상 티커 + 회사명/섹터/위키피디아 문서명
+data/fixtures.ts                      샘플 데이터 (npm run refresh -- --fixture)
 ```
 
 ## 참고 사항
@@ -73,3 +88,4 @@ data/fixtures.ts             샘플 데이터 (npm run refresh -- --fixture)
 - 이 프로젝트가 보여주는 점수·내재가치는 모두 **참고용 계산 결과**이며 투자 조언이 아닙니다.
 - v1은 웹사이트만 대상으로 하며, 모바일 앱(PWA/네이티브)은 후속 과제입니다.
 - SEC EDGAR 재무제표는 분기·연간 공시 시점 기준이라 실시간이 아니며, 시세도 지연/일 단위입니다.
+- 주가 차트는 TradingView 위젯을 그대로 임베드하므로, 표시되는 시세·차트 데이터의 출처는 TradingView이며 이 프로젝트가 SEC/Yahoo에서 가져온 데이터와 100% 일치하지 않을 수 있습니다.

@@ -33,32 +33,6 @@ export async function fetchPriceHistory(ticker: string): Promise<PriceHistory> {
   return { timestamps, closes, currentPrice };
 }
 
-export interface ChartPoint {
-  date: string; // ISO date
-  close: number;
-}
-
-// A shorter, chart-ready series for the stock detail page's price chart —
-// separate from fetchPriceHistory's ~9-year fetch (used for historical P/E)
-// so the chart stays fast and focused on recent price action.
-export async function fetchChartSeries(ticker: string, range: "6mo" | "1y" | "5y" = "1y"): Promise<ChartPoint[]> {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=${range}`;
-  const res = await fetch(url, { headers: { "User-Agent": YF_USER_AGENT } });
-  if (!res.ok) {
-    throw new Error(`Yahoo Finance request failed (${res.status}) for ${ticker}`);
-  }
-  const json = await res.json();
-  const result = json?.chart?.result?.[0];
-  if (!result) return [];
-
-  const timestamps: number[] = result.timestamp ?? [];
-  const closes: number[] = result.indicators?.quote?.[0]?.close ?? [];
-
-  return timestamps
-    .map((ts, i) => ({ date: new Date(ts * 1000).toISOString().slice(0, 10), close: closes[i] }))
-    .filter((p): p is ChartPoint => p.close != null);
-}
-
 // Closing price on (or just before) the given ISO date, e.g. a fiscal year-end.
 export function closeNear(history: PriceHistory, isoDate: string): number {
   const target = new Date(`${isoDate}T00:00:00Z`).getTime() / 1000;

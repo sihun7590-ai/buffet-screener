@@ -73,16 +73,18 @@ export interface TickerFinancials {
   keyMetrics: FmpKeyMetrics[];
 }
 
-// One scoring criterion, shown as-is on the stock detail page.
+// One scoring criterion. Label/threshold/explanation are NOT stored here —
+// those are static per `id` and looked up from the i18n message catalog at
+// render time (see lib/criteriaText.ts), so this stays language-neutral and
+// safe to cache in data/scores.json. `values` holds whatever raw numbers
+// that criterion's display text needs to interpolate (NaN allowed for
+// "data unavailable" — rendered as "N/A" by the formatter).
 export interface CriterionResult {
   id: string;
-  label: string;
   passed: boolean;
   points: number;
   maxPoints: number;
-  value: string; // human-readable actual value, e.g. "17.2%"
-  threshold: string; // human-readable threshold, e.g. "≥ 15%"
-  explanation: string;
+  values: Record<string, number>;
 }
 
 export interface IntrinsicValueEstimate {

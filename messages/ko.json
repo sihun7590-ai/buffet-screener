@@ -1,0 +1,151 @@
+{
+  "meta": {
+    "title": "버핏 저평가 우량주 스크리너",
+    "description": "워렌 버핏·벤저민 그레이엄의 정량 기준으로 미국 주식을 스코어링하는 스크리너"
+  },
+  "common": {
+    "disclaimer": "투자 조언이 아닙니다. 모든 점수와 내재가치 추정치는 참고용 계산 결과이며, 실제 투자 판단의 근거로 단독 사용하지 마세요.",
+    "notAvailable": "N/A"
+  },
+  "dashboard": {
+    "title": "버핏 저평가 우량주 스크리너",
+    "subtitle": "워렌 버핏·벤저민 그레이엄의 정량 기준(ROE, ROIC, 부채비율, 이익 일관성, 안전마진 등)으로 S&P 500 전 종목을 스코어링합니다.",
+    "asOf": "기준일: {date}",
+    "fixtureBanner": "⚠️ 지금 보고 있는 데이터는 <strong>샘플(가상) 데이터</strong>입니다. 실제 데이터로 전환하려면 <code>npm run refresh</code>를 실행하세요. (별도 키 설정 없이 바로 됩니다 — 자세한 방법은 README 참고)",
+    "emptyState": "아직 스코어 데이터가 없습니다. <code>npm run refresh</code>를 실행해 데이터를 생성하세요.",
+    "filters": {
+      "sector": "섹터",
+      "allSectors": "전체",
+      "minScore": "최소 총점: {score}",
+      "buyCandidateOnly": "Buy Candidate만 보기",
+      "sortBy": "정렬",
+      "sort": {
+        "totalScore": "총점",
+        "qualityScore": "우량성 점수",
+        "valuationScore": "저평가 점수",
+        "marketCap": "시가총액"
+      }
+    },
+    "tickerCount": "{count}개 종목",
+    "table": {
+      "ticker": "티커",
+      "company": "기업명",
+      "sector": "섹터",
+      "price": "주가",
+      "marketCap": "시가총액",
+      "quality": "우량성",
+      "valuation": "저평가",
+      "total": "총점",
+      "marginOfSafety": "안전마진",
+      "detail": ""
+    },
+    "detailLink": "상세 →",
+    "noResults": "조건에 맞는 종목이 없습니다."
+  },
+  "stock": {
+    "backToList": "← 전체 목록으로",
+    "buyCandidate": "Buy Candidate",
+    "companyOverview": "회사 소개",
+    "priceChart": "주가 차트",
+    "dcf": {
+      "intrinsicValue": "내재가치 (DCF, 주당)",
+      "currentPrice": "현재가",
+      "marginOfSafety": "안전마진",
+      "ownerEarningsNote": "소유주이익(Owner Earnings) 주당 {value} 기준, 향후 5년 성장률 {growth}, 할인율 {discount}, 영구성장률 {terminal}로 추정한 단순 DCF 값입니다.",
+      "noShareData": "N/A (주식수 데이터 없음)"
+    },
+    "quality": {
+      "title": "우량성 (Quality) — {max}점"
+    },
+    "valuation": {
+      "title": "저평가 / 안전마진 (Valuation) — {max}점"
+    },
+    "criteriaTable": {
+      "actualValue": "실제값",
+      "threshold": "기준"
+    },
+    "news": {
+      "title": "최근 뉴스 (최근 30일)",
+      "empty": "최근 30일 이내 관련 뉴스가 없습니다."
+    }
+  },
+  "criteria": {
+    "roe": {
+      "label": "자기자본이익률 (ROE) 5년 평균",
+      "threshold": "≥ 15%",
+      "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+    },
+    "roic": {
+      "label": "투하자본이익률 (ROIC) 5년 평균",
+      "threshold": "≥ 12%",
+      "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+    },
+    "grossMargin": {
+      "label": "매출총이익률 수준·안정성",
+      "threshold": "≥ 35%, 변동성 < 15%",
+      "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+    },
+    "debt": {
+      "label": "부채비율 · 이자보상배율",
+      "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+      "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+    },
+    "epsConsistency": {
+      "label": "EPS 일관성 (최근 10년)",
+      "threshold": "적자 0개년, 우상향 추세",
+      "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+    },
+    "fcf": {
+      "label": "잉여현금흐름 (FCF)",
+      "threshold": "전 기간 흑자, 마진 ≥ 10%",
+      "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+    },
+    "shareCount": {
+      "label": "유통주식수 추세 (자사주 매입)",
+      "threshold": "감소 추세 (자사주 매입)",
+      "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+    },
+    "currentRatio": {
+      "label": "유동비율",
+      "threshold": "≥ 1.5",
+      "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+    },
+    "peRelative": {
+      "label": "PER (자체 평균·업종 평균 대비)",
+      "threshold": "현재 PER < 두 평균",
+      "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+    },
+    "peg": {
+      "label": "PEG 비율",
+      "threshold": "< 1.0",
+      "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+    },
+    "grahamNumber": {
+      "label": "그레이엄 넘버 대비 주가",
+      "threshold": "현재가 ≤ 그레이엄 넘버",
+      "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+    },
+    "marginOfSafety": {
+      "label": "안전마진 (DCF 내재가치 기준)",
+      "threshold": "≥ 25%",
+      "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+    }
+  },
+  "sectors": {
+    "Information Technology": "정보기술",
+    "Communication Services": "커뮤니케이션 서비스",
+    "Consumer Discretionary": "임의소비재",
+    "Consumer Staples": "필수소비재",
+    "Health Care": "헬스케어",
+    "Financials": "금융",
+    "Industrials": "산업재",
+    "Energy": "에너지",
+    "Utilities": "유틸리티",
+    "Materials": "소재",
+    "Real Estate": "부동산"
+  },
+  "localeSwitcher": {
+    "en": "English",
+    "ko": "한국어"
+  }
+}
