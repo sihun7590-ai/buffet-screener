@@ -46,7 +46,7 @@ npm run refresh
 
 스코어 breakdown 외에, 종목 상세 페이지를 열 때마다 아래 정보를 실시간으로 가져와 보여줍니다 (배치 캐시에 저장하지 않고 매 방문마다 새로 조회 — 특히 뉴스는 신선도가 중요해서):
 
-- **회사 소개**: 위키피디아 문서 요약, 영어로만 제공 ([lib/wikipedia.ts](lib/wikipedia.ts))
+- **회사 소개**: 위키피디아 문서 요약. 영어 문서명(`data/universe.json`)을 기준으로 언어간링크를 조회해 해당 언어(예: 한국어) 위키피디아 문서가 있으면 그 요약을, 없으면 영어 요약을 보여줍니다 ([lib/wikipedia.ts](lib/wikipedia.ts))
 - **최근 뉴스**: Yahoo Finance 뉴스 검색에서 최근 30일 이내 관련 기사 ([lib/news.ts](lib/news.ts))
 - **주가 차트**: TradingView의 무료 임베드 위젯 — 일봉/주봉/월봉 전환, 추세선·평행채널 등 드로잉 툴, 보조지표를 모두 기본 제공합니다 ([components/TradingViewChart.tsx](components/TradingViewChart.tsx), [lib/tradingview.ts](lib/tradingview.ts)에서 티커를 `거래소:티커` 형식으로 매핑)
 
@@ -56,7 +56,7 @@ npm run refresh
 
 - `messages/ko.json`, `messages/en.json` — UI 문구 번역
 - 평가 기준(라벨/기준값/설명)은 종목마다 다르지 않고 항목당 고정이라, `data/scores.json`에는 원시 숫자만 저장하고(`CriterionResult.values`) 화면에 표시할 때 [lib/criteriaText.ts](lib/criteriaText.ts)가 해당 언어·로케일 숫자 포맷(퍼센트/통화)으로 조합합니다. 새 언어를 추가할 때 `data/scores.json`을 다시 만들 필요가 없는 구조입니다.
-- 회사 소개(위키피디아)는 아직 영어만 지원합니다 — 언어별 위키 문서명 매핑이 필요해 후속 과제로 남겨뒀습니다.
+- 회사 소개(위키피디아)는 영어 문서명 기준 언어간링크로 해당 언어 문서를 찾아 보여주며, 그 언어의 문서가 없는 회사는 영어로 표시됩니다.
 - 새 언어를 추가하려면: (1) `i18n/routing.ts`의 `locales`에 추가, (2) `messages/{locale}.json` 작성, (3) `data/universe.json`의 `sector` 값에 대응하는 `sectors.*` 번역 추가.
 
 ## 프로젝트 구조

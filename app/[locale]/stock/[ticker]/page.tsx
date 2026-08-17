@@ -29,10 +29,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
 
   const meta = (universe as { ticker: string; wikiTitle: string | null }[]).find((u) => u.ticker === ticker);
   const [summary, news, exchangeName] = await Promise.all([
-    // Wikipedia summaries are only sourced in English for now — translating
-    // the underlying content per locale would need a separate ko-title
-    // mapping, which isn't built yet.
-    meta?.wikiTitle ? fetchCompanySummary(meta.wikiTitle) : Promise.resolve(null),
+    meta?.wikiTitle ? fetchCompanySummary(meta.wikiTitle, locale) : Promise.resolve(null),
     fetchRecentNews(ticker),
     fetchExchangeName(ticker),
   ]);
