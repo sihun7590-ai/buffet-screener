@@ -2,7 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ScoreBadge from "@/components/ScoreBadge";
 import CriteriaTable from "@/components/CriteriaTable";
+import PriceChart from "@/components/PriceChart";
 import { getScoreByTicker } from "@/lib/store";
+import { fetchCompanySummary } from "@/lib/wikipedia";
+import { fetchRecentNews } from "@/lib/news";
+import { fetchChartSeries } from "@/lib/price";
+import universe from "@/data/universe.json";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +18,13 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
   if (!score) {
     notFound();
   }
+
+  const meta = (universe as { ticker: string; wikiTitle: string | null }[]).find((u) => u.ticker === ticker);
+  const [summary, news, chartPoints] = await Promise.all([
+    meta?.wikiTitle ? fetchCompanySummary(meta.wikiTitle) : Promise.resolve(null),
+    fetchRecentNews(ticker),
+    fetchChartSeries(ticker, "1y").catch(() => []),
+  ]);
 
   const qualityCriteria = score.criteria.filter((c) =>
     ["roe", "roic", "grossMargin", "debt", "epsConsistency", "fcf", "shareCount", "currentRatio"].includes(c.id)
@@ -44,6 +56,18 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
           <ScoreBadge score={score.totalScore} max={100} />
         </header>
 
+        {summary && (
+          <section className="rounded-xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900">
+            <h2 className="mb-2 text-sm font-semibold text-zinc-500 dark:text-zinc-400">회사 소개</h2>
+            <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{summary}</p>
+          </section>
+        )}
+
+        <section className="rounded-xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900">
+          <h2 className="mb-3 text-sm font-semibold text-zinc-500 dark:text-zinc-400">주가 추이 (최근 1년)</h2>
+          <PriceChart points={chartPoints} />
+        </section>
+
         <section className="grid grid-cols-1 gap-4 rounded-xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:grid-cols-3">
           <div>
             <div className="text-sm text-zinc-500 dark:text-zinc-400">내재가치 (DCF, 주당)</div>
@@ -69,6 +93,31 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
           <CriteriaTable title="우량성 (Quality) — 50점" criteria={qualityCriteria} />
           <CriteriaTable title="저평가 / 안전마진 (Valuation) — 50점" criteria={valuationCriteria} />
         </div>
+
+        <section className="rounded-xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900">
+          <h2 className="mb-3 text-sm font-semibold text-zinc-500 dark:text-zinc-400">최근 뉴스 (최근 30일)</h2>
+          {news.length === 0 ? (
+            <p className="text-sm text-zinc-400">최근 30일 이내 관련 뉴스가 없습니다.</p>
+          ) : (
+            <ul className="flex flex-col gap-3">
+              {news.map((n) => (
+                <li key={n.link}>
+                  <a
+                    href={n.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+                  >
+                    {n.title}
+                  </a>
+                  <div className="text-xs text-zinc-400">
+                    {n.publisher} · {new Date(n.publishedAt).toLocaleDateString("ko-KR")}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
 
         <footer className="pt-4 text-xs text-zinc-400">
           투자 조언이 아닙니다. 모든 점수와 내재가치 추정치는 참고용 계산 결과이며, 실제 투자 판단의 근거로 단독 사용하지 마세요.

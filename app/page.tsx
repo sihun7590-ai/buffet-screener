@@ -14,7 +14,7 @@ export default function Home() {
         <header className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight">버핏 저평가 우량주 스크리너</h1>
           <p className="max-w-2xl text-zinc-600 dark:text-zinc-400">
-            워렌 버핏·벤저민 그레이엄의 정량 기준(ROE, ROIC, 부채비율, 이익 일관성, 안전마진 등)으로 미국 대형주를 스코어링합니다.
+            워렌 버핏·벤저민 그레이엄의 정량 기준(ROE, ROIC, 부채비율, 이익 일관성, 안전마진 등)으로 S&P 500 전 종목을 스코어링합니다.
             {generatedAt && ` 기준일: ${new Date(generatedAt).toLocaleString("ko-KR")}`}
           </p>
         </header>

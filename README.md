@@ -42,18 +42,29 @@ npm run refresh
 
 로직은 [lib/scoring.ts](lib/scoring.ts)에서 확인/조정할 수 있습니다.
 
+### 종목 상세 페이지의 추가 정보
+
+스코어 breakdown 외에, 종목 상세 페이지를 열 때마다 아래 정보를 실시간으로 가져와 보여줍니다 (배치 캐시에 저장하지 않고 매 방문마다 새로 조회 — 특히 뉴스는 신선도가 중요해서):
+
+- **회사 소개**: 위키피디아 문서 요약 ([lib/wikipedia.ts](lib/wikipedia.ts))
+- **최근 뉴스**: Yahoo Finance 뉴스 검색에서 최근 30일 이내 관련 기사 ([lib/news.ts](lib/news.ts))
+- **주가 차트**: 최근 1년 일별 종가 추이 ([components/PriceChart.tsx](components/PriceChart.tsx))
+
 ## 프로젝트 구조
 
 ```
 app/page.tsx                대시보드 (스코어 랭킹 + 필터)
-app/stock/[ticker]/page.tsx 종목 상세 (기준별 breakdown)
+app/stock/[ticker]/page.tsx 종목 상세 (기준별 breakdown + 회사소개/뉴스/차트)
 lib/xbrl.ts                  SEC EDGAR XBRL 저수준 클라이언트 (티커→CIK, 연도별 시계열 추출)
-lib/price.ts                 Yahoo Finance 시세 클라이언트 (현재가 + 과거 종가)
+lib/price.ts                 Yahoo Finance 시세 클라이언트 (현재가·과거 종가·차트 시계열)
 lib/sec.ts                   위 둘을 조합해 종목별 재무 데이터 번들 생성
 lib/scoring.ts               버핏/그레이엄 스코어링 로직
 lib/store.ts                 data/scores.json 캐시 read/write
+lib/wikipedia.ts             위키피디아 회사 소개 조회
+lib/news.ts                  Yahoo Finance 뉴스 검색
+components/PriceChart.tsx    주가 차트 (SVG, 별도 라이브러리 없음)
 scripts/refresh.ts           배치 갱신 스크립트 (npm run refresh)
-data/universe.json           스크리닝 대상 티커 + 회사명/섹터 메타데이터
+data/universe.json           스크리닝 대상 티커 + 회사명/섹터/위키피디아 문서명
 data/fixtures.ts             샘플 데이터 (npm run refresh -- --fixture)
 ```
 
