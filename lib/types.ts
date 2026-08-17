@@ -13,8 +13,6 @@ export interface FmpProfile {
 export interface FmpQuote {
   symbol: string;
   price: number;
-  pe: number | null;
-  eps: number | null;
   marketCap: number;
 }
 
@@ -48,19 +46,19 @@ export interface FmpCashFlow {
 
 export interface FmpRatios {
   date: string;
-  returnOnEquity: number;
   currentRatio: number;
-  debtEquityRatio: number;
+  debtToEquityRatio: number;
   grossProfitMargin: number;
-  priceEarningsRatio: number;
+  priceToEarningsRatio: number;
   priceToBookRatio: number;
-  interestCoverage: number;
+  interestCoverageRatio: number;
+  bookValuePerShare: number;
 }
 
 export interface FmpKeyMetrics {
   date: string;
-  roic: number;
-  bookValuePerShare: number;
+  returnOnEquity: number;
+  returnOnInvestedCapital: number;
 }
 
 // Bundle of everything fetched for one ticker, used as input to the scorer.

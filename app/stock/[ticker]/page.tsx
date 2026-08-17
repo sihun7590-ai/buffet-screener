@@ -47,7 +47,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
         <section className="grid grid-cols-1 gap-4 rounded-xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:grid-cols-3">
           <div>
             <div className="text-sm text-zinc-500 dark:text-zinc-400">내재가치 (DCF, 주당)</div>
-            <div className="text-xl font-semibold">${iv.intrinsicValuePerShare.toFixed(2)}</div>
+            <div className="text-xl font-semibold">{Number.isFinite(iv.intrinsicValuePerShare) ? `$${iv.intrinsicValuePerShare.toFixed(2)}` : "N/A"}</div>
           </div>
           <div>
             <div className="text-sm text-zinc-500 dark:text-zinc-400">현재가</div>
@@ -56,11 +56,11 @@ export default async function StockDetailPage({ params }: { params: Promise<{ ti
           <div>
             <div className="text-sm text-zinc-500 dark:text-zinc-400">안전마진</div>
             <div className={`text-xl font-semibold ${iv.marginOfSafety > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-              {(iv.marginOfSafety * 100).toFixed(1)}%
+              {Number.isFinite(iv.intrinsicValuePerShare) ? `${(iv.marginOfSafety * 100).toFixed(1)}%` : "N/A"}
             </div>
           </div>
           <div className="sm:col-span-3 text-xs text-zinc-400">
-            소유주이익(Owner Earnings) 주당 ${iv.ownerEarningsPerShare.toFixed(2)} 기준, 향후 5년 성장률 {(iv.growthRateUsed * 100).toFixed(1)}%,
+            소유주이익(Owner Earnings) 주당 {Number.isFinite(iv.ownerEarningsPerShare) ? `$${iv.ownerEarningsPerShare.toFixed(2)}` : "N/A (주식수 데이터 없음)"} 기준, 향후 5년 성장률 {(iv.growthRateUsed * 100).toFixed(1)}%,
             할인율 {(iv.discountRate * 100).toFixed(1)}%, 영구성장률 {(iv.terminalGrowthRate * 100).toFixed(1)}%로 추정한 단순 DCF 값입니다.
           </div>
         </section>

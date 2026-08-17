@@ -50,11 +50,15 @@ function pct(v: number): string {
 
 export function computeIntrinsicValue(f: TickerFinancials): IntrinsicValueEstimate {
   const cashFlows = [...f.cashFlow].reverse(); // oldest -> newest
-  const fcfHistory = cashFlows.map((c) => c.freeCashFlow ?? c.operatingCashFlow - c.capitalExpenditure);
+  // capitalExpenditure is stored as a negative outflow, so FCF = OCF + capex.
+  const fcfHistory = cashFlows.map((c) => c.freeCashFlow ?? c.operatingCashFlow + c.capitalExpenditure);
   const recent = fcfHistory.slice(-3);
-  const shares = f.income[0]?.weightedAverageShsOutDil || 1;
+  const shares = f.income[0]?.weightedAverageShsOutDil;
 
-  const ownerEarningsPerShare = average(recent) / shares;
+  // Without a usable share count we can't derive a per-share intrinsic value
+  // at all — propagate NaN rather than silently dividing by a placeholder,
+  // which would produce a wildly wrong "intrinsic value".
+  const ownerEarningsPerShare = Number.isFinite(shares) && shares! > 0 ? average(recent) / shares! : NaN;
 
   const growthSampleYears = Math.min(5, fcfHistory.length - 1);
   const rawGrowth =
@@ -92,15 +96,15 @@ export function computeIntrinsicValue(f: TickerFinancials): IntrinsicValueEstima
 }
 
 function scoreQuality(f: TickerFinancials): CriterionResult[] {
-  const roeHistory = f.ratios.slice(0, 5).map((r) => r.returnOnEquity).filter(Number.isFinite);
+  const roeHistory = f.keyMetrics.slice(0, 5).map((k) => k.returnOnEquity).filter(Number.isFinite);
   const roeAvg = average(roeHistory);
-  const roicHistory = f.keyMetrics.slice(0, 5).map((k) => k.roic).filter(Number.isFinite);
+  const roicHistory = f.keyMetrics.slice(0, 5).map((k) => k.returnOnInvestedCapital).filter(Number.isFinite);
   const roicAvg = average(roicHistory);
   const marginHistory = f.ratios.slice(0, 5).map((r) => r.grossProfitMargin).filter(Number.isFinite);
   const marginAvg = average(marginHistory);
   const marginStdev = stdev(marginHistory);
-  const debtEquity = f.ratios[0]?.debtEquityRatio ?? NaN;
-  const interestCoverage = f.ratios[0]?.interestCoverage ?? NaN;
+  const debtEquity = f.ratios[0]?.debtToEquityRatio ?? NaN;
+  const interestCoverage = f.ratios[0]?.interestCoverageRatio ?? NaN;
 
   const incomeAsc = [...f.income].reverse();
   const lossYears = incomeAsc.filter((i) => i.netIncome < 0).length;
@@ -225,9 +229,13 @@ function scoreQuality(f: TickerFinancials): CriterionResult[] {
 }
 
 function scoreValuation(f: TickerFinancials, iv: IntrinsicValueEstimate): CriterionResult[] {
-  const peHistory = f.ratios.slice(0, 5).map((r) => r.priceEarningsRatio).filter((v) => Number.isFinite(v) && v > 0);
+  const peHistory = f.ratios.slice(0, 5).map((r) => r.priceToEarningsRatio).filter((v) => Number.isFinite(v) && v > 0);
   const peOwnAvg = average(peHistory);
-  const currentPe = f.quote.pe ?? f.ratios[0]?.priceEarningsRatio ?? NaN;
+  // FMP's live quote no longer includes pe/eps, so derive current P/E from
+  // today's price against the latest annual EPS (falls back to the last
+  // fiscal-year-end ratio if EPS is unusable).
+  const latestEps = f.income[0]?.eps ?? NaN;
+  const currentPe = f.quote.price > 0 && latestEps > 0 ? f.quote.price / latestEps : f.ratios[0]?.priceToEarningsRatio ?? NaN;
   const sectorPe = SECTOR_AVG_PE[f.profile.sector] ?? DEFAULT_SECTOR_PE;
 
   const incomeAsc = [...f.income].reverse();
@@ -239,7 +247,7 @@ function scoreValuation(f: TickerFinancials, iv: IntrinsicValueEstimate): Criter
   const peg = currentPe > 0 && epsCagr > 0 ? currentPe / (epsCagr * 100) : NaN;
 
   const eps = f.income[0]?.eps ?? NaN;
-  const bvps = f.keyMetrics[0]?.bookValuePerShare ?? NaN;
+  const bvps = f.ratios[0]?.bookValuePerShare ?? NaN;
   const grahamNumber = eps > 0 && bvps > 0 ? Math.sqrt(22.5 * eps * bvps) : NaN;
   const price = f.quote.price;
 

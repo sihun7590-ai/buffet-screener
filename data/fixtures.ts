@@ -70,12 +70,12 @@ function buildFixture(cfg: FixtureConfig): TickerFinancials {
       freeCashFlow, depreciationAndAmortization: da,
     });
     ratiosAsc.push({
-      date: `${year}-12-31`, returnOnEquity: netIncome / equity, currentRatio,
-      debtEquityRatio: totalDebt / equity, grossProfitMargin: grossMargin,
-      priceEarningsRatio: cfg.peHistoricalAvg * (0.95 + 0.02 * y), priceToBookRatio: (cfg.peTarget * eps) / bookValuePerShare,
-      interestCoverage: operatingIncome / interestExpense,
+      date: `${year}-12-31`, currentRatio,
+      debtToEquityRatio: totalDebt / equity, grossProfitMargin: grossMargin,
+      priceToEarningsRatio: cfg.peHistoricalAvg * (0.95 + 0.02 * y), priceToBookRatio: (cfg.peTarget * eps) / bookValuePerShare,
+      interestCoverageRatio: operatingIncome / interestExpense, bookValuePerShare,
     });
-    keyMetricsAsc.push({ date: `${year}-12-31`, roic, bookValuePerShare });
+    keyMetricsAsc.push({ date: `${year}-12-31`, returnOnEquity: netIncome / equity, returnOnInvestedCapital: roic });
   }
 
   const income = [...incomeAsc].reverse();
@@ -93,7 +93,7 @@ function buildFixture(cfg: FixtureConfig): TickerFinancials {
       symbol: cfg.ticker, companyName: cfg.companyName, sector: cfg.sector,
       industry: cfg.sector, price, marketCap: price * income[0].weightedAverageShsOutDil, beta: 0.9,
     },
-    quote: { symbol: cfg.ticker, price, pe: cfg.peTarget, eps: latestEps, marketCap: price * income[0].weightedAverageShsOutDil },
+    quote: { symbol: cfg.ticker, price, marketCap: price * income[0].weightedAverageShsOutDil },
     income, balance, cashFlow, ratios, keyMetrics,
   };
 }

@@ -1,25 +1,25 @@
 {
-  "generatedAt": "2026-08-15T08:30:59.640Z",
-  "source": "fixture",
+  "generatedAt": "2026-08-17T09:09:32.414Z",
+  "source": "live",
   "scores": [
     {
       "ticker": "AAPL",
-      "companyName": "Apple Inc. (샘플)",
+      "companyName": "Apple Inc.",
       "sector": "Technology",
-      "price": 98.81898953968258,
-      "marketCap": 1357348820873.3804,
-      "qualityScore": 49.1,
-      "valuationScore": 22.5,
-      "totalScore": 71.6,
-      "isBuyCandidate": true,
+      "price": 305.93,
+      "marketCap": 4593461032171.582,
+      "qualityScore": 38.9,
+      "valuationScore": 0,
+      "totalScore": 38.9,
+      "isBuyCandidate": false,
       "intrinsicValue": {
-        "ownerEarningsPerShare": 5.857320765188698,
-        "growthRateUsed": 0.08000000000000007,
+        "ownerEarningsPerShare": 6.819030086599411,
+        "growthRateUsed": 0.061266824126846364,
         "discountRate": 0.095,
         "terminalGrowthRate": 0.025,
-        "intrinsicValuePerShare": 108.1569556279644,
-        "currentPrice": 98.81898953968258,
-        "marginOfSafety": 0.08633717576521219
+        "intrinsicValuePerShare": 116.45933928227211,
+        "currentPrice": 305.93,
+        "marginOfSafety": -1.6269254306732088
       },
       "criteria": [
         {
@@ -28,7 +28,7 @@
           "passed": true,
           "points": 8,
           "maxPoints": 8,
-          "value": "32.0%",
+          "value": "163.9%",
           "threshold": "≥ 15%",
           "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
         },
@@ -38,7 +38,7 @@
           "passed": true,
           "points": 7,
           "maxPoints": 7,
-          "value": "24.0%",
+          "value": "70.7%",
           "threshold": "≥ 12%",
           "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
         },
@@ -46,19 +46,19 @@
           "id": "grossMargin",
           "label": "매출총이익률 수준·안정성",
           "passed": true,
-          "points": 5.7,
+          "points": 5.9,
           "maxPoints": 6,
-          "value": "43.0% (변동성 0.0%)",
+          "value": "44.5% (변동성 4.2%)",
           "threshold": "≥ 35%, 변동성 < 15%",
           "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
         },
         {
           "id": "debt",
           "label": "부채비율 · 이자보상배율",
-          "passed": true,
-          "points": 6.4,
+          "passed": false,
+          "points": 0,
           "maxPoints": 7,
-          "value": "D/E 0.40, 이자보상 12.0x",
+          "value": "D/E 1.23, 이자보상 N/A",
           "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
           "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
         },
@@ -68,7 +68,7 @@
           "passed": true,
           "points": 7,
           "maxPoints": 7,
-          "value": "적자 0개년, EPS CAGR 11.3%",
+          "value": "적자 0개년, EPS CAGR 17.9%",
           "threshold": "적자 0개년, 우상향 추세",
           "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
         },
@@ -78,7 +78,7 @@
           "passed": true,
           "points": 6,
           "maxPoints": 6,
-          "value": "8/8개년 흑자, FCF마진 23.0%",
+          "value": "8/8개년 흑자, FCF마진 23.7%",
           "threshold": "전 기간 흑자, 마진 ≥ 10%",
           "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
         },
@@ -88,7 +88,293 @@
           "passed": true,
           "points": 5,
           "maxPoints": 5,
-          "value": "19.2%",
+          "value": "24.8%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 4,
+          "value": "0.89",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 10,
+          "value": "현재 41.0 / 자체평균 30.1 / 업종평균(추정) 28",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "2.30",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "현재가 305.93 / 그레이엄넘버 28.71",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 24,
+          "value": "내재가치 116.46 / 현재가 305.93 → -162.7%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:21.462Z"
+    },
+    {
+      "ticker": "MSFT",
+      "companyName": "Microsoft Corp.",
+      "sector": "Technology",
+      "price": 495.4,
+      "marketCap": 3691323376044.568,
+      "qualityScore": 45.8,
+      "valuationScore": 3.7,
+      "totalScore": 49.5,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": 9.513861910494036,
+        "growthRateUsed": 0.03604273274160441,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": 146.04860026701294,
+        "currentPrice": 495.4,
+        "marginOfSafety": -2.3920215537450296
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": true,
+          "points": 8,
+          "maxPoints": 8,
+          "value": "34.3%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "29.8%",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": true,
+          "points": 6,
+          "maxPoints": 6,
+          "value": "68.8% (변동성 0.9%)",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "D/E 0.09, 이자보상 50.9x",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "적자 0개년, EPS CAGR 17.4%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": true,
+          "points": 6,
+          "maxPoints": 6,
+          "value": "8/8개년 흑자, FCF마진 20.2%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": true,
+          "points": 3,
+          "maxPoints": 5,
+          "value": "3.9%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 1.8,
+          "maxPoints": 4,
+          "value": "1.23",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": true,
+          "points": 0.4,
+          "maxPoints": 10,
+          "value": "현재 27.6 / 자체평균 31.3 / 업종평균(추정) 28",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 3.3,
+          "maxPoints": 8,
+          "value": "1.59",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "현재가 495.40 / 그레이엄넘버 154.85",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 24,
+          "value": "내재가치 146.05 / 현재가 495.40 → -239.2%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:22.036Z"
+    },
+    {
+      "ticker": "GOOGL",
+      "companyName": "Alphabet Inc.",
+      "sector": "Communication Services",
+      "price": 345.9,
+      "marketCap": 4229195467160.0366,
+      "qualityScore": 44.8,
+      "valuationScore": 7.4,
+      "totalScore": 52.2,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": 5.875829739476937,
+        "growthRateUsed": 0.1132802934679571,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": 124.34828528462688,
+        "currentPrice": 345.9,
+        "marginOfSafety": -1.7817030143057664
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": true,
+          "points": 8,
+          "maxPoints": 8,
+          "value": "28.5%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "25.1%",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": true,
+          "points": 6,
+          "maxPoints": 6,
+          "value": "57.4% (변동성 2.5%)",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "D/E 0.12, 이자보상 175.3x",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "적자 0개년, EPS CAGR 29.8%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": true,
+          "points": 5.8,
+          "maxPoints": 6,
+          "value": "8/8개년 흑자, FCF마진 18.2%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 5,
+          "value": "-1638.4%",
           "threshold": "감소 추세 (자사주 매입)",
           "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
         },
@@ -98,17 +384,17 @@
           "passed": true,
           "points": 4,
           "maxPoints": 4,
-          "value": "1.60",
+          "value": "2.01",
           "threshold": "≥ 1.5",
           "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
         },
         {
           "id": "peRelative",
           "label": "PER (자체 평균·업종 평균 대비)",
-          "passed": true,
-          "points": 8.8,
+          "passed": false,
+          "points": 0,
           "maxPoints": 10,
-          "value": "현재 15.0 / 자체평균 23.1 / 업종평균(추정) 28",
+          "value": "현재 32.0 / 자체평균 24.5 / 업종평균(추정) 22",
           "threshold": "현재 PER < 두 평균",
           "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
         },
@@ -116,9 +402,9 @@
           "id": "peg",
           "label": "PEG 비율",
           "passed": false,
-          "points": 5.4,
+          "points": 7.4,
           "maxPoints": 8,
-          "value": "1.32",
+          "value": "1.07",
           "threshold": "< 1.0",
           "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
         },
@@ -128,7 +414,7 @@
           "passed": false,
           "points": 0,
           "maxPoints": 8,
-          "value": "현재가 98.82 / 그레이엄넘버 55.24",
+          "value": "현재가 345.90 / 그레이엄넘버 90.89",
           "threshold": "현재가 ≤ 그레이엄 넘버",
           "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
         },
@@ -136,33 +422,33 @@
           "id": "marginOfSafety",
           "label": "안전마진 (DCF 내재가치 기준)",
           "passed": false,
-          "points": 8.3,
+          "points": 0,
           "maxPoints": 24,
-          "value": "내재가치 108.16 / 현재가 98.82 → 8.6%",
+          "value": "내재가치 124.35 / 현재가 345.90 → -178.2%",
           "threshold": "≥ 25%",
           "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
         }
       ],
-      "asOf": "2026-08-15T08:30:59.636Z"
+      "asOf": "2026-08-17T09:09:22.525Z"
     },
     {
-      "ticker": "KO",
-      "companyName": "Coca-Cola Co. (샘플)",
-      "sector": "Consumer Defensive",
-      "price": 79.9779502591894,
-      "marketCap": 332047557738.422,
-      "qualityScore": 40.7,
+      "ticker": "AVGO",
+      "companyName": "Broadcom Inc.",
+      "sector": "Technology",
+      "price": 392.99,
+      "marketCap": 1905301203354.2979,
+      "qualityScore": 42,
       "valuationScore": 0,
-      "totalScore": 40.7,
+      "totalScore": 42,
       "isBuyCandidate": false,
       "intrinsicValue": {
-        "ownerEarningsPerShare": 2.7005771736883943,
-        "growthRateUsed": 0.050000000000000044,
+        "ownerEarningsPerShare": 4.39756075412955,
+        "growthRateUsed": 0.12,
         "discountRate": 0.095,
         "terminalGrowthRate": 0.025,
-        "intrinsicValuePerShare": 43.98621556312442,
-        "currentPrice": 79.9779502591894,
-        "marginOfSafety": -0.8182503139969703
+        "intrinsicValuePerShare": 95.6274947623422,
+        "currentPrice": 392.99,
+        "marginOfSafety": -3.1095921311823203
       },
       "criteria": [
         {
@@ -171,7 +457,7 @@
           "passed": true,
           "points": 8,
           "maxPoints": 8,
-          "value": "40.0%",
+          "value": "34.7%",
           "threshold": "≥ 15%",
           "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
         },
@@ -181,7 +467,7 @@
           "passed": true,
           "points": 7,
           "maxPoints": 7,
-          "value": "15.0%",
+          "value": "55.6%",
           "threshold": "≥ 12%",
           "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
         },
@@ -191,27 +477,27 @@
           "passed": true,
           "points": 6,
           "maxPoints": 6,
-          "value": "60.0% (변동성 0.0%)",
+          "value": "65.5% (변동성 4.4%)",
           "threshold": "≥ 35%, 변동성 < 15%",
           "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
         },
         {
           "id": "debt",
           "label": "부채비율 · 이자보상배율",
-          "passed": false,
-          "points": 3.6,
+          "passed": true,
+          "points": 7,
           "maxPoints": 7,
-          "value": "D/E 0.90, 이자보상 9.0x",
+          "value": "D/E 0.04, 이자보상 7.9x",
           "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
           "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
         },
         {
           "id": "epsConsistency",
           "label": "EPS 일관성 (최근 10년)",
-          "passed": true,
-          "points": 5.7,
+          "passed": false,
+          "points": 4,
           "maxPoints": 7,
-          "value": "적자 0개년, EPS CAGR 5.5%",
+          "value": "적자 0개년, EPS CAGR -5.5%",
           "threshold": "적자 0개년, 우상향 추세",
           "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
         },
@@ -221,27 +507,27 @@
           "passed": true,
           "points": 6,
           "maxPoints": 6,
-          "value": "8/8개년 흑자, FCF마진 22.0%",
+          "value": "8/8개년 흑자, FCF마진 42.1%",
           "threshold": "전 기간 흑자, 마진 ≥ 10%",
           "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
         },
         {
           "id": "shareCount",
           "label": "유통주식수 추세 (자사주 매입)",
-          "passed": true,
-          "points": 2.8,
+          "passed": false,
+          "points": 0,
           "maxPoints": 5,
-          "value": "3.4%",
+          "value": "-1024.8%",
           "threshold": "감소 추세 (자사주 매입)",
           "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
         },
         {
           "id": "currentRatio",
           "label": "유동비율",
-          "passed": false,
-          "points": 1.6,
+          "passed": true,
+          "points": 4,
           "maxPoints": 4,
-          "value": "1.20",
+          "value": "1.71",
           "threshold": "≥ 1.5",
           "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
         },
@@ -251,7 +537,7 @@
           "passed": false,
           "points": 0,
           "maxPoints": 10,
-          "value": "현재 27.0 / 자체평균 26.3 / 업종평균(추정) 21",
+          "value": "현재 82.4 / 자체평균 52.3 / 업종평균(추정) 28",
           "threshold": "현재 PER < 두 평균",
           "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
         },
@@ -261,7 +547,7 @@
           "passed": false,
           "points": 0,
           "maxPoints": 8,
-          "value": "4.88",
+          "value": "N/A (이익성장 데이터 부족)",
           "threshold": "< 1.0",
           "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
         },
@@ -271,7 +557,7 @@
           "passed": false,
           "points": 0,
           "maxPoints": 8,
-          "value": "현재가 79.98 / 그레이엄넘버 22.22",
+          "value": "현재가 392.99 / 그레이엄넘버 42.42",
           "threshold": "현재가 ≤ 그레이엄 넘버",
           "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
         },
@@ -281,31 +567,31 @@
           "passed": false,
           "points": 0,
           "maxPoints": 24,
-          "value": "내재가치 43.99 / 현재가 79.98 → -81.8%",
+          "value": "내재가치 95.63 / 현재가 392.99 → -311.0%",
           "threshold": "≥ 25%",
           "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
         }
       ],
-      "asOf": "2026-08-15T08:30:59.640Z"
+      "asOf": "2026-08-17T09:09:23.219Z"
     },
     {
-      "ticker": "XOM",
-      "companyName": "Exxon Mobil Corp. (샘플)",
-      "sector": "Energy",
-      "price": 75.52906219476115,
-      "marketCap": 295671690852.9247,
-      "qualityScore": 33.7,
-      "valuationScore": 18,
-      "totalScore": 51.7,
+      "ticker": "KO",
+      "companyName": "Coca-Cola Co.",
+      "sector": "Consumer Defensive",
+      "price": 87.71,
+      "marketCap": 378162819078.9474,
+      "qualityScore": 45,
+      "valuationScore": 0,
+      "totalScore": 45,
       "isBuyCandidate": false,
       "intrinsicValue": {
-        "ownerEarningsPerShare": 5.984467044942493,
-        "growthRateUsed": 0.020000000000000018,
+        "ownerEarningsPerShare": 1.5295480786348261,
+        "growthRateUsed": 0,
         "discountRate": 0.095,
         "terminalGrowthRate": 0.025,
-        "intrinsicValuePerShare": 85.76579228819256,
-        "currentPrice": 75.52906219476115,
-        "marginOfSafety": 0.11935679506152831
+        "intrinsicValuePerShare": 20.100184001214995,
+        "currentPrice": 87.71,
+        "marginOfSafety": -3.3636416460017573
       },
       "criteria": [
         {
@@ -314,37 +600,37 @@
           "passed": true,
           "points": 8,
           "maxPoints": 8,
-          "value": "16.0%",
+          "value": "41.4%",
           "threshold": "≥ 15%",
           "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
         },
         {
           "id": "roic",
           "label": "투하자본이익률 (ROIC) 5년 평균",
-          "passed": false,
-          "points": 4.7,
+          "passed": true,
+          "points": 7,
           "maxPoints": 7,
-          "value": "10.0%",
+          "value": "30.9%",
           "threshold": "≥ 12%",
           "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
         },
         {
           "id": "grossMargin",
           "label": "매출총이익률 수준·안정성",
-          "passed": false,
-          "points": 3.3,
+          "passed": true,
+          "points": 6,
           "maxPoints": 6,
-          "value": "28.0% (변동성 0.0%)",
+          "value": "60.1% (변동성 2.0%)",
           "threshold": "≥ 35%, 변동성 < 15%",
           "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
         },
         {
           "id": "debt",
           "label": "부채비율 · 이자보상배율",
-          "passed": false,
-          "points": 3.7,
+          "passed": true,
+          "points": 7,
           "maxPoints": 7,
-          "value": "D/E 0.70, 이자보상 6.0x",
+          "value": "D/E 0.00, 이자보상 8.3x",
           "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
           "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
         },
@@ -352,29 +638,29 @@
           "id": "epsConsistency",
           "label": "EPS 일관성 (최근 10년)",
           "passed": true,
-          "points": 4.9,
+          "points": 7,
           "maxPoints": 7,
-          "value": "적자 0개년, EPS CAGR 3.0%",
+          "value": "적자 0개년, EPS CAGR 11.2%",
           "threshold": "적자 0개년, 우상향 추세",
           "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
         },
         {
           "id": "fcf",
           "label": "잉여현금흐름 (FCF)",
-          "passed": false,
-          "points": 4.4,
+          "passed": true,
+          "points": 4.8,
           "maxPoints": 6,
-          "value": "8/8개년 흑자, FCF마진 8.0%",
+          "value": "8/8개년 흑자, FCF마진 11.0%",
           "threshold": "전 기간 흑자, 마진 ≥ 10%",
           "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
         },
         {
           "id": "shareCount",
           "label": "유통주식수 추세 (자사주 매입)",
-          "passed": true,
-          "points": 3.9,
+          "passed": false,
+          "points": 1.5,
           "maxPoints": 5,
-          "value": "6.8%",
+          "value": "-0.5%",
           "threshold": "감소 추세 (자사주 매입)",
           "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
         },
@@ -382,19 +668,19 @@
           "id": "currentRatio",
           "label": "유동비율",
           "passed": false,
-          "points": 0.8,
+          "points": 3.7,
           "maxPoints": 4,
-          "value": "1.10",
+          "value": "1.46",
           "threshold": "≥ 1.5",
           "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
         },
         {
           "id": "peRelative",
           "label": "PER (자체 평균·업종 평균 대비)",
-          "passed": true,
-          "points": 2.1,
+          "passed": false,
+          "points": 0,
           "maxPoints": 10,
-          "value": "현재 11.0 / 자체평균 13.7 / 업종평균(추정) 12",
+          "value": "현재 28.9 / 자체평균 25.5 / 업종평균(추정) 21",
           "threshold": "현재 PER < 두 평균",
           "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
         },
@@ -404,17 +690,17 @@
           "passed": false,
           "points": 0,
           "maxPoints": 8,
-          "value": "3.63",
+          "value": "2.58",
           "threshold": "< 1.0",
           "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
         },
         {
           "id": "grahamNumber",
           "label": "그레이엄 넘버 대비 주가",
-          "passed": true,
-          "points": 4.4,
+          "passed": false,
+          "points": 0,
           "maxPoints": 8,
-          "value": "현재가 75.53 / 그레이엄넘버 81.42",
+          "value": "현재가 87.71 / 그레이엄넘버 22.59",
           "threshold": "현재가 ≤ 그레이엄 넘버",
           "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
         },
@@ -422,33 +708,33 @@
           "id": "marginOfSafety",
           "label": "안전마진 (DCF 내재가치 기준)",
           "passed": false,
-          "points": 11.5,
+          "points": 0,
           "maxPoints": 24,
-          "value": "내재가치 85.77 / 현재가 75.53 → 11.9%",
+          "value": "내재가치 20.10 / 현재가 87.71 → -336.4%",
           "threshold": "≥ 25%",
           "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
         }
       ],
-      "asOf": "2026-08-15T08:30:59.640Z"
+      "asOf": "2026-08-17T09:09:23.731Z"
     },
     {
-      "ticker": "JPM",
-      "companyName": "JPMorgan Chase & Co. (샘플)",
-      "sector": "Financial Services",
-      "price": 167.31529883165572,
-      "marketCap": 435752049055.6963,
-      "qualityScore": 38.8,
-      "valuationScore": 46.4,
-      "totalScore": 85.2,
-      "isBuyCandidate": true,
+      "ticker": "PG",
+      "companyName": "Procter & Gamble Co.",
+      "sector": "Consumer Defensive",
+      "price": 144.55,
+      "marketCap": 350369984894.2598,
+      "qualityScore": 42.4,
+      "valuationScore": 0,
+      "totalScore": 42.4,
+      "isBuyCandidate": false,
       "intrinsicValue": {
-        "ownerEarningsPerShare": 16.93106931039449,
-        "growthRateUsed": 0.06000000000000005,
+        "ownerEarningsPerShare": 6.286785907183514,
+        "growthRateUsed": 0,
         "discountRate": 0.095,
         "terminalGrowthRate": 0.025,
-        "intrinsicValuePerShare": 287.6261396667833,
-        "currentPrice": 167.31529883165572,
-        "marginOfSafety": 0.4182889669711815
+        "intrinsicValuePerShare": 82.61626769092445,
+        "currentPrice": 144.55,
+        "marginOfSafety": -0.7496554133960122
       },
       "criteria": [
         {
@@ -457,17 +743,17 @@
           "passed": true,
           "points": 8,
           "maxPoints": 8,
-          "value": "17.0%",
+          "value": "30.4%",
           "threshold": "≥ 15%",
           "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
         },
         {
           "id": "roic",
           "label": "투하자본이익률 (ROIC) 5년 평균",
-          "passed": false,
-          "points": 3.5,
+          "passed": true,
+          "points": 7,
           "maxPoints": 7,
-          "value": "9.0%",
+          "value": "21.4%",
           "threshold": "≥ 12%",
           "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
         },
@@ -477,7 +763,7 @@
           "passed": true,
           "points": 6,
           "maxPoints": 6,
-          "value": "55.0% (변동성 0.0%)",
+          "value": "49.6% (변동성 3.3%)",
           "threshold": "≥ 35%, 변동성 < 15%",
           "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
         },
@@ -485,9 +771,9 @@
           "id": "debt",
           "label": "부채비율 · 이자보상배율",
           "passed": false,
-          "points": 1.5,
+          "points": 5.6,
           "maxPoints": 7,
-          "value": "D/E 1.10, 이자보상 5.0x",
+          "value": "D/E 0.54, 이자보상 22.5x",
           "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
           "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
         },
@@ -495,9 +781,9 @@
           "id": "epsConsistency",
           "label": "EPS 일관성 (최근 10년)",
           "passed": true,
-          "points": 6.4,
+          "points": 5.1,
           "maxPoints": 7,
-          "value": "적자 0개년, EPS CAGR 8.2%",
+          "value": "적자 0개년, EPS CAGR 3.8%",
           "threshold": "적자 0개년, 우상향 추세",
           "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
         },
@@ -505,9 +791,9 @@
           "id": "fcf",
           "label": "잉여현금흐름 (FCF)",
           "passed": true,
-          "points": 6,
+          "points": 5.7,
           "maxPoints": 6,
-          "value": "8/8개년 흑자, FCF마진 27.0%",
+          "value": "8/8개년 흑자, FCF마진 17.4%",
           "threshold": "전 기간 흑자, 마진 ≥ 10%",
           "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
         },
@@ -517,7 +803,7 @@
           "passed": true,
           "points": 5,
           "maxPoints": 5,
-          "value": "13.2%",
+          "value": "11.1%",
           "threshold": "감소 추세 (자사주 매입)",
           "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
         },
@@ -525,19 +811,19 @@
           "id": "currentRatio",
           "label": "유동비율",
           "passed": false,
-          "points": 2.4,
+          "points": 0,
           "maxPoints": 4,
-          "value": "1.30",
+          "value": "0.68",
           "threshold": "≥ 1.5",
           "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
         },
         {
           "id": "peRelative",
           "label": "PER (자체 평균·업종 평균 대비)",
-          "passed": true,
-          "points": 8.5,
+          "passed": false,
+          "points": 0,
           "maxPoints": 10,
-          "value": "현재 9.0 / 자체평균 13.7 / 업종평균(추정) 14",
+          "value": "현재 21.8 / 자체평균 24.8 / 업종평균(추정) 21",
           "threshold": "현재 PER < 두 평균",
           "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
         },
@@ -545,34 +831,2036 @@
           "id": "peg",
           "label": "PEG 비율",
           "passed": false,
-          "points": 7.2,
+          "points": 0,
           "maxPoints": 8,
-          "value": "1.10",
+          "value": "5.78",
           "threshold": "< 1.0",
           "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
         },
         {
           "id": "grahamNumber",
           "label": "그레이엄 넘버 대비 주가",
-          "passed": true,
-          "points": 6.7,
+          "passed": false,
+          "points": 0,
           "maxPoints": 8,
-          "value": "현재가 167.32 / 그레이엄넘버 213.87",
+          "value": "현재가 144.55 / 그레이엄넘버 57.77",
           "threshold": "현재가 ≤ 그레이엄 넘버",
           "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
         },
         {
           "id": "marginOfSafety",
           "label": "안전마진 (DCF 내재가치 기준)",
-          "passed": true,
-          "points": 24,
+          "passed": false,
+          "points": 0,
           "maxPoints": 24,
-          "value": "내재가치 287.63 / 현재가 167.32 → 41.8%",
+          "value": "내재가치 82.62 / 현재가 144.55 → -75.0%",
           "threshold": "≥ 25%",
           "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
         }
       ],
-      "asOf": "2026-08-15T08:30:59.640Z"
+      "asOf": "2026-08-17T09:09:24.486Z"
+    },
+    {
+      "ticker": "WMT",
+      "companyName": "Walmart Inc.",
+      "sector": "Consumer Defensive",
+      "price": 115.27,
+      "marketCap": 924397842490.8424,
+      "qualityScore": 32.2,
+      "valuationScore": 0,
+      "totalScore": 32.2,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": 1.7749842415383914,
+        "growthRateUsed": 0,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": 23.325523631805087,
+        "currentPrice": 115.27,
+        "marginOfSafety": -3.941796883943292
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": true,
+          "points": 8,
+          "maxPoints": 8,
+          "value": "18.7%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "18.3%",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": false,
+          "points": 2.7,
+          "maxPoints": 6,
+          "value": "24.7% (변동성 1.5%)",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": true,
+          "points": 6.5,
+          "maxPoints": 7,
+          "value": "D/E 0.38, 이자보상 12.9x",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": false,
+          "points": 4,
+          "maxPoints": 7,
+          "value": "적자 0개년, EPS CAGR -10.5%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": false,
+          "points": 4,
+          "maxPoints": 6,
+          "value": "8/8개년 흑자, FCF마진 2.1%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 5,
+          "value": "-171.7%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 4,
+          "value": "0.79",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 10,
+          "value": "현재 42.2 / 자체평균 35.0 / 업종평균(추정) 21",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "N/A (이익성장 데이터 부족)",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "현재가 115.27 / 그레이엄넘버 27.62",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 24,
+          "value": "내재가치 23.33 / 현재가 115.27 → -394.2%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:25.044Z"
+    },
+    {
+      "ticker": "COST",
+      "companyName": "Costco Wholesale Corp.",
+      "sector": "Consumer Defensive",
+      "price": 961.1,
+      "marketCap": 427454634816.03516,
+      "qualityScore": 36.8,
+      "valuationScore": 0,
+      "totalScore": 36.8,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": 15.897119397456475,
+        "growthRateUsed": 0.05308769636936583,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": 262.3232043860882,
+        "currentPrice": 961.1,
+        "marginOfSafety": -2.6638009292744447
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": true,
+          "points": 8,
+          "maxPoints": 8,
+          "value": "28.2%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "37.5%",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": false,
+          "points": 2,
+          "maxPoints": 6,
+          "value": "12.5% (변동성 2.4%)",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "D/E 0.20, 이자보상 67.4x",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "적자 0개년, EPS CAGR 15.1%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": false,
+          "points": 4,
+          "maxPoints": 6,
+          "value": "8/8개년 흑자, FCF마진 2.8%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": false,
+          "points": 1.5,
+          "maxPoints": 5,
+          "value": "-0.6%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 0.3,
+          "maxPoints": 4,
+          "value": "1.03",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 10,
+          "value": "현재 52.8 / 자체평균 44.9 / 업종평균(추정) 21",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "3.50",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "현재가 961.10 / 그레이엄넘버 163.91",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 24,
+          "value": "내재가치 262.32 / 현재가 961.10 → -266.4%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:25.732Z"
+    },
+    {
+      "ticker": "HD",
+      "companyName": "Home Depot Inc.",
+      "sector": "Consumer Cyclical",
+      "price": 338.86,
+      "marketCap": 337097832747.7161,
+      "qualityScore": 37.2,
+      "valuationScore": 0.2,
+      "totalScore": 37.4,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": 15.720752331166995,
+        "growthRateUsed": 0,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": 206.59044256785836,
+        "currentPrice": 338.86,
+        "marginOfSafety": -0.640250128651016
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": true,
+          "points": 8,
+          "maxPoints": 8,
+          "value": "382.0%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "40.9%",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": false,
+          "points": 4.2,
+          "maxPoints": 6,
+          "value": "33.5% (변동성 0.3%)",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": false,
+          "points": 3,
+          "maxPoints": 7,
+          "value": "D/E 3.86, 이자보상 8.7x",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": true,
+          "points": 5.1,
+          "maxPoints": 7,
+          "value": "적자 0개년, EPS CAGR 3.6%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": false,
+          "points": 4.4,
+          "maxPoints": 6,
+          "value": "8/8개년 흑자, FCF마진 7.7%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": true,
+          "points": 5,
+          "maxPoints": 5,
+          "value": "13.0%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 0.5,
+          "maxPoints": 4,
+          "value": "1.06",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": true,
+          "points": 0.2,
+          "maxPoints": 10,
+          "value": "현재 23.8 / 자체평균 24.0 / 업종평균(추정) 24",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "6.67",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "현재가 338.86 / 그레이엄넘버 64.22",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 24,
+          "value": "내재가치 206.59 / 현재가 338.86 → -64.0%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:26.221Z"
+    },
+    {
+      "ticker": "MCD",
+      "companyName": "McDonald's Corp.",
+      "sector": "Consumer Cyclical",
+      "price": 272.83,
+      "marketCap": 195501530543.93307,
+      "qualityScore": 33.5,
+      "valuationScore": 3.8,
+      "totalScore": 37.3,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": 9.821337926739071,
+        "growthRateUsed": 0.09216024512251142,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": 190.6832420839043,
+        "currentPrice": 272.83,
+        "marginOfSafety": -0.4308021880598691
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "-228.3%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "28.4%",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": false,
+          "points": 2,
+          "maxPoints": 6,
+          "value": "N/A",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": true,
+          "points": 6.9,
+          "maxPoints": 7,
+          "value": "D/E -22.72, 이자보상 7.8x",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "적자 0개년, EPS CAGR 13.6%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": true,
+          "points": 6,
+          "maxPoints": 6,
+          "value": "8/8개년 흑자, FCF마진 26.7%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": true,
+          "points": 4.6,
+          "maxPoints": 5,
+          "value": "8.8%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 4,
+          "value": "0.95",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": true,
+          "points": 1.2,
+          "maxPoints": 10,
+          "value": "현재 22.8 / 자체평균 27.0 / 업종평균(추정) 24",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 2.6,
+          "maxPoints": 8,
+          "value": "1.68",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "N/A",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 24,
+          "value": "내재가치 190.68 / 현재가 272.83 → -43.1%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:26.810Z"
+    },
+    {
+      "ticker": "JNJ",
+      "companyName": "Johnson & Johnson",
+      "sector": "Healthcare",
+      "price": 260.35,
+      "marketCap": 632676464188.5767,
+      "qualityScore": 35,
+      "valuationScore": 3.3,
+      "totalScore": 38.3,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": 7.926698005272845,
+        "growthRateUsed": 0,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": 104.16677360691651,
+        "currentPrice": 260.35,
+        "marginOfSafety": -1.4993574340936793
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": true,
+          "points": 8,
+          "maxPoints": 8,
+          "value": "31.0%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 7,
+          "value": "N/A",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": true,
+          "points": 6,
+          "maxPoints": 6,
+          "value": "69.1% (변동성 1.1%)",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": false,
+          "points": 2.8,
+          "maxPoints": 7,
+          "value": "D/E 0.51, 이자보상 N/A",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "적자 0개년, EPS CAGR 14.9%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": true,
+          "points": 6,
+          "maxPoints": 6,
+          "value": "8/8개년 흑자, FCF마진 20.9%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": true,
+          "points": 5,
+          "maxPoints": 5,
+          "value": "10.9%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 0.2,
+          "maxPoints": 4,
+          "value": "1.03",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 10,
+          "value": "현재 23.6 / 자체평균 20.7 / 업종평균(추정) 24",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 3.3,
+          "maxPoints": 8,
+          "value": "1.59",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "현재가 260.35 / 그레이엄넘버 91.26",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 24,
+          "value": "내재가치 104.17 / 현재가 260.35 → -149.9%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:27.401Z"
+    },
+    {
+      "ticker": "UNH",
+      "companyName": "UnitedHealth Group Inc.",
+      "sector": "Healthcare",
+      "price": 401.73,
+      "marketCap": 366081396825.39685,
+      "qualityScore": 35.7,
+      "valuationScore": 0,
+      "totalScore": 35.7,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": 22.848160252156607,
+        "growthRateUsed": 0,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": 300.2535399655386,
+        "currentPrice": 401.73,
+        "marginOfSafety": -0.33796923775189563
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": true,
+          "points": 8,
+          "maxPoints": 8,
+          "value": "19.6%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "16.9%",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": true,
+          "points": 6,
+          "maxPoints": 6,
+          "value": "89.1% (변동성 0.6%)",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": false,
+          "points": 2.6,
+          "maxPoints": 7,
+          "value": "D/E 0.78, 이자보상 4.7x",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": false,
+          "points": 4,
+          "maxPoints": 7,
+          "value": "적자 0개년, EPS CAGR -3.8%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": false,
+          "points": 4,
+          "maxPoints": 6,
+          "value": "8/8개년 흑자, FCF마진 3.6%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": true,
+          "points": 4.1,
+          "maxPoints": 5,
+          "value": "7.3%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 4,
+          "value": "0.79",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 10,
+          "value": "현재 30.4 / 자체평균 26.6 / 업종평균(추정) 24",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "N/A (이익성장 데이터 부족)",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "현재가 401.73 / 그레이엄넘버 180.82",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 24,
+          "value": "내재가치 300.25 / 현재가 401.73 → -33.8%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:27.955Z"
+    },
+    {
+      "ticker": "ABBV",
+      "companyName": "AbbVie Inc.",
+      "sector": "Healthcare",
+      "price": 249.46,
+      "marketCap": 446702525423.7289,
+      "qualityScore": 36.6,
+      "valuationScore": 0,
+      "totalScore": 36.6,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": 10.742672345795867,
+        "growthRateUsed": 0.011933332554763254,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": 148.6870519526051,
+        "currentPrice": 249.46,
+        "marginOfSafety": -0.6777520081541257
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": true,
+          "points": 8,
+          "maxPoints": 8,
+          "value": "38.0%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "17.3%",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": true,
+          "points": 6,
+          "maxPoints": 6,
+          "value": "68.3% (변동성 4.4%)",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": true,
+          "points": 5.6,
+          "maxPoints": 7,
+          "value": "D/E -20.49, 이자보상 5.2x",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": false,
+          "points": 4,
+          "maxPoints": 7,
+          "value": "적자 0개년, EPS CAGR -2.8%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": true,
+          "points": 6,
+          "maxPoints": 6,
+          "value": "8/8개년 흑자, FCF마진 29.1%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 5,
+          "value": "-15.2%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 4,
+          "value": "0.67",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 10,
+          "value": "현재 105.7 / 자체평균 54.7 / 업종평균(추정) 24",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "N/A (이익성장 데이터 부족)",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "N/A",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 24,
+          "value": "내재가치 148.69 / 현재가 249.46 → -67.8%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:28.464Z"
+    },
+    {
+      "ticker": "JPM",
+      "companyName": "JPMorgan Chase & Co.",
+      "sector": "Financial Services",
+      "price": 362.84,
+      "marketCap": 1033930885114.8851,
+      "qualityScore": 26,
+      "valuationScore": 7.8,
+      "totalScore": 33.8,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": null,
+        "growthRateUsed": 0,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": null,
+        "currentPrice": 362.84,
+        "marginOfSafety": -1
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": true,
+          "points": 8,
+          "maxPoints": 8,
+          "value": "15.4%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 7,
+          "value": "N/A",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": false,
+          "points": 2,
+          "maxPoints": 6,
+          "value": "N/A",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": false,
+          "points": 4,
+          "maxPoints": 7,
+          "value": "D/E 0.18, 이자보상 N/A",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "적자 0개년, EPS CAGR 17.7%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 6,
+          "value": "0/8개년 흑자, FCF마진 NaN%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": true,
+          "points": 5,
+          "maxPoints": 5,
+          "value": "21.0%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 4,
+          "value": "N/A",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 10,
+          "value": "현재 18.1 / 자체평균 12.0 / 업종평균(추정) 14",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 7.8,
+          "maxPoints": 8,
+          "value": "1.03",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "현재가 362.84 / 그레이엄넘버 239.36",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 24,
+          "value": "내재가치 NaN / 현재가 362.84 → -100.0%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:29.022Z"
+    },
+    {
+      "ticker": "V",
+      "companyName": "Visa Inc.",
+      "sector": "Financial Services",
+      "price": 364.15,
+      "marketCap": null,
+      "qualityScore": 34.2,
+      "valuationScore": 0,
+      "totalScore": 34.2,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": null,
+        "growthRateUsed": 0.12,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": null,
+        "currentPrice": 364.15,
+        "marginOfSafety": -1
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": true,
+          "points": 8,
+          "maxPoints": 8,
+          "value": "44.5%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "36.7%",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": false,
+          "points": 2,
+          "maxPoints": 6,
+          "value": "N/A",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": false,
+          "points": 4.9,
+          "maxPoints": 7,
+          "value": "D/E 0.66, 이자보상 40.7x",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": false,
+          "points": 4,
+          "maxPoints": 7,
+          "value": "적자 0개년, EPS CAGR NaN%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": true,
+          "points": 6,
+          "maxPoints": 6,
+          "value": "8/8개년 흑자, FCF마진 53.9%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": false,
+          "points": 1.7,
+          "maxPoints": 5,
+          "value": "0.0%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 0.6,
+          "maxPoints": 4,
+          "value": "1.08",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 10,
+          "value": "현재 N/A / 자체평균 N/A / 업종평균(추정) 14",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "N/A (이익성장 데이터 부족)",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "N/A",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 24,
+          "value": "내재가치 NaN / 현재가 364.15 → -100.0%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:29.541Z"
+    },
+    {
+      "ticker": "MA",
+      "companyName": "Mastercard Inc.",
+      "sector": "Financial Services",
+      "price": 569.29,
+      "marketCap": 515807065375.3026,
+      "qualityScore": 38.3,
+      "valuationScore": 2.9,
+      "totalScore": 41.2,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": 15.846750400855159,
+        "growthRateUsed": 0.12,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": 344.59672661370087,
+        "currentPrice": 569.29,
+        "marginOfSafety": -0.6520470336277578
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": true,
+          "points": 8,
+          "maxPoints": 8,
+          "value": "166.0%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "75.5%",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": false,
+          "points": 2,
+          "maxPoints": 6,
+          "value": "N/A",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": false,
+          "points": 3,
+          "maxPoints": 7,
+          "value": "D/E 2.46, 이자보상 27.8x",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "적자 0개년, EPS CAGR 21.0%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": true,
+          "points": 6,
+          "maxPoints": 6,
+          "value": "8/8개년 흑자, FCF마진 52.3%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": true,
+          "points": 5,
+          "maxPoints": 5,
+          "value": "13.4%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 0.3,
+          "maxPoints": 4,
+          "value": "1.03",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 10,
+          "value": "현재 34.5 / 자체평균 36.8 / 업종평균(추정) 14",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 2.9,
+          "maxPoints": 8,
+          "value": "1.64",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "현재가 569.29 / 그레이엄넘버 56.34",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 24,
+          "value": "내재가치 344.60 / 현재가 569.29 → -65.2%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:30.085Z"
+    },
+    {
+      "ticker": "CAT",
+      "companyName": "Caterpillar Inc.",
+      "sector": "Industrials",
+      "price": 856.57,
+      "marketCap": 404468619883.04095,
+      "qualityScore": 39.6,
+      "valuationScore": 3,
+      "totalScore": 42.6,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": 21.356260977257374,
+        "growthRateUsed": 0.10764087497839547,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": 441.7253833385677,
+        "currentPrice": 856.57,
+        "marginOfSafety": -0.9391459769099749
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": true,
+          "points": 8,
+          "maxPoints": 8,
+          "value": "46.3%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "19.2%",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": false,
+          "points": 4,
+          "maxPoints": 6,
+          "value": "85.9% (변동성 32.3%)",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 7,
+          "value": "D/E 1.70, 이자보상 N/A",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "적자 0개년, EPS CAGR 28.1%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": true,
+          "points": 5.1,
+          "maxPoints": 6,
+          "value": "8/8개년 흑자, FCF마진 13.2%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": true,
+          "points": 5,
+          "maxPoints": 5,
+          "value": "21.2%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 3.5,
+          "maxPoints": 4,
+          "value": "1.44",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 10,
+          "value": "현재 45.5 / 자체평균 19.6 / 업종평균(추정) 20",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 3,
+          "maxPoints": 8,
+          "value": "1.62",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "현재가 856.57 / 그레이엄넘버 138.23",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 24,
+          "value": "내재가치 441.73 / 현재가 856.57 → -93.9%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:30.685Z"
+    },
+    {
+      "ticker": "XOM",
+      "companyName": "Exxon Mobil Corp.",
+      "sector": "Energy",
+      "price": 160.1,
+      "marketCap": 689242447761.194,
+      "qualityScore": 21.4,
+      "valuationScore": 0,
+      "totalScore": 21.4,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": 6.796475292377387,
+        "growthRateUsed": 0,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": 89.31422676064318,
+        "currentPrice": 160.1,
+        "marginOfSafety": -0.7925475683628598
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": true,
+          "points": 8,
+          "maxPoints": 8,
+          "value": "16.7%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 7,
+          "value": "N/A",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": false,
+          "points": 2,
+          "maxPoints": 6,
+          "value": "N/A",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": false,
+          "points": 4,
+          "maxPoints": 7,
+          "value": "D/E 0.02, 이자보상 N/A",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": false,
+          "points": 1.3,
+          "maxPoints": 7,
+          "value": "적자 1개년, EPS CAGR 0.0%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": false,
+          "points": 3.5,
+          "maxPoints": 6,
+          "value": "7/8개년 흑자, FCF마진 7.1%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": false,
+          "points": 1.4,
+          "maxPoints": 5,
+          "value": "-0.8%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 1.2,
+          "maxPoints": 4,
+          "value": "1.15",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 10,
+          "value": "현재 23.9 / 자체평균 12.5 / 업종평균(추정) 12",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "N/A (이익성장 데이터 부족)",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "현재가 160.10 / 그레이엄넘버 95.30",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 24,
+          "value": "내재가치 89.31 / 현재가 160.10 → -79.3%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:31.390Z"
+    },
+    {
+      "ticker": "CVX",
+      "companyName": "Chevron Corp.",
+      "sector": "Energy",
+      "price": 200,
+      "marketCap": 371010558069.3816,
+      "qualityScore": 24.9,
+      "valuationScore": 0.4,
+      "totalScore": 25.3,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": 9.23891048052687,
+        "growthRateUsed": 0.12,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": 200.9054366688812,
+        "currentPrice": 200,
+        "marginOfSafety": 0.0045067803235881955
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": false,
+          "points": 5.7,
+          "maxPoints": 8,
+          "value": "13.0%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 7,
+          "value": "N/A",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": true,
+          "points": 5.5,
+          "maxPoints": 6,
+          "value": "41.8% (변동성 2.4%)",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": false,
+          "points": 4,
+          "maxPoints": 7,
+          "value": "D/E 0.01, 이자보상 N/A",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": false,
+          "points": 1.3,
+          "maxPoints": 7,
+          "value": "적자 1개년, EPS CAGR 0.0%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": false,
+          "points": 4.5,
+          "maxPoints": 6,
+          "value": "8/8개년 흑자, FCF마진 8.8%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": true,
+          "points": 2.7,
+          "maxPoints": 5,
+          "value": "3.1%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 1.2,
+          "maxPoints": 4,
+          "value": "1.15",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 10,
+          "value": "현재 30.2 / 자체평균 15.0 / 업종평균(추정) 12",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "N/A (이익성장 데이터 부족)",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "현재가 200.00 / 그레이엄넘버 122.45",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0.4,
+          "maxPoints": 24,
+          "value": "내재가치 200.91 / 현재가 200.00 → 0.5%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:31.943Z"
+    },
+    {
+      "ticker": "LIN",
+      "companyName": "Linde plc",
+      "sector": "Basic Materials",
+      "price": 482.74,
+      "marketCap": 227922006844.62698,
+      "qualityScore": 32.3,
+      "valuationScore": 5.6,
+      "totalScore": 37.9,
+      "isBuyCandidate": false,
+      "intrinsicValue": {
+        "ownerEarningsPerShare": 10.966325021745433,
+        "growthRateUsed": 0.04782085172873507,
+        "discountRate": 0.095,
+        "terminalGrowthRate": 0.025,
+        "intrinsicValuePerShare": 176.97866865940335,
+        "currentPrice": 482.74,
+        "marginOfSafety": -1.7276733611836375
+      },
+      "criteria": [
+        {
+          "id": "roe",
+          "label": "자기자본이익률 (ROE) 5년 평균",
+          "passed": false,
+          "points": 6.8,
+          "maxPoints": 8,
+          "value": "14.0%",
+          "threshold": "≥ 15%",
+          "explanation": "버핏이 가장 중시하는 지표 — 자기자본을 얼마나 효율적으로 굴려 이익을 내는지."
+        },
+        {
+          "id": "roic",
+          "label": "투하자본이익률 (ROIC) 5년 평균",
+          "passed": false,
+          "points": 5.8,
+          "maxPoints": 7,
+          "value": "11.0%",
+          "threshold": "≥ 12%",
+          "explanation": "부채까지 포함한 전체 자본 대비 수익성 — 경제적 해자(moat)가 있는 기업일수록 높게 유지됨."
+        },
+        {
+          "id": "grossMargin",
+          "label": "매출총이익률 수준·안정성",
+          "passed": false,
+          "points": 2,
+          "maxPoints": 6,
+          "value": "N/A",
+          "threshold": "≥ 35%, 변동성 < 15%",
+          "explanation": "가격결정력이 있는 기업은 매출총이익률이 높고 해마다 크게 흔들리지 않음."
+        },
+        {
+          "id": "debt",
+          "label": "부채비율 · 이자보상배율",
+          "passed": false,
+          "points": 5.4,
+          "maxPoints": 7,
+          "value": "D/E 0.59, 이자보상 15.5x",
+          "threshold": "D/E ≤ 0.5, 이자보상 ≥ 5x",
+          "explanation": "버핏은 부채가 적은 기업을 선호 — 불황에도 파산 위험이 낮음."
+        },
+        {
+          "id": "epsConsistency",
+          "label": "EPS 일관성 (최근 10년)",
+          "passed": true,
+          "points": 7,
+          "maxPoints": 7,
+          "value": "적자 0개년, EPS CAGR 25.4%",
+          "threshold": "적자 0개년, 우상향 추세",
+          "explanation": "버핏의 핵심 원칙 — \"예측 가능한\" 이익을 내는 기업만 산다."
+        },
+        {
+          "id": "fcf",
+          "label": "잉여현금흐름 (FCF)",
+          "passed": true,
+          "points": 5.3,
+          "maxPoints": 6,
+          "value": "8/8개년 흑자, FCF마진 15.0%",
+          "threshold": "전 기간 흑자, 마진 ≥ 10%",
+          "explanation": "회계상 이익이 아니라 실제 현금이 꾸준히 창출되는지가 핵심."
+        },
+        {
+          "id": "shareCount",
+          "label": "유통주식수 추세 (자사주 매입)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 5,
+          "value": "-41.3%",
+          "threshold": "감소 추세 (자사주 매입)",
+          "explanation": "주주에게 우호적인 자본배분(자사주 매입)의 신호."
+        },
+        {
+          "id": "currentRatio",
+          "label": "유동비율",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 4,
+          "value": "0.88",
+          "threshold": "≥ 1.5",
+          "explanation": "단기 유동성 — 갑작스런 자금 압박에 버틸 수 있는지."
+        },
+        {
+          "id": "peRelative",
+          "label": "PER (자체 평균·업종 평균 대비)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 10,
+          "value": "현재 33.0 / 자체평균 35.8 / 업종평균(추정) 16",
+          "threshold": "현재 PER < 두 평균",
+          "explanation": "이익 대비 얼마나 싼값에 거래되는지를 자체 이력·업종과 비교."
+        },
+        {
+          "id": "peg",
+          "label": "PEG 비율",
+          "passed": false,
+          "points": 5.6,
+          "maxPoints": 8,
+          "value": "1.30",
+          "threshold": "< 1.0",
+          "explanation": "성장률 대비 밸류에이션 — 1 미만이면 성장에 비해 저평가로 해석."
+        },
+        {
+          "id": "grahamNumber",
+          "label": "그레이엄 넘버 대비 주가",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 8,
+          "value": "현재가 482.74 / 그레이엄넘버 163.18",
+          "threshold": "현재가 ≤ 그레이엄 넘버",
+          "explanation": "√(22.5 × EPS × BVPS) — 그레이엄의 고전적 저평가 상한선."
+        },
+        {
+          "id": "marginOfSafety",
+          "label": "안전마진 (DCF 내재가치 기준)",
+          "passed": false,
+          "points": 0,
+          "maxPoints": 24,
+          "value": "내재가치 176.98 / 현재가 482.74 → -172.8%",
+          "threshold": "≥ 25%",
+          "explanation": "소유주이익(Owner Earnings) 기반 단순 DCF로 추정한 내재가치 대비 할인폭 — 그레이엄·버핏 투자의 핵심 원칙."
+        }
+      ],
+      "asOf": "2026-08-17T09:09:32.414Z"
     }
   ]
 }

@@ -1,7 +1,9 @@
 # 버핏 저평가 우량주 스크리너
 
 워렌 버핏·벤저민 그레이엄식 가치투자 기준으로 미국 대형주를 스코어링하는 웹 스크리너입니다.
-저평가 우량주를 실시간으로 스캔하는 대신, **무료 API의 요청 한도에 맞춰 하루 1회 정도 배치로 재계산 → 결과를 캐시해서 즉시 서빙**하는 구조입니다.
+저평가 우량주를 실시간으로 스캔하는 대신, **하루 1회 정도 배치로 재계산 → 결과를 캐시해서 즉시 서빙**하는 구조입니다.
+
+데이터는 **SEC EDGAR(미국 증권거래위원회 공식 재무제표 API)** + **Yahoo Finance(시세)** 조합으로 가져옵니다. 둘 다 완전 무료·키 불필요·일일 요청 한도 없음이라 별도 가입/설정 없이 바로 씁니다.
 
 ## 빠른 시작
 
@@ -10,26 +12,25 @@ npm install
 npm run dev
 ```
 
-`FMP_API_KEY`가 없어도 [data/fixtures.ts](data/fixtures.ts)의 **샘플 데이터**로 바로 동작합니다 (대시보드 상단에 노란 배너로 표시됩니다).
+키 설정 없이도 [data/fixtures.ts](data/fixtures.ts)의 **샘플 데이터**로 바로 동작합니다 (대시보드 상단에 노란 배너로 표시됩니다).
 
 ## 실제 데이터로 전환하기
 
-1. [Financial Modeling Prep](https://site.financialmodelingprep.com/developer/docs)에서 무료로 가입하고 API 키를 발급받으세요. (계정 생성/키 발급은 직접 진행해야 합니다)
-2. `.env.local.example`을 `.env.local`로 복사한 뒤 키를 넣습니다.
+키 발급이나 계정 가입 없이 바로 실행하면 됩니다:
 
-   ```bash
-   cp .env.local.example .env.local
-   ```
+```bash
+npm run refresh
+```
 
-3. 스코어를 계산합니다 (종목당 API 7회 호출, 기본 유니버스 35종목 = 약 245회 — 무료 티어 일일 한도에 맞춰져 있습니다):
+종목당 SEC EDGAR 1회 + Yahoo Finance 1회, 총 2회 호출이며 기본 유니버스 20종목 기준 약 40회 — 두 소스 모두 일일 한도가 없어 언제든 원하는 만큼 재실행할 수 있습니다. `npm run dev`로 확인하면 배너가 사라지고 실제 데이터가 표시됩니다.
 
-   ```bash
-   npm run refresh
-   ```
+종목 유니버스는 [data/universe.json](data/universe.json)에서 추가/삭제할 수 있습니다 (티커, 회사명, 섹터를 함께 적어주세요 — SEC 데이터에는 섹터 분류가 없어서 직접 관리합니다).
 
-4. `npm run dev`로 확인하면 배너가 사라지고 실제 데이터가 표시됩니다.
+### 데이터 소스에 대한 참고
 
-종목 유니버스는 [data/universe.json](data/universe.json)에서 자유롭게 추가/삭제할 수 있습니다. 무료 API 한도를 넘기면 요청이 실패하니, 유니버스를 늘릴 경우 여러 날에 걸쳐 나눠 실행하거나 유료 플랜을 고려하세요.
+- SEC EDGAR는 회사가 제출한 원본 XBRL 재무제표를 그대로 제공하며, ROE·PER 같은 비율은 제공하지 않아 [lib/sec.ts](lib/sec.ts)에서 직접 계산합니다.
+- 회사마다 같은 항목이라도 다른 회계 태그를 쓰는 경우가 있어([lib/sec.ts](lib/sec.ts)의 태그 우선순위 목록 참고), 극히 일부 종목은 일부 지표가 "N/A"로 표시될 수 있습니다 (예: 복수 종류주를 발행하는 회사는 SEC의 평평한 API에서 EPS·주식수가 조회되지 않을 수 있음).
+- 일부 회사는 지주회사 재편 등으로 티커의 SEC CIK가 바뀌기도 하는데, 이 경우 [lib/xbrl.ts](lib/xbrl.ts)의 `CIK_OVERRIDES`에 수동으로 매핑을 추가해야 합니다.
 
 ## 스코어링 기준 (100점 만점)
 
@@ -45,16 +46,18 @@ npm run dev
 ```
 app/page.tsx                대시보드 (스코어 랭킹 + 필터)
 app/stock/[ticker]/page.tsx 종목 상세 (기준별 breakdown)
-lib/fmp.ts                  FMP API 클라이언트
+lib/xbrl.ts                  SEC EDGAR XBRL 저수준 클라이언트 (티커→CIK, 연도별 시계열 추출)
+lib/price.ts                 Yahoo Finance 시세 클라이언트 (현재가 + 과거 종가)
+lib/sec.ts                   위 둘을 조합해 종목별 재무 데이터 번들 생성
 lib/scoring.ts               버핏/그레이엄 스코어링 로직
 lib/store.ts                 data/scores.json 캐시 read/write
 scripts/refresh.ts           배치 갱신 스크립트 (npm run refresh)
-data/universe.json           스크리닝 대상 티커 목록
-data/fixtures.ts             API 키 없을 때 쓰는 샘플 데이터
+data/universe.json           스크리닝 대상 티커 + 회사명/섹터 메타데이터
+data/fixtures.ts             샘플 데이터 (npm run refresh -- --fixture)
 ```
 
 ## 참고 사항
 
 - 이 프로젝트가 보여주는 점수·내재가치는 모두 **참고용 계산 결과**이며 투자 조언이 아닙니다.
 - v1은 웹사이트만 대상으로 하며, 모바일 앱(PWA/네이티브)은 후속 과제입니다.
-- 무료 API 특성상 시세는 실시간이 아닌 지연/일 단위 데이터입니다.
+- SEC EDGAR 재무제표는 분기·연간 공시 시점 기준이라 실시간이 아니며, 시세도 지연/일 단위입니다.

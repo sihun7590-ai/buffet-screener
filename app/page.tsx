@@ -21,9 +21,8 @@ export default function Home() {
 
         {source === "fixture" && (
           <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-            ⚠️ 지금 보고 있는 데이터는 <strong>샘플(가상) 데이터</strong>입니다. 실제 시세로 전환하려면 FMP API 키를 발급받아{" "}
-            <code className="rounded bg-black/10 px-1 py-0.5 dark:bg-white/10">.env.local</code>에 설정한 뒤{" "}
-            <code className="rounded bg-black/10 px-1 py-0.5 dark:bg-white/10">npm run refresh</code>를 실행하세요. (자세한 방법은 README 참고)
+            ⚠️ 지금 보고 있는 데이터는 <strong>샘플(가상) 데이터</strong>입니다. 실제 데이터로 전환하려면{" "}
+            <code className="rounded bg-black/10 px-1 py-0.5 dark:bg-white/10">npm run refresh</code>를 실행하세요. (별도 키 설정 없이 바로 됩니다 — 자세한 방법은 README 참고)
           </div>
         )}
 

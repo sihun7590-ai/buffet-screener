@@ -1,36 +1,29 @@
-// Batch job: walk the ticker universe, pull fundamentals from FMP (or fall
-// back to bundled fixtures when no API key is set), score each one against
+// Batch job: walk the ticker universe, pull fundamentals from SEC EDGAR +
+// Yahoo Finance (or fall back to bundled fixtures), score each one against
 // the Buffett/Graham criteria, and cache the results to data/scores.json.
 //
-// Usage:
-//   npm run refresh            (uses FMP_API_KEY from .env.local if present,
-//                                otherwise automatically uses fixture data)
-//   npm run refresh -- --fixture   (force fixture data even if a key is set)
-import "dotenv/config";
+// Both data sources are free and keyless, so this needs no setup — just run:
+//   npm run refresh
+//   npm run refresh -- --fixture   (force fixture/sample data instead)
 import universe from "../data/universe.json";
 import { FIXTURE_FINANCIALS } from "../data/fixtures";
-import { fetchTickerFinancials } from "../lib/fmp";
+import { fetchTickerFinancials } from "../lib/sec";
 import { scoreTicker } from "../lib/scoring";
 import { writeScores } from "../lib/store";
 import type { StockScore, TickerFinancials } from "../lib/types";
 
-const forceFixture = process.argv.includes("--fixture");
-const useFixture = forceFixture || !process.env.FMP_API_KEY;
+const useFixture = process.argv.includes("--fixture");
 
 async function run() {
   if (useFixture) {
-    console.log(
-      forceFixture
-        ? "--fixture 플래그 감지: 샘플 데이터로 스코어를 생성합니다."
-        : "FMP_API_KEY가 설정되지 않음: 샘플 데이터로 스코어를 생성합니다. (.env.local 참고)"
-    );
+    console.log("--fixture 플래그 감지: 샘플 데이터로 스코어를 생성합니다.");
     const scores = FIXTURE_FINANCIALS.map((f) => scoreTicker(f));
     writeScores(scores, "fixture");
     console.log(`완료: ${scores.length}개 종목 (샘플 데이터) → data/scores.json`);
     return;
   }
 
-  const tickers = universe as string[];
+  const tickers = (universe as { ticker: string }[]).map((u) => u.ticker);
   const scores: StockScore[] = [];
   const failures: string[] = [];
 
