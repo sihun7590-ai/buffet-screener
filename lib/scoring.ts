@@ -1,20 +1,20 @@
 import type { CriterionResult, IntrinsicValueEstimate, StockScore, TickerFinancials } from "./types";
 
-// Rough sector P/E benchmarks for the "cheaper than its sector" check.
-// FMP's free tier doesn't expose a sector-average endpoint, so this is a
+// Rough sector P/E benchmarks for the "cheaper than its sector" check —
+// neither SEC nor Yahoo expose a sector-average endpoint, so this is a
 // static approximation — good enough as a sanity check, not a precise index.
+// Keys match the GICS sector names used in data/universe.json.
 const SECTOR_AVG_PE: Record<string, number> = {
-  Technology: 28,
+  "Information Technology": 28,
   "Communication Services": 22,
-  "Consumer Cyclical": 24,
-  "Consumer Defensive": 21,
-  Healthcare: 24,
-  Financial: 14,
-  "Financial Services": 14,
+  "Consumer Discretionary": 24,
+  "Consumer Staples": 21,
+  "Health Care": 24,
+  Financials: 14,
   Industrials: 20,
   Energy: 12,
   Utilities: 18,
-  "Basic Materials": 16,
+  Materials: 16,
   "Real Estate": 18,
 };
 const DEFAULT_SECTOR_PE = 20;
@@ -39,6 +39,13 @@ function cagr(first: number, last: number, years: number): number {
 // If higherIsBetter is false, the ramp is reversed (lower value = more points).
 function linScore(value: number, low: number, high: number, maxPoints: number, higherIsBetter = true): number {
   if (!Number.isFinite(value)) return 0;
+  if (high === low) {
+    // Degenerate range (e.g. a recent IPO with only as many years of data
+    // as the "full marks" threshold) — (value - low) / (high - low) would
+    // divide by zero. Treat "met the single point" as full marks.
+    const met = higherIsBetter ? value >= high : value <= high;
+    return met ? maxPoints : 0;
+  }
   const t = (value - low) / (high - low);
   const clamped = Math.min(1, Math.max(0, t));
   return (higherIsBetter ? clamped : 1 - clamped) * maxPoints;
@@ -82,7 +89,12 @@ export function computeIntrinsicValue(f: TickerFinancials): IntrinsicValueEstima
 
   const intrinsicValuePerShare = pvOfProjectedFcf + pvOfTerminalValue;
   const currentPrice = f.quote.price;
-  const marginOfSafety = intrinsicValuePerShare > 0 ? (intrinsicValuePerShare - currentPrice) / intrinsicValuePerShare : -1;
+  // When intrinsic value comes out near zero (volatile/thin trailing FCF —
+  // common for richly-priced growth names), the ratio blows up toward
+  // -Infinity without adding any real information beyond "very overvalued",
+  // so clamp the floor at -100%.
+  const rawMarginOfSafety = intrinsicValuePerShare > 0 ? (intrinsicValuePerShare - currentPrice) / intrinsicValuePerShare : -1;
+  const marginOfSafety = Math.max(-1, rawMarginOfSafety);
 
   return {
     ownerEarningsPerShare,

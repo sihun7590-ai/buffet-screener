@@ -101,14 +101,14 @@ function buildFixture(cfg: FixtureConfig): TickerFinancials {
 export const FIXTURE_FINANCIALS: TickerFinancials[] = [
   // High quality, still reasonably priced -> should score as a Buy Candidate
   buildFixture({
-    ticker: "AAPL", companyName: "Apple Inc. (샘플)", sector: "Technology", years: 8,
+    ticker: "AAPL", companyName: "Apple Inc. (샘플)", sector: "Information Technology", years: 8,
     startRevenue: 220_000_000_000, revenueGrowth: 0.08, netMargin: 0.24, grossMargin: 0.43,
     operatingMargin: 0.29, roe: 0.32, roic: 0.24, debtEquity: 0.4, currentRatio: 1.6,
     interestCoverage: 12, sharesOutStart: 17_000_000_000, shareChangeRate: -0.03, peTarget: 15, peHistoricalAvg: 22,
   }),
   // High quality, but priced for perfection -> quality high, valuation low
   buildFixture({
-    ticker: "KO", companyName: "Coca-Cola Co. (샘플)", sector: "Consumer Defensive", years: 8,
+    ticker: "KO", companyName: "Coca-Cola Co. (샘플)", sector: "Consumer Staples", years: 8,
     startRevenue: 38_000_000_000, revenueGrowth: 0.05, netMargin: 0.23, grossMargin: 0.6,
     operatingMargin: 0.27, roe: 0.4, roic: 0.15, debtEquity: 0.9, currentRatio: 1.2,
     interestCoverage: 9, sharesOutStart: 4_300_000_000, shareChangeRate: -0.005, peTarget: 27, peHistoricalAvg: 25,
@@ -122,7 +122,7 @@ export const FIXTURE_FINANCIALS: TickerFinancials[] = [
   }),
   // Solid all-rounder in the middle of the pack
   buildFixture({
-    ticker: "JPM", companyName: "JPMorgan Chase & Co. (샘플)", sector: "Financial Services", years: 8,
+    ticker: "JPM", companyName: "JPMorgan Chase & Co. (샘플)", sector: "Financials", years: 8,
     startRevenue: 115_000_000_000, revenueGrowth: 0.06, netMargin: 0.28, grossMargin: 0.55,
     operatingMargin: 0.34, roe: 0.17, roic: 0.09, debtEquity: 1.1, currentRatio: 1.3,
     interestCoverage: 5, sharesOutStart: 3_000_000_000, shareChangeRate: -0.02, peTarget: 9, peHistoricalAvg: 13,

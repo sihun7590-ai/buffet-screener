@@ -30,6 +30,8 @@ let tickerCikCache: Map<string, string> | null = null;
 const CIK_OVERRIDES: Record<string, string> = {
   XOM: "0000034088", // "Exxon Mobil Corp" (legacy) — company_tickers.json now
   // maps XOM to a newly formed "ExxonMobil Holdings Corp" CIK with no 10-K data yet.
+  AEP: "0000004904", // American Electric Power — missing from company_tickers.json
+  // entirely (that file is a best-effort convenience index, not authoritative).
 };
 
 async function loadTickerCikMap(): Promise<Map<string, string>> {

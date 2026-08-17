@@ -6,6 +6,13 @@ function colorFor(score: number, max: number) {
 }
 
 export default function ScoreBadge({ score, max = 100 }: { score: number; max?: number }) {
+  if (!Number.isFinite(score)) {
+    return (
+      <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-semibold bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+        N/A
+      </span>
+    );
+  }
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-sm font-semibold ${colorFor(score, max)}`}>
       {score.toFixed(1)}

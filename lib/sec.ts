@@ -8,7 +8,7 @@
 // FmpKeyMetrics per fiscal year, keeping scoring.ts unchanged.
 import universe from "../data/universe.json";
 import { annualSeries, fetchCompanyFacts, lookupByEnd, type FiscalPoint } from "./xbrl";
-import { closeNear, fetchPriceHistory, type PriceHistory } from "./price";
+import { closeNear, fetchPriceHistory } from "./price";
 import type { FmpBalanceSheet, FmpCashFlow, FmpIncomeStatement, FmpKeyMetrics, FmpRatios, TickerFinancials } from "./types";
 
 const YEARS = 8;
@@ -27,6 +27,7 @@ const REVENUE_TAGS = [
   "RevenueFromContractWithCustomerExcludingAssessedTax",
   "RevenueFromContractWithCustomerIncludingAssessedTax",
   "SalesRevenueNet",
+  "RevenuesNetOfInterestExpense", // investment banks (e.g. Goldman Sachs)
 ];
 const NET_INCOME_TAGS = ["NetIncomeLoss", "ProfitLoss"];
 const EPS_DILUTED_TAGS = ["EarningsPerShareDiluted"];
@@ -144,7 +145,9 @@ export async function fetchTickerFinancials(ticker: string): Promise<TickerFinan
     const ocf = at(operatingCashFlow, end);
     const capexRaw = at(capex, end);
     const capexNeg = Number.isFinite(capexRaw) ? -Math.abs(capexRaw) : NaN;
-    const fcf = Number.isFinite(ocf) && Number.isFinite(capexNeg) ? ocf + capexNeg : NaN;
+    // Capital-light filers (banks, insurers, REITs, ...) often don't tag
+    // PP&E capex at all — treat it as 0 rather than losing FCF entirely.
+    const fcf = Number.isFinite(ocf) ? ocf + (Number.isFinite(capexNeg) ? capexNeg : 0) : NaN;
 
     cashFlow.push({
       date: end,
