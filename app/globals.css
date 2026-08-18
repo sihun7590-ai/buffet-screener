@@ -1,26 +1,114 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Trading-terminal look: dark by default with a full light theme. Both are
+   driven by `data-theme` on <html> (set before first paint by the inline
+   script in layout.tsx), so every token below swaps at runtime with no
+   reload and no flash. Components use the semantic tokens directly
+   (bg-surface, text-ink-muted, ...) instead of `dark:` variants. */
+
+:root,
+[data-theme="light"] {
+  --canvas: #f2f4f9;
+  --surface: #ffffff;
+  --surface-hover: #f5f7fb;
+  --subtle: #eef1f7;
+  --line: #dee2ec;
+  --line-strong: #c3cad9;
+  --ink: #0f1320;
+  --ink-muted: #596174;
+  --ink-faint: #8b93a5;
+  --brand: #1c5ede;
+  --up: #0a9d78;
+  --down: #dd3a4d;
+  --warn: #b3750c;
+  --shadow: 0 1px 2px rgb(15 19 32 / 0.05), 0 12px 28px -18px rgb(15 19 32 / 0.35);
+}
+
+[data-theme="dark"] {
+  --canvas: #0a0d14;
+  --surface: #121620;
+  --surface-hover: #191e2b;
+  --subtle: #191e2b;
+  --line: #252b3a;
+  --line-strong: #363d51;
+  --ink: #d6dae4;
+  --ink-muted: #878fa1;
+  --ink-faint: #656d7f;
+  --brand: #4c8dff;
+  --up: #26a69a;
+  --down: #ef5350;
+  --warn: #d9a441;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.45), 0 12px 28px -18px rgb(0 0 0 / 0.8);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-subtle: var(--subtle);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-brand: var(--brand);
+  --color-up: var(--up);
+  --color-down: var(--down);
+  --color-warn: var(--warn);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+::selection {
+  background: color-mix(in oklab, var(--brand) 28%, transparent);
+}
+
+/* The default OS scrollbar reads as a light-theme artifact on the dark shell. */
+* {
+  scrollbar-color: var(--line-strong) transparent;
+  scrollbar-width: thin;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border: 2px solid transparent;
+  background-clip: content-box;
+  border-radius: 8px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-faint);
+  background-clip: content-box;
+}
+
+/* Native controls keep their light chrome inside the dark shell otherwise. */
+select,
+input,
+button {
+  color-scheme: inherit;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
 }

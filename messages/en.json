@@ -7,39 +7,48 @@
     "disclaimer": "Not investment advice. All scores and intrinsic value estimates are reference calculations only — do not use them as the sole basis for investment decisions.",
     "notAvailable": "N/A"
   },
+  "nav": {
+    "brand": "BUFFETT SCREENER",
+    "tagline": "S&P 500 value screener"
+  },
+  "theme": {
+    "toDark": "Switch to dark theme",
+    "toLight": "Switch to light theme"
+  },
   "dashboard": {
     "title": "Buffett Value Stock Screener",
     "subtitle": "Scores every S&P 500 stock using Warren Buffett and Benjamin Graham's quantitative criteria (ROE, ROIC, debt ratio, earnings consistency, margin of safety, and more).",
     "asOf": "As of {date}",
     "fixtureBanner": "⚠️ You're viewing <strong>sample (fictional) data</strong>. To switch to real data, run <code>npm run refresh</code> — no setup or API key needed. See the README for details.",
     "emptyState": "No score data yet. Run <code>npm run refresh</code> to generate it.",
+    "search": "Search ticker or company",
+    "stats": {
+      "universe": "Stocks screened",
+      "buyCandidates": "Buy candidates",
+      "avgScore": "Average score",
+      "undervalued": "Margin of safety > 0"
+    },
     "filters": {
       "sector": "Sector",
-      "allSectors": "All",
-      "minScore": "Min. total score: {score}",
-      "buyCandidateOnly": "Buy Candidates only",
-      "sortBy": "Sort by",
-      "sort": {
-        "totalScore": "Total score",
-        "qualityScore": "Quality score",
-        "valuationScore": "Valuation score",
-        "marketCap": "Market cap"
-      }
+      "allSectors": "All sectors",
+      "minScore": "Min. score",
+      "any": "Any",
+      "buyCandidateOnly": "Buy candidates",
+      "reset": "Reset"
     },
     "tickerCount": "{count} stocks",
+    "loadMore": "Show {count} more",
     "table": {
-      "ticker": "Ticker",
-      "company": "Company",
+      "rank": "#",
+      "stock": "Stock",
       "sector": "Sector",
       "price": "Price",
       "marketCap": "Market Cap",
       "quality": "Quality",
       "valuation": "Valuation",
       "total": "Total",
-      "marginOfSafety": "Margin of Safety",
-      "detail": ""
+      "marginOfSafety": "Margin of Safety"
     },
-    "detailLink": "Details →",
     "noResults": "No stocks match these filters."
   },
   "stock": {
@@ -47,7 +56,13 @@
     "buyCandidate": "Buy Candidate",
     "companyOverview": "Company Overview",
     "priceChart": "Price Chart",
+    "stats": {
+      "quality": "Quality",
+      "valuation": "Valuation",
+      "total": "Total"
+    },
     "dcf": {
+      "title": "Intrinsic Value & Margin of Safety",
       "intrinsicValue": "Intrinsic Value (DCF, per share)",
       "currentPrice": "Current Price",
       "marginOfSafety": "Margin of Safety",

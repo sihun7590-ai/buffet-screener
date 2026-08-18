@@ -7,39 +7,48 @@
     "disclaimer": "투자 조언이 아닙니다. 모든 점수와 내재가치 추정치는 참고용 계산 결과이며, 실제 투자 판단의 근거로 단독 사용하지 마세요.",
     "notAvailable": "N/A"
   },
+  "nav": {
+    "brand": "BUFFETT SCREENER",
+    "tagline": "S&P 500 가치투자 스크리너"
+  },
+  "theme": {
+    "toDark": "다크 모드로 전환",
+    "toLight": "라이트 모드로 전환"
+  },
   "dashboard": {
     "title": "버핏 저평가 우량주 스크리너",
     "subtitle": "워렌 버핏·벤저민 그레이엄의 정량 기준(ROE, ROIC, 부채비율, 이익 일관성, 안전마진 등)으로 S&P 500 전 종목을 스코어링합니다.",
     "asOf": "기준일: {date}",
     "fixtureBanner": "⚠️ 지금 보고 있는 데이터는 <strong>샘플(가상) 데이터</strong>입니다. 실제 데이터로 전환하려면 <code>npm run refresh</code>를 실행하세요. (별도 키 설정 없이 바로 됩니다 — 자세한 방법은 README 참고)",
     "emptyState": "아직 스코어 데이터가 없습니다. <code>npm run refresh</code>를 실행해 데이터를 생성하세요.",
+    "search": "티커 · 기업명 검색",
+    "stats": {
+      "universe": "스크리닝 종목",
+      "buyCandidates": "Buy Candidate",
+      "avgScore": "평균 총점",
+      "undervalued": "안전마진 > 0"
+    },
     "filters": {
       "sector": "섹터",
-      "allSectors": "전체",
-      "minScore": "최소 총점: {score}",
-      "buyCandidateOnly": "Buy Candidate만 보기",
-      "sortBy": "정렬",
-      "sort": {
-        "totalScore": "총점",
-        "qualityScore": "우량성 점수",
-        "valuationScore": "저평가 점수",
-        "marketCap": "시가총액"
-      }
+      "allSectors": "전체 섹터",
+      "minScore": "최소 총점",
+      "any": "전체",
+      "buyCandidateOnly": "Buy Candidate",
+      "reset": "초기화"
     },
     "tickerCount": "{count}개 종목",
+    "loadMore": "{count}개 더 보기",
     "table": {
-      "ticker": "티커",
-      "company": "기업명",
+      "rank": "#",
+      "stock": "종목",
       "sector": "섹터",
       "price": "주가",
       "marketCap": "시가총액",
       "quality": "우량성",
       "valuation": "저평가",
       "total": "총점",
-      "marginOfSafety": "안전마진",
-      "detail": ""
+      "marginOfSafety": "안전마진"
     },
-    "detailLink": "상세 →",
     "noResults": "조건에 맞는 종목이 없습니다."
   },
   "stock": {
@@ -47,7 +56,13 @@
     "buyCandidate": "Buy Candidate",
     "companyOverview": "회사 소개",
     "priceChart": "주가 차트",
+    "stats": {
+      "quality": "우량성",
+      "valuation": "저평가",
+      "total": "총점"
+    },
     "dcf": {
+      "title": "내재가치 · 안전마진",
       "intrinsicValue": "내재가치 (DCF, 주당)",
       "currentPrice": "현재가",
       "marginOfSafety": "안전마진",

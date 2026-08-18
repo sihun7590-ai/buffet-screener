@@ -1,8 +1,35 @@
 import { getLocale, getTranslations } from "next-intl/server";
 import type { CriterionResult } from "@/lib/types";
 import { formatCriterionValue } from "@/lib/criteriaText";
+import Panel from "./Panel";
+import { scoreColor } from "./ScoreBar";
 
-export default async function CriteriaTable({ title, criteria }: { title: string; criteria: CriterionResult[] }) {
+function StatusDot({ passed }: { passed: boolean }) {
+  const color = passed ? "var(--up)" : "var(--down)";
+  return (
+    <span
+      className="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full"
+      style={{ background: `color-mix(in oklab, ${color} 18%, transparent)` }}
+      aria-hidden="true"
+    >
+      <svg viewBox="0 0 12 12" className="h-2.5 w-2.5" fill="none" stroke={color} strokeWidth="2.2">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d={passed ? "m2.5 6.2 2.4 2.4 4.6-5" : "M3.2 3.2l5.6 5.6M8.8 3.2 3.2 8.8"}
+        />
+      </svg>
+    </span>
+  );
+}
+
+export default async function CriteriaTable({
+  title,
+  criteria,
+}: {
+  title: string;
+  criteria: CriterionResult[];
+}) {
   const locale = await getLocale();
   const t = await getTranslations("criteria");
   const tTable = await getTranslations("stock.criteriaTable");
@@ -12,37 +39,59 @@ export default async function CriteriaTable({ title, criteria }: { title: string
   const max = criteria.reduce((sum, c) => sum + c.maxPoints, 0);
 
   return (
-    <div className="rounded-xl border border-black/10 bg-white dark:border-white/10 dark:bg-zinc-900">
-      <div className="flex items-center justify-between border-b border-black/10 px-4 py-3 dark:border-white/10">
-        <h2 className="font-semibold">{title}</h2>
-        <span className="text-sm text-zinc-500 dark:text-zinc-400">
-          {Number.isFinite(total) ? total.toFixed(1) : tCommon("notAvailable")} / {max}
+    <Panel
+      title={title}
+      padded={false}
+      trailing={
+        <span className="font-mono text-[13px] font-bold tabular-nums" style={{ color: scoreColor(total, max) }}>
+          {Number.isFinite(total) ? total.toFixed(1) : tCommon("notAvailable")}
+          <span className="font-normal text-ink-faint"> / {max}</span>
         </span>
-      </div>
-      <ul className="divide-y divide-black/5 dark:divide-white/5">
-        {criteria.map((c) => (
-          <li key={c.id} className="flex flex-col gap-1 px-4 py-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="flex items-center gap-2 font-medium">
-                <span className={`inline-block h-2.5 w-2.5 rounded-full ${c.passed ? "bg-emerald-500" : "bg-rose-400"}`} />
-                {t(`${c.id}.label`)}
-              </span>
-              <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                {Number.isFinite(c.points) ? c.points.toFixed(1) : tCommon("notAvailable")} / {c.maxPoints}
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-x-4 text-sm text-zinc-600 dark:text-zinc-300">
-              <span>
-                {tTable("actualValue")}: {formatCriterionValue(c, locale, (key) => tCommon(key))}
-              </span>
-              <span>
-                {tTable("threshold")}: {t(`${c.id}.threshold`)}
-              </span>
-            </div>
-            <p className="text-xs text-zinc-400">{t(`${c.id}.explanation`)}</p>
-          </li>
-        ))}
+      }
+    >
+      <ul className="divide-y divide-line">
+        {criteria.map((c) => {
+          const pct = Number.isFinite(c.points)
+            ? Math.max(0, Math.min(1, c.points / c.maxPoints)) * 100
+            : 0;
+          return (
+            <li key={c.id} className="flex gap-3 px-4 py-3.5">
+              <StatusDot passed={c.passed} />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="text-[13px] font-semibold text-ink">{t(`${c.id}.label`)}</span>
+                  <span className="shrink-0 font-mono text-[12px] tabular-nums text-ink-muted">
+                    {Number.isFinite(c.points) ? c.points.toFixed(1) : tCommon("notAvailable")}
+                    <span className="text-ink-faint"> / {c.maxPoints}</span>
+                  </span>
+                </div>
+
+                <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-line">
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${pct}%`, background: c.passed ? "var(--up)" : "var(--warn)" }}
+                  />
+                </div>
+
+                <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1 text-[12px]">
+                  <span>
+                    <span className="text-ink-faint">{tTable("actualValue")} </span>
+                    <span className="font-mono tabular-nums text-ink">
+                      {formatCriterionValue(c, locale, (key) => tCommon(key))}
+                    </span>
+                  </span>
+                  <span>
+                    <span className="text-ink-faint">{tTable("threshold")} </span>
+                    <span className="font-mono tabular-nums text-ink-muted">{t(`${c.id}.threshold`)}</span>
+                  </span>
+                </div>
+
+                <p className="mt-1.5 text-[11px] leading-relaxed text-ink-faint">{t(`${c.id}.explanation`)}</p>
+              </div>
+            </li>
+          );
+        })}
       </ul>
-    </div>
+    </Panel>
   );
 }

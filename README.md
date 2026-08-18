@@ -50,6 +50,15 @@ npm run refresh
 - **최근 뉴스**: Yahoo Finance 뉴스 검색에서 최근 30일 이내 관련 기사 ([lib/news.ts](lib/news.ts))
 - **주가 차트**: TradingView의 무료 임베드 위젯 — 일봉/주봉/월봉 전환, 추세선·평행채널 등 드로잉 툴, 보조지표를 모두 기본 제공합니다 ([components/TradingViewChart.tsx](components/TradingViewChart.tsx), [lib/tradingview.ts](lib/tradingview.ts)에서 티커를 `거래소:티커` 형식으로 매핑)
 
+## 화면 디자인
+
+TradingView·Investing.com 같은 전문 트레이딩 화면을 기준으로 만들었습니다.
+
+- **다크 우선 + 라이트 테마**: 색은 전부 `app/globals.css`의 시맨틱 토큰(`--surface`, `--ink-muted`, `--up`, `--down` 등)으로 정의하고, 컴포넌트는 `bg-surface`·`text-ink-muted`처럼 토큰 유틸리티만 씁니다. 테마는 `<html data-theme>` 한 곳에서 바뀌므로 `dark:` 변형을 컴포넌트마다 붙일 필요가 없습니다. 첫 페인트 전에 인라인 스크립트가 저장된 값을 적용해 흰 화면이 번쩍이지 않습니다.
+- **테마 상태 관리**: `data-theme` 속성이 단일 진실 공급원이고, [components/useTheme.ts](components/useTheme.ts)가 `useSyncExternalStore`로 이를 구독합니다. 그래서 테마 토글과 TradingView 차트가 별도 상태 전달 없이 항상 같은 값을 봅니다 (차트는 생성 후 리스타일이 안 돼서 테마가 바뀌면 위젯을 다시 만듭니다).
+- **숫자 표기**: 주가·점수·비율은 모두 고정폭 글꼴 + `tabular-nums`라 열이 흔들리지 않습니다. 점수는 숫자와 막대를 함께 그려 세로로 훑어보기 쉽게 했고, 상세 페이지 총점은 원형 게이지로 보여줍니다.
+- **스크리너 테이블**: 열 머리글 클릭으로 정렬(데이터 없는 종목은 방향과 무관하게 항상 아래로), 티커·기업명 검색, 섹터/최소총점/Buy Candidate 필터, 60개씩 더 보기. 데스크톱에서는 표 영역이 자체 스크롤 창이 되고 머리글이 고정됩니다.
+
 ## 다국어 지원
 
 한국어(`ko`)와 영어(`en`)를 지원합니다 (`/ko`, `/en` 경로, [next-intl](https://next-intl.dev/) 사용). 브라우저 언어를 자동 감지해 첫 방문 시 알맞은 언어로 안내하며, 우측 상단 언어 선택기로 언제든 바꿀 수 있습니다.
@@ -62,6 +71,8 @@ npm run refresh
 ## 프로젝트 구조
 
 ```
+app/globals.css                      디자인 토큰 (다크/라이트 테마 색 정의)
+app/[locale]/layout.tsx              공통 셸 (상단 네비 + 테마 초기화 스크립트)
 app/[locale]/page.tsx                대시보드 (스코어 랭킹 + 필터)
 app/[locale]/stock/[ticker]/page.tsx 종목 상세 (기준별 breakdown + 회사소개/뉴스/차트)
 i18n/routing.ts, navigation.ts, request.ts   next-intl 설정
@@ -76,7 +87,14 @@ lib/scoring.ts                        버핏/그레이엄 스코어링 로직
 lib/store.ts                          data/scores.json 캐시 read/write
 lib/wikipedia.ts                      위키피디아 회사 소개 조회
 lib/news.ts                           Yahoo Finance 뉴스 검색
+components/Dashboard.tsx              스크리너 테이블 (정렬·검색·필터)
+components/Panel.tsx                  공통 카드 프레임
+components/ScoreBar.tsx, ScoreGauge.tsx  점수 막대 / 원형 게이지
+components/CriteriaTable.tsx          기준별 통과여부 breakdown 패널
+components/SiteHeader.tsx             상단 네비게이션 바
 components/TradingViewChart.tsx       TradingView 임베드 차트
+components/useTheme.ts                data-theme 구독 훅
+components/ThemeToggle.tsx            다크/라이트 전환 버튼
 components/LocaleSwitcher.tsx         언어 선택 드롭다운
 scripts/refresh.ts                    배치 갱신 스크립트 (npm run refresh)
 data/universe.json                    스크리닝 대상 티커 + 회사명/섹터/위키피디아 문서명

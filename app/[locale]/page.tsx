@@ -1,6 +1,5 @@
 import { getTranslations } from "next-intl/server";
 import Dashboard from "@/components/Dashboard";
-import LocaleSwitcher from "@/components/LocaleSwitcher";
 import { readScores } from "@/lib/store";
 
 // scores.json changes whenever `npm run refresh` runs; read it fresh on
@@ -14,40 +13,51 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const { scores, generatedAt, source } = readScores();
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 dark:bg-black">
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-6 py-10">
-        <header className="flex flex-wrap items-start justify-between gap-4">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
-            <p className="max-w-2xl text-zinc-600 dark:text-zinc-400">
-              {t("subtitle")}
-              {generatedAt && ` ${t("asOf", { date: new Date(generatedAt).toLocaleString(locale) })}`}
-            </p>
-          </div>
-          <LocaleSwitcher />
-        </header>
+    <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-[28px]">{t("title")}</h1>
+          {generatedAt && (
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-subtle px-2.5 py-1 text-[11px] text-ink-muted">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-up opacity-60" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-up" />
+              </span>
+              <span className="font-mono tabular-nums">
+                {t("asOf", { date: new Date(generatedAt).toLocaleString(locale) })}
+              </span>
+            </span>
+          )}
+        </div>
+        <p className="max-w-3xl text-[13px] leading-relaxed text-ink-muted">{t("subtitle")}</p>
+      </div>
 
-        {source === "fixture" && (
-          <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
-            {t.rich("fixtureBanner", {
-              strong: (chunks) => <strong>{chunks}</strong>,
-              code: (chunks) => <code className="rounded bg-black/10 px-1 py-0.5 dark:bg-white/10">{chunks}</code>,
-            })}
-          </div>
-        )}
+      {source === "fixture" && (
+        <div className="rounded-xl border border-warn/40 bg-warn/10 px-4 py-3 text-[13px] text-warn">
+          {t.rich("fixtureBanner", {
+            strong: (chunks) => <strong className="font-semibold">{chunks}</strong>,
+            code: (chunks) => (
+              <code className="rounded bg-warn/15 px-1 py-0.5 font-mono text-[12px]">{chunks}</code>
+            ),
+          })}
+        </div>
+      )}
 
-        {scores.length === 0 ? (
-          <div className="rounded-xl border border-black/10 bg-white p-10 text-center text-zinc-500 dark:border-white/10 dark:bg-zinc-900">
-            {t.rich("emptyState", {
-              code: (chunks) => <code className="rounded bg-black/10 px-1 py-0.5 dark:bg-white/10">{chunks}</code>,
-            })}
-          </div>
-        ) : (
-          <Dashboard scores={scores} />
-        )}
+      {scores.length === 0 ? (
+        <div className="rounded-xl border border-line bg-surface p-16 text-center text-sm text-ink-muted shadow-[var(--shadow)]">
+          {t.rich("emptyState", {
+            code: (chunks) => (
+              <code className="rounded bg-subtle px-1.5 py-0.5 font-mono text-[12px] text-ink">{chunks}</code>
+            ),
+          })}
+        </div>
+      ) : (
+        <Dashboard scores={scores} />
+      )}
 
-        <footer className="mt-auto pt-6 text-xs text-zinc-400">{tc("disclaimer")}</footer>
-      </main>
-    </div>
+      <footer className="mt-auto border-t border-line pt-4 text-[11px] leading-relaxed text-ink-faint">
+        {tc("disclaimer")}
+      </footer>
+    </main>
   );
 }

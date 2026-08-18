@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import { getTranslations, getLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import ScoreBadge from "@/components/ScoreBadge";
+import Panel from "@/components/Panel";
+import ScoreBar from "@/components/ScoreBar";
+import ScoreGauge from "@/components/ScoreGauge";
 import CriteriaTable from "@/components/CriteriaTable";
 import TradingViewChart from "@/components/TradingViewChart";
 import { getScoreByTicker } from "@/lib/store";
@@ -38,103 +40,165 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
   const qualityCriteria = score.criteria.filter((c) => QUALITY_IDS.includes(c.id));
   const valuationCriteria = score.criteria.filter((c) => !QUALITY_IDS.includes(c.id));
   const iv = score.intrinsicValue;
+  const ivOk = Number.isFinite(iv.intrinsicValuePerShare);
+  const mosColor = iv.marginOfSafety > 0 ? "var(--up)" : "var(--down)";
 
-  const pctFmt = (v: number) => new Intl.NumberFormat(locale, { style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(v);
+  const pctFmt = (v: number) =>
+    new Intl.NumberFormat(locale, { style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(v);
   const usdFmt = (v: number) => new Intl.NumberFormat(locale, { style: "currency", currency: "USD" }).format(v);
 
   return (
-    <div className="flex flex-1 flex-col bg-zinc-50 dark:bg-black">
-      <main className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-6 py-10">
-        <Link href="/" className="text-sm text-blue-600 hover:underline dark:text-blue-400">
-          {t("backToList")}
-        </Link>
+    <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-4 px-4 py-5 sm:px-6 sm:py-7">
+      <Link
+        href="/"
+        className="inline-flex w-fit items-center gap-1.5 text-xs font-medium text-ink-muted transition-colors hover:text-brand"
+      >
+        <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m12 5-5 5 5 5" />
+        </svg>
+        {t("backToList")}
+      </Link>
 
-        <header className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              {score.ticker} <span className="text-lg font-normal text-zinc-500">{score.companyName}</span>
-            </h1>
-            <p className="mt-1 text-zinc-600 dark:text-zinc-400">
-              {tSectors(score.sector)} · {usdFmt(score.price)}
+      <Panel>
+        <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-6">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h1 className="font-mono text-[32px] font-bold leading-none tracking-tight text-ink">
+                {score.ticker}
+              </h1>
               {score.isBuyCandidate && (
-                <span className="ml-2 inline-flex items-center rounded-full bg-emerald-600 px-2.5 py-0.5 text-xs font-semibold text-white">
+                <span className="rounded bg-up/15 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-up">
                   {t("buyCandidate")}
                 </span>
               )}
-            </p>
-          </div>
-          <ScoreBadge score={score.totalScore} max={100} />
-        </header>
-
-        {summary && (
-          <section className="rounded-xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900">
-            <h2 className="mb-2 text-sm font-semibold text-zinc-500 dark:text-zinc-400">{t("companyOverview")}</h2>
-            <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-300">{summary}</p>
-          </section>
-        )}
-
-        <section className="rounded-xl border border-black/10 bg-white p-2 dark:border-white/10 dark:bg-zinc-900 sm:p-4">
-          <h2 className="mb-3 px-3 text-sm font-semibold text-zinc-500 dark:text-zinc-400 sm:px-0">{t("priceChart")}</h2>
-          <TradingViewChart symbol={tvSymbol} locale={locale} />
-        </section>
-
-        <section className="grid grid-cols-1 gap-4 rounded-xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900 sm:grid-cols-3">
-          <div>
-            <div className="text-sm text-zinc-500 dark:text-zinc-400">{t("dcf.intrinsicValue")}</div>
-            <div className="text-xl font-semibold">{Number.isFinite(iv.intrinsicValuePerShare) ? usdFmt(iv.intrinsicValuePerShare) : tCommon("notAvailable")}</div>
-          </div>
-          <div>
-            <div className="text-sm text-zinc-500 dark:text-zinc-400">{t("dcf.currentPrice")}</div>
-            <div className="text-xl font-semibold">{usdFmt(iv.currentPrice)}</div>
-          </div>
-          <div>
-            <div className="text-sm text-zinc-500 dark:text-zinc-400">{t("dcf.marginOfSafety")}</div>
-            <div className={`text-xl font-semibold ${iv.marginOfSafety > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
-              {Number.isFinite(iv.intrinsicValuePerShare) ? pctFmt(iv.marginOfSafety) : tCommon("notAvailable")}
+            </div>
+            <p className="mt-2 text-[15px] font-medium text-ink-muted">{score.companyName}</p>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="rounded border border-line bg-subtle px-2 py-0.5 text-[11px] text-ink-muted">
+                {tSectors(score.sector)}
+              </span>
+              {exchangeName && (
+                <span className="rounded border border-line bg-subtle px-2 py-0.5 font-mono text-[11px] text-ink-faint">
+                  {exchangeName}
+                </span>
+              )}
+            </div>
+            <div className="mt-5 flex items-baseline gap-2">
+              <span className="font-mono text-[30px] font-bold leading-none tabular-nums text-ink">
+                {usdFmt(score.price)}
+              </span>
+              <span className="text-[11px] uppercase tracking-[0.1em] text-ink-faint">
+                {t("dcf.currentPrice")}
+              </span>
             </div>
           </div>
-          <div className="sm:col-span-3 text-xs text-zinc-400">
-            {t("dcf.ownerEarningsNote", {
-              value: Number.isFinite(iv.ownerEarningsPerShare) ? usdFmt(iv.ownerEarningsPerShare) : t("dcf.noShareData"),
-              growth: pctFmt(iv.growthRateUsed),
-              discount: pctFmt(iv.discountRate),
-              terminal: pctFmt(iv.terminalGrowthRate),
-            })}
+
+          <div className="flex items-center gap-6">
+            <div className="flex flex-col gap-3">
+              <div>
+                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
+                  {t("stats.quality")}
+                </div>
+                <ScoreBar score={score.qualityScore} max={50} strong />
+              </div>
+              <div>
+                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
+                  {t("stats.valuation")}
+                </div>
+                <ScoreBar score={score.valuationScore} max={50} strong />
+              </div>
+            </div>
+            <ScoreGauge score={score.totalScore} max={100} label={t("stats.total")} />
           </div>
-        </section>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <CriteriaTable title={t("quality.title", { max: 50 })} criteria={qualityCriteria} />
-          <CriteriaTable title={t("valuation.title", { max: 50 })} criteria={valuationCriteria} />
         </div>
+      </Panel>
 
-        <section className="rounded-xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-zinc-900">
-          <h2 className="mb-3 text-sm font-semibold text-zinc-500 dark:text-zinc-400">{t("news.title")}</h2>
+      <Panel title={t("priceChart")} padded={false}>
+        <TradingViewChart symbol={tvSymbol} locale={locale} />
+      </Panel>
+
+      <Panel title={t("dcf.title")}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="rounded-lg border border-line bg-subtle px-4 py-3">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
+              {t("dcf.intrinsicValue")}
+            </div>
+            <div className="mt-1.5 font-mono text-xl font-bold tabular-nums text-ink">
+              {ivOk ? usdFmt(iv.intrinsicValuePerShare) : tCommon("notAvailable")}
+            </div>
+          </div>
+          <div className="rounded-lg border border-line bg-subtle px-4 py-3">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
+              {t("dcf.currentPrice")}
+            </div>
+            <div className="mt-1.5 font-mono text-xl font-bold tabular-nums text-ink">{usdFmt(iv.currentPrice)}</div>
+          </div>
+          <div className="rounded-lg border border-line bg-subtle px-4 py-3">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
+              {t("dcf.marginOfSafety")}
+            </div>
+            <div
+              className="mt-1.5 font-mono text-xl font-bold tabular-nums"
+              style={{ color: ivOk ? mosColor : "var(--ink-faint)" }}
+            >
+              {ivOk ? pctFmt(iv.marginOfSafety) : tCommon("notAvailable")}
+            </div>
+          </div>
+        </div>
+        <p className="mt-4 text-[11px] leading-relaxed text-ink-faint">
+          {t("dcf.ownerEarningsNote", {
+            value: Number.isFinite(iv.ownerEarningsPerShare) ? usdFmt(iv.ownerEarningsPerShare) : t("dcf.noShareData"),
+            growth: pctFmt(iv.growthRateUsed),
+            discount: pctFmt(iv.discountRate),
+            terminal: pctFmt(iv.terminalGrowthRate),
+          })}
+        </p>
+      </Panel>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <CriteriaTable title={t("quality.title", { max: 50 })} criteria={qualityCriteria} />
+        <CriteriaTable title={t("valuation.title", { max: 50 })} criteria={valuationCriteria} />
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        {summary && (
+          <Panel title={t("companyOverview")} className="lg:col-span-3">
+            <p className="text-[13px] leading-relaxed text-ink-muted">{summary}</p>
+          </Panel>
+        )}
+
+        <Panel title={t("news.title")} padded={false} className={summary ? "lg:col-span-2" : "lg:col-span-5"}>
           {news.length === 0 ? (
-            <p className="text-sm text-zinc-400">{t("news.empty")}</p>
+            <p className="px-4 py-6 text-[13px] text-ink-faint">{t("news.empty")}</p>
           ) : (
-            <ul className="flex flex-col gap-3">
+            <ul className="divide-y divide-line">
               {news.map((n) => (
                 <li key={n.link}>
                   <a
                     href={n.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+                    className="block px-4 py-3 transition-colors hover:bg-surface-hover"
                   >
-                    {n.title}
+                    <span className="block text-[13px] font-medium leading-snug text-ink">{n.title}</span>
+                    <span className="mt-1.5 flex items-center gap-1.5 text-[11px] text-ink-faint">
+                      <span className="font-medium text-ink-muted">{n.publisher}</span>
+                      <span>·</span>
+                      <span className="font-mono tabular-nums">
+                        {new Date(n.publishedAt).toLocaleDateString(locale)}
+                      </span>
+                    </span>
                   </a>
-                  <div className="text-xs text-zinc-400">
-                    {n.publisher} · {new Date(n.publishedAt).toLocaleDateString(locale)}
-                  </div>
                 </li>
               ))}
             </ul>
           )}
-        </section>
+        </Panel>
+      </div>
 
-        <footer className="pt-4 text-xs text-zinc-400">{tCommon("disclaimer")}</footer>
-      </main>
-    </div>
+      <footer className="mt-auto border-t border-line pt-4 text-[11px] leading-relaxed text-ink-faint">
+        {tCommon("disclaimer")}
+      </footer>
+    </main>
   );
 }
