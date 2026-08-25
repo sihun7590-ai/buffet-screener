@@ -359,7 +359,7 @@
       "strategy": "Strategy",
       "totalReturn": "Total return",
       "cagr": "CAGR",
-      "maxDrawdown": "Max drawdown",
+      "maxDrawdown": "Max drawdown (quarter-end)",
       "quarters": "Quarters up/down",
       "holdings": "Holdings",
       "holdingsNa": "N/A"
@@ -367,7 +367,7 @@
     "tip": {
       "totalReturn": "If you'd put money into this strategy on March 31, 2023, this is how much it would have grown by June 30, 2026. Price return only — dividends aren't included.",
       "cagr": "Turns a multi-year return into 'what steady rate, compounded every year, would get the same result.' For example, +33% over 3 years works out to roughly +10% a year, compounded. There's only about 3 years of data here, so one or two strong or weak quarters can swing this a lot — don't read it as a long, proven track record.",
-      "maxDrawdown": "If you'd held this strategy the whole time, this is the worst peak-to-trough drop you'd have had to sit through. For example -20% means your holdings were once down 20% from their high point before recovering. A larger negative number means a rougher ride.",
+      "maxDrawdown": "If you'd held this strategy the whole time, this is the worst peak-to-trough drop you'd have had to sit through — for example -20% means your holdings were once down 20% from their high point before recovering. But this figure is measured only at quarter-ends, so it comes out far smaller than the fall you'd actually have lived through. Over this same window SPY reads -8.0% at quarter-ends but -19.0% on daily closes (trough April 8, 2025): a drop that opened and largely recovered inside one quarter is invisible to quarter-end sampling. The -19% is the one you'd have felt.",
       "quarters": "How many quarters this strategy finished up versus down. Every quarter, the strategy is fully re-selected from scratch using that quarter's data (rebalancing) — a stock that drops out of Buy Candidate is no longer held the next quarter.",
       "holdings": "The range of how many tickers this strategy actually held from quarter to quarter. Fewer holdings (say, under 20) means one or two big movers can swing the whole strategy's result more — since every position gets an equal dollar amount, holding count is a direct measure of how much any single stock matters.",
       "universe": "Every scored company held in equal dollar amounts, regardless of size. This is NOT the real S&P 500 — the real index is market-cap-weighted (bigger companies count for more), so in a stretch like the last few years where a handful of mega-caps drove most of the index's gains, this equal-weight result can lag the real index.",

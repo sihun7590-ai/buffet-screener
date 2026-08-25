@@ -72,7 +72,12 @@ export interface StrategyResult {
   equityCurve: { asOf: string; value: number }[];
   totalReturn: number; // decimal over the whole period
   cagr: number; // decimal, annualized over the actual sample length
-  maxDrawdown: number; // decimal, negative or zero (largest peak-to-trough drop)
+  /**
+   * Largest peak-to-trough fall measured at quarter-ends only — decimal,
+   * negative or zero. Substantially understates the fall actually lived
+   * through; see the note on the maxDrawdown function.
+   */
+  maxDrawdown: number;
   positiveQuarters: number;
   negativeQuarters: number;
   /** Portfolio size range across quarters. Null for SPY (not a portfolio of names). */
@@ -148,6 +153,18 @@ function buildCurve(dates: string[], quarters: QuarterReturn[]): { asOf: string;
   return curve;
 }
 
+// Largest peak-to-trough fall *as seen at quarter-ends*, which is the only
+// resolution this curve has. That understates the real thing badly, and by a
+// measured amount rather than a theoretical one: over this same window SPY's
+// quarter-end curve bottoms out at -8.0%, while its daily closes reach -19.0%
+// on 2025-04-08 — a fall that opened and substantially recovered inside a
+// single quarter, so no quarter-end sample ever saw it. Anyone holding these
+// strategies would have lived through the daily number, not this one.
+//
+// Fixing it properly means daily prices for every holding across every
+// quarter, which is ~500 tickers of daily history rather than the quarterly
+// snapshots this is built on. Until then the honest move is to label the
+// figure as quarter-end-only everywhere it's shown, which the UI and README do.
 function maxDrawdown(curve: { value: number }[]): number {
   let peak = curve[0]?.value ?? 100;
   let worst = 0;
