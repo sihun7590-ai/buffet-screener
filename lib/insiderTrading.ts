@@ -35,6 +35,9 @@ import { XMLParser } from "fast-xml-parser";
 
 const SEC_USER_AGENT = "buffett-screener research tool (contact: sihun7590@gmail.com)"; // required by SEC — always identify yourself
 const MAX_FILINGS = 5;
+// How deep to look for those 5. Only filings where this company is the issuer
+// count, and that can't be told apart without fetching each one.
+const MAX_FILING_CANDIDATES = 12;
 const REQUEST_DELAY_MS = 200;
 
 function sleep(ms: number) {
@@ -123,6 +126,7 @@ interface RawNonDerivativeTransaction {
 
 interface RawForm4 {
   ownershipDocument?: {
+    issuer?: { issuerCik?: string | number; issuerTradingSymbol?: string };
     reportingOwner?: RawOwnerNode | RawOwnerNode[];
     nonDerivativeTable?: {
       nonDerivativeTransaction?: RawNonDerivativeTransaction | RawNonDerivativeTransaction[];
@@ -167,12 +171,21 @@ export async function fetchInsiderTransactions(ticker: string): Promise<InsiderT
         primaryDocument: recent.primaryDocument[f.i],
       }))
       .sort((a, b) => b.filingDate.localeCompare(a.filingDate))
-      .slice(0, MAX_FILINGS);
+      // Whether a filing is about *this* company's stock is only knowable
+      // after fetching and parsing it (see the issuer check below), so the
+      // candidate list runs deeper than the number actually wanted. For most
+      // companies every candidate qualifies and the loop stops at MAX_FILINGS
+      // having fetched exactly that many; the extra depth only costs requests
+      // for big cross-holders like Berkshire, whose most recent Form 4s are
+      // largely about other companies' stock.
+      .slice(0, MAX_FILING_CANDIDATES);
 
     const cikInt = String(parseInt(cik, 10)); // Archives paths use the CIK without zero-padding
     const transactions: InsiderTransaction[] = [];
+    let matched = 0;
 
     for (const filing of form4Filings) {
+      if (matched >= MAX_FILINGS) break;
       await sleep(REQUEST_DELAY_MS);
 
       const accNoDash = filing.accessionNumber.replace(/-/g, "");
@@ -204,6 +217,18 @@ export async function fetchInsiderTransactions(ticker: string): Promise<InsiderT
 
       const doc = parsed.ownershipDocument;
       if (!doc) continue;
+
+      // A company's submissions feed returns Form 4s where it is *either* the
+      // issuer whose stock was traded or the reporting owner doing the
+      // trading. Large holders file plenty of the latter: Exxon is a 10%
+      // owner of ProPetro, so Exxon's feed carries Form 4s about ProPetro
+      // stock, and those were being shown on Exxon's page — another company's
+      // insider selling, at another company's share price ($16.66 against
+      // Exxon's ~$155), under Exxon's name. Only filings where this company is
+      // the issuer describe this company's stock.
+      const issuerCik = doc.issuer?.issuerCik;
+      if (issuerCik === undefined || parseInt(String(issuerCik), 10) !== parseInt(cik, 10)) continue;
+      matched++;
 
       // Joint filings (a handful of insiders reporting on one combined Form
       // 4) carry several reportingOwner entries; the common case is exactly
