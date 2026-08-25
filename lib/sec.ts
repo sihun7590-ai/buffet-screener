@@ -33,6 +33,15 @@ const REVENUE_TAGS = [
 const NET_INCOME_TAGS = ["NetIncomeLoss", "ProfitLoss"];
 const EPS_DILUTED_TAGS = ["EarningsPerShareDiluted"];
 const OPERATING_INCOME_TAGS = ["OperatingIncomeLoss"];
+// Not every filer tags an operating-income subtotal — Johnson & Johnson's last
+// one is from 2014 — but pre-tax income is nearly universal, and adding back
+// interest expense turns it into the same thing. Kept as a separate series
+// rather than appended to the list above so a year never silently swaps one
+// definition for the other: both paths yield EBIT, just reached differently.
+const PRETAX_INCOME_TAGS = [
+  "IncomeLossFromContinuingOperationsBeforeIncomeTaxesExtraordinaryItemsNoncontrollingInterest",
+  "IncomeLossFromContinuingOperationsBeforeIncomeTaxesMinorityInterestAndIncomeLossFromEquityMethodInvestments",
+];
 const INTEREST_EXPENSE_TAGS = ["InterestExpense", "InterestExpenseDebt", "InterestAndDebtExpense", "InterestExpenseNonoperating"];
 const SHARES_DILUTED_TAGS = ["WeightedAverageNumberOfDilutedSharesOutstanding", "WeightedAverageNumberOfSharesOutstandingBasic"];
 const GROSS_PROFIT_TAGS = ["GrossProfit"];
@@ -42,8 +51,24 @@ const CURRENT_ASSETS_TAGS = ["AssetsCurrent"];
 const CURRENT_LIABILITIES_TAGS = ["LiabilitiesCurrent"];
 const EQUITY_TAGS = ["StockholdersEquity", "StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest"];
 const CASH_TAGS = ["CashAndCashEquivalentsAtCarryingValue", "CashCashEquivalentsRestrictedCashAndRestrictedCashEquivalents"];
-const LT_DEBT_TAGS = ["LongTermDebtNoncurrent", "LongTermDebt"];
-const CURRENT_DEBT_TAGS = ["LongTermDebtCurrent", "DebtCurrent", "ShortTermBorrowings"];
+// Total borrowings including the portion due within a year, tagged as a single
+// figure. Where a filer provides one of these it's unambiguous, so it's tried
+// before adding a noncurrent and a current line together.
+const TOTAL_DEBT_TAGS = [
+  "DebtLongtermAndShorttermCombinedAmount",
+  "LongTermDebtAndCapitalLeaseObligationsIncludingCurrentMaturities",
+  "DebtAndCapitalLeaseObligations",
+];
+// Since ASC 842 many filers only tag debt together with finance-lease
+// obligations, which is why the combined concepts belong here — without them
+// Coca-Cola, CSX and dozens of others have no debt line at all.
+const LT_DEBT_TAGS = ["LongTermDebtNoncurrent", "LongTermDebtAndCapitalLeaseObligations", "LongTermDebt"];
+const CURRENT_DEBT_TAGS = [
+  "LongTermDebtCurrent",
+  "LongTermDebtAndCapitalLeaseObligationsCurrent",
+  "DebtCurrent",
+  "ShortTermBorrowings",
+];
 
 const OPERATING_CASH_FLOW_TAGS = ["NetCashProvidedByUsedInOperatingActivities", "NetCashProvidedByUsedInOperatingActivitiesContinuingOperations"];
 const CAPEX_TAGS = ["PaymentsToAcquirePropertyPlantAndEquipment", "PaymentsForCapitalImprovements", "PaymentsToAcquireProductiveAssets"];
@@ -91,6 +116,7 @@ export function buildTickerFinancials(ticker: string, raw: TickerRawData, asOf?:
   const netIncome = annual(NET_INCOME_TAGS, false);
   const epsDiluted = annual(EPS_DILUTED_TAGS, false);
   const operatingIncome = annual(OPERATING_INCOME_TAGS, false);
+  const pretaxIncome = annual(PRETAX_INCOME_TAGS, false);
   const interestExpense = annual(INTEREST_EXPENSE_TAGS, false);
   const sharesDiluted = annual(SHARES_DILUTED_TAGS, false);
   const grossProfit = annual(GROSS_PROFIT_TAGS, false);
@@ -100,6 +126,7 @@ export function buildTickerFinancials(ticker: string, raw: TickerRawData, asOf?:
   const currentLiabilities = annual(CURRENT_LIABILITIES_TAGS, true);
   const equity = annual(EQUITY_TAGS, true);
   const cash = annual(CASH_TAGS, true);
+  const totalDebt = annual(TOTAL_DEBT_TAGS, true);
   const ltDebt = annual(LT_DEBT_TAGS, true);
   const currentDebt = annual(CURRENT_DEBT_TAGS, true);
 
@@ -118,18 +145,36 @@ export function buildTickerFinancials(ticker: string, raw: TickerRawData, asOf?:
   for (const end of fiscalEnds) {
     const rev = at(revenue, end);
     const ni = at(netIncome, end);
-    const eps = at(epsDiluted, end);
-    const opInc = at(operatingIncome, end);
     const intExp = at(interestExpense, end);
     const daVal = at(da, end);
+
+    const opIncTagged = at(operatingIncome, end);
+    const pretax = at(pretaxIncome, end);
+    const opInc = Number.isFinite(opIncTagged)
+      ? opIncTagged
+      : Number.isFinite(pretax)
+        ? pretax + (Number.isFinite(intExp) ? Math.abs(intExp) : 0)
+        : NaN;
+
+    // Visa and a few others report earnings per share only per share class,
+    // which XBRL carries as dimensional facts that company-wide extracts drop.
+    // Net income over the diluted share count is the same figure.
+    const epsTagged = at(epsDiluted, end);
+    const shsDilForEps = at(sharesDiluted, end);
+    const eps = Number.isFinite(epsTagged)
+      ? epsTagged
+      : Number.isFinite(ni) && shsDilForEps > 0
+        ? ni / shsDilForEps
+        : NaN;
 
     // Some filers tag WeightedAverageNumberOfDilutedSharesOutstanding in
     // millions without actually scaling the value (e.g. "721.9" instead of
     // 721,900,000) — a known, filer-side XBRL tagging error. Deriving share
     // count from net income / EPS sidesteps it entirely, since both of those
-    // facts are reliably scaled.
-    const shsDilRaw = at(sharesDiluted, end);
-    const shsDil = Number.isFinite(ni) && Number.isFinite(eps) && eps !== 0 ? Math.abs(ni / eps) : shsDilRaw;
+    // facts are reliably scaled. (Where EPS was itself derived from the share
+    // count just above, this returns that same count — consistent, but with no
+    // independent check on its scale.)
+    const shsDil = Number.isFinite(ni) && Number.isFinite(eps) && eps !== 0 ? Math.abs(ni / eps) : shsDilForEps;
 
     let gp = at(grossProfit, end);
     if (!Number.isFinite(gp)) {
@@ -154,7 +199,16 @@ export function buildTickerFinancials(ticker: string, raw: TickerRawData, asOf?:
     const csh = at(cash, end);
     const ltd = at(ltDebt, end);
     const cd = at(currentDebt, end);
-    const debt = (Number.isFinite(ltd) ? ltd : 0) + (Number.isFinite(cd) ? cd : 0);
+    const combined = at(totalDebt, end);
+    // Defaulting an untagged line to zero turns "we couldn't read it" into
+    // "this company has no debt" — which is full marks on financial health.
+    // Missing has to stay missing; a filer that genuinely carries none tags
+    // the line as 0, and that still reads as 0 here.
+    const debt = Number.isFinite(combined)
+      ? combined
+      : Number.isFinite(ltd) || Number.isFinite(cd)
+        ? (Number.isFinite(ltd) ? ltd : 0) + (Number.isFinite(cd) ? cd : 0)
+        : NaN;
 
     balance.push({
       date: end,
@@ -216,8 +270,19 @@ export function buildTickerFinancials(ticker: string, raw: TickerRawData, asOf?:
   const currentPrice = asOf ? closeNear(priceHistory, asOf) : priceHistory.currentPrice;
   const marketCap = currentPrice * income[0].weightedAverageShsOutDil;
 
+  // Whether the newest row is a trailing-twelve-month period or the fiscal
+  // year itself is knowable here and nowhere downstream, so record it rather
+  // than leaving the UI to infer it from date gaps.
+  const fiscalYearEnd = fiscalEnds[0];
+  const periodEnd = income[0].date;
+
   return {
     ticker,
+    dataSource: {
+      periodType: periodEnd === fiscalYearEnd ? "annual" : "ttm",
+      periodEnd,
+      fiscalYearEnd,
+    },
     profile: {
       symbol: ticker,
       companyName: meta.companyName,
@@ -278,14 +343,28 @@ function prependTtmPeriod({
   };
 
   const ni = value(NET_INCOME_TAGS);
-  const opInc = value(OPERATING_INCOME_TAGS);
   const ocf = value(OPERATING_CASH_FLOW_TAGS);
   if (!Number.isFinite(ni) || !Number.isFinite(ocf)) return;
+
+  const intExp = value(INTEREST_EXPENSE_TAGS);
+  // Same EBIT fallback the annual rows use, so a company doesn't gain or lose
+  // an operating-income figure purely by having filed a quarter.
+  const opIncTagged = value(OPERATING_INCOME_TAGS);
+  const pretax = value(PRETAX_INCOME_TAGS);
+  const opInc = Number.isFinite(opIncTagged)
+    ? opIncTagged
+    : Number.isFinite(pretax)
+      ? pretax + (Number.isFinite(intExp) ? Math.abs(intExp) : 0)
+      : NaN;
 
   // Share counts are sometimes tagged in millions without being scaled, so
   // deriving them from net income over EPS — both reliably scaled — is what
   // the annual path does, and the TTM row has to agree or a company's share
   // count appears to collapse between periods.
+  // No fallback to net income over share count here, unlike the annual rows:
+  // a diluted share count is a weighted average, and the trailing-twelve-month
+  // identity adds and subtracts periods, which averages don't survive. A filer
+  // that doesn't tag EPS simply keeps its annual view.
   const eps = value(EPS_DILUTED_TAGS);
   if (!Number.isFinite(eps) || eps === 0) return;
   const shares = Math.abs(ni / eps);
@@ -303,7 +382,6 @@ function prependTtmPeriod({
   const capexRaw = value(CAPEX_TAGS);
   const capex = Number.isFinite(capexRaw) ? -Math.abs(capexRaw) : NaN;
   const da = value(DA_TAGS);
-  const intExp = value(INTEREST_EXPENSE_TAGS);
 
   let gp = value(GROSS_PROFIT_TAGS);
   if (!Number.isFinite(gp)) {
@@ -319,6 +397,7 @@ function prependTtmPeriod({
   const caVal = sameQuarter(CURRENT_ASSETS_TAGS);
   const clVal = sameQuarter(CURRENT_LIABILITIES_TAGS);
   const cashVal = sameQuarter(CASH_TAGS);
+  const combinedVal = sameQuarter(TOTAL_DEBT_TAGS);
   const ltdVal = sameQuarter(LT_DEBT_TAGS);
   const cdVal = sameQuarter(CURRENT_DEBT_TAGS);
 
@@ -326,10 +405,12 @@ function prependTtmPeriod({
   // $49B of debt ends up scoring as debt-free for a quarter. The annual rows
   // are complete, so anything short of a complete quarter is better left out
   // than mixed in.
-  if (!Number.isFinite(ltdVal) && !Number.isFinite(cdVal)) return;
+  if (!Number.isFinite(combinedVal) && !Number.isFinite(ltdVal) && !Number.isFinite(cdVal)) return;
   if (!Number.isFinite(caVal) || !Number.isFinite(clVal)) return;
 
-  const debt = (Number.isFinite(ltdVal) ? ltdVal : 0) + (Number.isFinite(cdVal) ? cdVal : 0);
+  const debt = Number.isFinite(combinedVal)
+    ? combinedVal
+    : (Number.isFinite(ltdVal) ? ltdVal : 0) + (Number.isFinite(cdVal) ? cdVal : 0);
   const equity = eq.val;
 
   income.unshift({

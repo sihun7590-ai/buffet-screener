@@ -99,7 +99,8 @@
       "price": "주가",
       "marketCap": "시가총액",
       "total": "종합",
-      "marginOfSafety": "안전마진"
+      "marginOfSafety": "안전마진",
+      "partialCoverage": "공시에 없는 항목이 있어 측정된 {percent}%만으로 채점했습니다. 점선 표시는 이 뜻입니다."
     },
     "noResults": "조건에 맞는 종목이 없습니다."
   },
@@ -134,7 +135,8 @@
       "currentPrice": "현재가",
       "marginOfSafety": "안전마진",
       "ownerEarningsNote": "소유주이익(Owner Earnings) 주당 {value} 기준, 향후 5년 성장률 {growth}, 할인율 {discount}, 영구성장률 {terminal}로 추정한 단순 DCF 값입니다.",
-      "noShareData": "N/A (주식수 데이터 없음)"
+      "noShareData": "N/A (주식수 데이터 없음)",
+      "negativeOwnerEarnings": "최근 3년 소유주이익(영업현금흐름 − 설비투자)이 마이너스라 현금흐름 할인 모형을 적용할 수 없습니다. 설비투자가 큰 유틸리티·인프라 기업에서 흔한 일이며, 회사가 부실하다는 뜻은 아닙니다. 다만 이 방식으로는 가치를 매길 수 없어, 저평가 축의 안전마진 항목은 최저점으로 처리됩니다."
     },
     "criteriaTable": {
       "actualValue": "실제값",
@@ -296,5 +298,18 @@
   "localeSwitcher": {
     "en": "English",
     "ko": "한국어"
+  },
+  "dataSource": {
+    "financials": "재무 SEC EDGAR",
+    "prices": "주가 Yahoo Finance",
+    "periodTtm": "최근 12개월 ({date} 마감)",
+    "periodAnnual": "연간 ({date} 마감)",
+    "updated": "{date} 갱신",
+    "tip": "재무 수치는 회사가 미국 증권거래위원회(SEC)에 직접 제출한 공시에서 가져옵니다. \"최근 12개월\"은 가장 최근 분기까지의 1년치를 뜻하고, \"연간\"은 마지막 사업연도 숫자를 그대로 쓴다는 뜻입니다 — 그 이후 분기 실적이 아직 반영되지 않았다는 신호입니다. 주가는 하루 1회 갱신되며 실시간이 아닙니다.",
+    "coverage": "측정 {percent}%",
+    "coverageTip": "이 항목을 채점하는 데 필요한 숫자 중 실제로 공시에서 찾은 비율입니다. 회사마다 공시에 담는 항목이 달라서 (예: 은행은 매출총이익이나 유동비율이 없습니다) 일부는 계산할 수 없습니다. 100%보다 낮으면 찾은 항목만으로 채점했다는 뜻이고, 절반 아래로 내려가면 점수를 부풀리지 않도록 절반 기준으로 채점합니다.",
+    "unavailable": "측정 불가",
+    "unavailableReason": "이 회사 공시에서 이 항목에 필요한 숫자를 찾지 못했습니다. 0점 처리하면 \"확인했더니 나빴다\"는 뜻이 되므로, 아예 채점에서 빼고 나머지 항목으로 점수를 냅니다.",
+    "measuredOf": "{count}개 항목 측정 불가"
   }
 }

@@ -9,8 +9,9 @@ import StockFavoriteButton from "@/components/StockFavoriteButton";
 import CriteriaTable from "@/components/CriteriaTable";
 import PriceChartPanel from "@/components/PriceChartPanel";
 import ScoreHistoryChart from "@/components/ScoreHistoryChart";
+import DataSourceNote from "@/components/DataSourceNote";
 import { fetchScoreHistory } from "@/lib/scoreHistoryQuery";
-import { getScoreByTicker } from "@/lib/store";
+import { getScoreByTicker, readScores } from "@/lib/store";
 import { AXIS_WEIGHTS, SCORE_AXES } from "@/lib/types";
 import { fetchCompanySummary } from "@/lib/wikipedia";
 import { fetchRecentNews } from "@/lib/news";
@@ -34,6 +35,8 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
   const tGlossary = await getTranslations("glossary");
   const tCommon = await getTranslations("common");
   const tSectors = await getTranslations("sectors");
+  const tSource = await getTranslations("dataSource");
+  const { generatedAt } = readScores();
 
   const meta = (universe as { ticker: string; wikiTitle: string | null }[]).find((u) => u.ticker === ticker);
   const [summary, news, exchangeName, history] = await Promise.all([
@@ -45,7 +48,12 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
   const tvSymbol = toTradingViewSymbol(ticker, exchangeName);
 
   const iv = score.intrinsicValue;
-  const ivOk = Number.isFinite(iv.intrinsicValuePerShare);
+  // Regulated utilities routinely spend more on plant than they take in, so
+  // owner earnings — and the discounted value built on them — come out
+  // negative. That is a real reading and the margin-of-safety criterion scores
+  // it at the floor, but "intrinsic value: -$63" on screen means nothing to a
+  // reader. The model doesn't apply here; say so instead of printing it.
+  const ivOk = Number.isFinite(iv.intrinsicValuePerShare) && iv.intrinsicValuePerShare > 0;
   const mosColor = iv.marginOfSafety > 0 ? "var(--up)" : "var(--down)";
 
   const pctFmt = (v: number) =>
@@ -98,24 +106,39 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
               out where it did without scrolling. */}
           <div className="flex flex-wrap items-center gap-x-8 gap-y-5">
             <div className="flex flex-col gap-2.5">
-              {SCORE_AXES.map((axis) => (
-                <div key={axis}>
-                  <div className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
-                    {tAxes(`${axis}.name`)}
-                    <span className="font-mono normal-case tracking-normal text-ink-faint/70">
-                      {Math.round(AXIS_WEIGHTS[axis] * 100)}%
-                    </span>
-                    <InfoTip text={tAxes(`${axis}.tip`)} />
+              {SCORE_AXES.map((axis) => {
+                // Older snapshots predate coverage tracking; absent means the
+                // axis was scored on everything, which is what full means.
+                const covered = score.coverage?.[axis] ?? 1;
+                return (
+                  <div key={axis}>
+                    <div className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
+                      {tAxes(`${axis}.name`)}
+                      <span className="font-mono normal-case tracking-normal text-ink-faint/70">
+                        {Math.round(AXIS_WEIGHTS[axis] * 100)}%
+                      </span>
+                      <InfoTip text={tAxes(`${axis}.tip`)} />
+                      {covered < 1 && (
+                        <span className="flex items-center gap-1 rounded border border-warn/40 px-1 py-px font-mono text-[9px] normal-case tracking-normal text-warn">
+                          {tSource("coverage", { percent: Math.round(covered * 100) })}
+                          <InfoTip text={tSource("coverageTip")} className="border-warn/50 text-warn" />
+                        </span>
+                      )}
+                    </div>
+                    <ScoreBar score={score.scores[axis]} max={100} strong />
                   </div>
-                  <ScoreBar score={score.scores[axis]} max={100} strong />
-                </div>
-              ))}
+                );
+              })}
             </div>
             <div className="flex items-start gap-1.5">
               <ScoreGauge score={score.totalScore} max={100} label={t("stats.total")} />
               <InfoTip text={tGlossary("total")} />
             </div>
           </div>
+        </div>
+
+        <div className="mt-5 border-t border-line pt-3.5">
+          <DataSourceNote provenance={score.dataSource} generatedAt={generatedAt} />
         </div>
       </Panel>
 
@@ -174,6 +197,11 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
             </div>
           </div>
         </div>
+        {!ivOk && Number.isFinite(iv.ownerEarningsPerShare) && iv.ownerEarningsPerShare <= 0 && (
+          <p className="mt-4 rounded-lg border border-warn/40 bg-warn/10 px-3 py-2.5 text-[12px] leading-relaxed text-warn">
+            {t("dcf.negativeOwnerEarnings")}
+          </p>
+        )}
         <p className="mt-4 text-[11px] leading-relaxed text-ink-faint">
           {t("dcf.ownerEarningsNote", {
             value: Number.isFinite(iv.ownerEarningsPerShare) ? usdFmt(iv.ownerEarningsPerShare) : t("dcf.noShareData"),

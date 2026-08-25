@@ -95,6 +95,8 @@ function buildFixture(cfg: FixtureConfig): TickerFinancials {
     },
     quote: { symbol: cfg.ticker, price, marketCap: price * income[0].weightedAverageShsOutDil },
     income, balance, cashFlow, ratios, keyMetrics,
+    // Sample data is fiscal years only — no quarters are synthesised.
+    dataSource: { periodType: "annual", periodEnd: income[0].date, fiscalYearEnd: income[0].date },
   };
 }
 

@@ -1,6 +1,7 @@
 import {
   AXIS_WEIGHTS,
   SCORE_AXES,
+  type AxisCoverage,
   type AxisScores,
   type CriterionResult,
   type IntrinsicValueEstimate,
@@ -13,7 +14,12 @@ import {
 // distinguish "the company changed" from "we changed how we measure".
 // v3: trailing-twelve-month periods from quarterly filings, and growth
 // annualised by elapsed time rather than by how many entries are in the series.
-export const SCORING_VERSION = 3;
+// v4: a criterion whose input the filing doesn't carry is dropped from its axis
+// instead of scored zero, and the axis reports how much of it was measurable.
+// Debt tags widened to the finance-lease concepts most filers now use, so the
+// ~90 companies that read as debt-free are scored on the debt they carry; book
+// equity below zero no longer walks a "lower is better" ramp to full marks.
+export const SCORING_VERSION = 4;
 
 // Rough sector P/E benchmarks for the "cheaper than its sector" check —
 // neither SEC nor Yahoo expose a sector-average endpoint, so this is a
@@ -123,6 +129,18 @@ function criterion(
   return { id, axis, passed, points: round1(Math.min(maxPoints, Math.max(0, points))), maxPoints, values };
 }
 
+// The filing doesn't carry what this criterion needs. Scoring it zero would
+// claim we looked and the answer was bad; instead it drops out of its axis
+// altogether (see the renormalisation in scoreTicker) and the axis reports
+// reduced coverage.
+//
+// Reserved strictly for absent data. A number that is present and unfavourable
+// — a loss, negative book equity, falling revenue — is a measurement, and goes
+// through `criterion` with the zero it earned.
+function unavailable(axis: ScoreAxis, id: string, maxPoints: number, values: Record<string, number>): CriterionResult {
+  return { id, axis, passed: false, points: 0, maxPoints, values, available: false };
+}
+
 export function computeIntrinsicValue(f: TickerFinancials): IntrinsicValueEstimate {
   const cashFlows = [...f.cashFlow].reverse(); // oldest -> newest
   // capitalExpenditure is stored as a negative outflow, so FCF = OCF + capex.
@@ -207,23 +225,35 @@ function scoreQuality(f: TickerFinancials): CriterionResult[] {
   const shareCountDelta = sharesAsc.length >= 2 ? (sharesAsc[0] - sharesAsc[sharesAsc.length - 1]) / sharesAsc[0] : NaN;
 
   return [
-    criterion("quality", "roe", roeAvg >= 0.15, linScore(roeAvg, 0.08, 0.15, 28), 28, { roeAvg }),
-    criterion("quality", "roic", roicAvg >= 0.12, linScore(roicAvg, 0.06, 0.12, 28), 28, { roicAvg }),
-    criterion(
-      "quality",
-      "grossMargin",
-      hasMarginData && marginAvg >= 0.35 && stabilityPenalty < 0.15,
-      hasMarginData ? linScore(marginAvg, 0.2, 0.45, 11) + linScore(stabilityPenalty, 0.05, 0.25, 5, false) : 0,
-      16,
-      { marginAvg, stabilityPenalty },
-    ),
-    criterion("quality", "operatingMargin", operatingMargin >= 0.15, linScore(operatingMargin, 0.05, 0.2, 10), 10, {
-      operatingMargin,
-    }),
-    criterion("quality", "fcfMargin", fcfMargin >= 0.1, linScore(fcfMargin, 0.05, 0.2, 10), 10, { fcfMargin }),
-    criterion("quality", "shareCount", shareCountDelta > 0, linScore(shareCountDelta, -0.05, 0.1, 8), 8, {
-      shareCountDelta,
-    }),
+    Number.isFinite(roeAvg)
+      ? criterion("quality", "roe", roeAvg >= 0.15, linScore(roeAvg, 0.08, 0.15, 28), 28, { roeAvg })
+      : unavailable("quality", "roe", 28, { roeAvg }),
+    Number.isFinite(roicAvg)
+      ? criterion("quality", "roic", roicAvg >= 0.12, linScore(roicAvg, 0.06, 0.12, 28), 28, { roicAvg })
+      : unavailable("quality", "roic", 28, { roicAvg }),
+    hasMarginData
+      ? criterion(
+          "quality",
+          "grossMargin",
+          marginAvg >= 0.35 && stabilityPenalty < 0.15,
+          linScore(marginAvg, 0.2, 0.45, 11) + linScore(stabilityPenalty, 0.05, 0.25, 5, false),
+          16,
+          { marginAvg, stabilityPenalty },
+        )
+      : unavailable("quality", "grossMargin", 16, { marginAvg, stabilityPenalty }),
+    Number.isFinite(operatingMargin)
+      ? criterion("quality", "operatingMargin", operatingMargin >= 0.15, linScore(operatingMargin, 0.05, 0.2, 10), 10, {
+          operatingMargin,
+        })
+      : unavailable("quality", "operatingMargin", 10, { operatingMargin }),
+    Number.isFinite(fcfMargin)
+      ? criterion("quality", "fcfMargin", fcfMargin >= 0.1, linScore(fcfMargin, 0.05, 0.2, 10), 10, { fcfMargin })
+      : unavailable("quality", "fcfMargin", 10, { fcfMargin }),
+    Number.isFinite(shareCountDelta)
+      ? criterion("quality", "shareCount", shareCountDelta > 0, linScore(shareCountDelta, -0.05, 0.1, 8), 8, {
+          shareCountDelta,
+        })
+      : unavailable("quality", "shareCount", 8, { shareCountDelta }),
   ];
 }
 
@@ -234,14 +264,29 @@ function scoreGrowth(f: TickerFinancials): CriterionResult[] {
   const incomeAsc = [...f.income].reverse();
   const cashFlowAsc = [...f.cashFlow].reverse();
 
-  const revenueCagr = seriesCagr(incomeAsc.map((i) => ({ date: i.date, value: i.revenue })));
-  const epsCagr = seriesCagr(incomeAsc.map((i) => ({ date: i.date, value: i.eps })));
-  const fcfCagr = seriesCagr(cashFlowAsc.map((c) => ({ date: c.date, value: c.freeCashFlow })));
+  const revenue = incomeAsc.map((i) => ({ date: i.date, value: i.revenue }));
+  const eps = incomeAsc.map((i) => ({ date: i.date, value: i.eps }));
+  const fcf = cashFlowAsc.map((c) => ({ date: c.date, value: c.freeCashFlow }));
+
+  // Growth needs two points to measure between. Fewer than that is missing
+  // data; two or more that produce no rate — earnings that crossed from profit
+  // to loss, say — is a measurement, and a bad one.
+  const measurable = (points: DatedValue[]) => points.filter((p) => Number.isFinite(p.value)).length >= 2;
+
+  const revenueCagr = seriesCagr(revenue);
+  const epsCagr = seriesCagr(eps);
+  const fcfCagr = seriesCagr(fcf);
 
   return [
-    criterion("growth", "revenueCagr", revenueCagr >= 0.05, linScore(revenueCagr, 0, 0.1, 35), 35, { revenueCagr }),
-    criterion("growth", "epsCagr", epsCagr >= 0.05, linScore(epsCagr, 0, 0.1, 35), 35, { epsCagr }),
-    criterion("growth", "fcfCagr", fcfCagr >= 0.05, linScore(fcfCagr, 0, 0.1, 30), 30, { fcfCagr }),
+    measurable(revenue)
+      ? criterion("growth", "revenueCagr", revenueCagr >= 0.05, linScore(revenueCagr, 0, 0.1, 35), 35, { revenueCagr })
+      : unavailable("growth", "revenueCagr", 35, { revenueCagr }),
+    measurable(eps)
+      ? criterion("growth", "epsCagr", epsCagr >= 0.05, linScore(epsCagr, 0, 0.1, 35), 35, { epsCagr })
+      : unavailable("growth", "epsCagr", 35, { epsCagr }),
+    measurable(fcf)
+      ? criterion("growth", "fcfCagr", fcfCagr >= 0.05, linScore(fcfCagr, 0, 0.1, 30), 30, { fcfCagr })
+      : unavailable("growth", "fcfCagr", 30, { fcfCagr }),
   ];
 }
 
@@ -249,42 +294,69 @@ function scoreGrowth(f: TickerFinancials): CriterionResult[] {
 // Financial Health — can it survive a bad year? (100 pts)
 // ---------------------------------------------------------------------------
 function scoreHealth(f: TickerFinancials): CriterionResult[] {
-  const debtEquity = f.ratios[0]?.debtToEquityRatio ?? NaN;
   const interestCoverage = f.ratios[0]?.interestCoverageRatio ?? NaN;
   const currentRatio = f.ratios[0]?.currentRatio ?? NaN;
 
   const debt = f.balance[0]?.totalDebt ?? NaN;
+  const equity = f.balance[0]?.totalStockholdersEquity ?? NaN;
   const cash = f.balance[0]?.cashAndCashEquivalents ?? NaN;
   const ebitda = f.income[0]?.ebitda ?? NaN;
+  const operatingIncome = f.income[0]?.operatingIncome ?? NaN;
+  const hasDebt = Number.isFinite(debt);
 
-  // A debt-free balance sheet is the best possible answer to both of these,
-  // not a missing one — treat it as such instead of scoring a NaN ratio 0.
-  const debtFree = Number.isFinite(debt) && debt <= 0;
-  const netDebtToEbitda = debtFree ? 0 : Number.isFinite(debt) && Number.isFinite(cash) && ebitda > 0 ? (debt - cash) / ebitda : NaN;
+  // A debt-free balance sheet is the best possible answer to these, not a
+  // missing one — treat it as such instead of scoring a NaN ratio 0.
+  const debtFree = hasDebt && debt <= 0;
+  const netDebtToEbitda = debtFree ? 0 : hasDebt && Number.isFinite(cash) && ebitda > 0 ? (debt - cash) / ebitda : NaN;
   const cashToDebt = debtFree ? Infinity : Number.isFinite(cash) && debt > 0 ? cash / debt : NaN;
 
+  // Book equity below zero — the buyback-heavy franchises (McDonald's, Home
+  // Depot, Starbucks) and the genuinely distressed both land here. Debt over
+  // negative equity comes out negative, and a negative ratio walks straight
+  // through a "lower is better" ramp to full marks: 28 companies were scoring
+  // 30/30 on leverage for having no book equity left. It isn't missing data —
+  // the balance sheet says so plainly — so it's measured, and it scores zero.
+  // Graham's criteria want book value above zero, and the leverage these
+  // companies do carry still shows up in net debt / EBITDA next door.
+  const debtEquity = hasDebt && Number.isFinite(equity) && equity > 0 ? debt / equity : NaN;
+  const negativeEquity = Number.isFinite(equity) && equity <= 0;
+
   return [
-    criterion("health", "debtToEquity", debtEquity <= 0.5, linScore(debtEquity, 0.3, 1.0, 30, false), 30, { debtEquity }),
-    criterion("health", "interestCoverage", interestCoverage >= 5, linScore(interestCoverage, 2, 8, 25), 25, {
-      interestCoverage,
-    }),
-    criterion("health", "currentRatio", currentRatio >= 1.5, linScore(currentRatio, 1.0, 1.5, 20), 20, { currentRatio }),
-    criterion(
-      "health",
-      "netDebtToEbitda",
-      netDebtToEbitda <= 3,
-      linScore(netDebtToEbitda, 0, 3, 15, false),
-      15,
-      { netDebtToEbitda },
-    ),
-    criterion(
-      "health",
-      "cashToDebt",
-      cashToDebt >= 0.5,
-      debtFree ? 10 : linScore(cashToDebt, 0.1, 0.5, 10),
-      10,
-      { cashToDebt: debtFree ? Infinity : cashToDebt },
-    ),
+    hasDebt && Number.isFinite(equity)
+      ? criterion(
+          "health",
+          "debtToEquity",
+          !negativeEquity && debtEquity <= 0.5,
+          negativeEquity ? 0 : linScore(debtEquity, 0.3, 1.0, 30, false),
+          30,
+          { debtEquity, equity },
+        )
+      : unavailable("health", "debtToEquity", 30, { debtEquity, equity }),
+    // No interest to cover is the strongest possible reading, but only for a
+    // company we can see is debt-free. Where debt exists and the interest line
+    // is simply untagged, we don't know.
+    debtFree
+      ? criterion("health", "interestCoverage", true, 25, 25, { interestCoverage: Infinity })
+      : Number.isFinite(interestCoverage)
+        ? criterion("health", "interestCoverage", interestCoverage >= 5, linScore(interestCoverage, 2, 8, 25), 25, {
+            interestCoverage,
+          })
+        : // Operating income present but no interest expense tagged, on a
+          // balance sheet we can't confirm is debt-free — unmeasurable either way.
+          unavailable("health", "interestCoverage", 25, { interestCoverage, operatingIncome }),
+    Number.isFinite(currentRatio)
+      ? criterion("health", "currentRatio", currentRatio >= 1.5, linScore(currentRatio, 1.0, 1.5, 20), 20, { currentRatio })
+      : unavailable("health", "currentRatio", 20, { currentRatio }),
+    Number.isFinite(netDebtToEbitda)
+      ? criterion("health", "netDebtToEbitda", netDebtToEbitda <= 3, linScore(netDebtToEbitda, 0, 3, 15, false), 15, {
+          netDebtToEbitda,
+        })
+      : unavailable("health", "netDebtToEbitda", 15, { netDebtToEbitda }),
+    debtFree
+      ? criterion("health", "cashToDebt", true, 10, 10, { cashToDebt: Infinity })
+      : Number.isFinite(cashToDebt)
+        ? criterion("health", "cashToDebt", cashToDebt >= 0.5, linScore(cashToDebt, 0.1, 0.5, 10), 10, { cashToDebt })
+        : unavailable("health", "cashToDebt", 10, { cashToDebt }),
   ];
 }
 
@@ -314,27 +386,33 @@ function scoreConsistency(f: TickerFinancials): CriterionResult[] {
   const revenueGrowthRatio = revenues.length >= 2 ? growthYears / (revenues.length - 1) : NaN;
 
   return [
-    criterion(
-      "consistency",
-      "epsPositiveYears",
-      totalYears > 0 && lossYears === 0,
-      totalYears > 0 ? linScore(lossYears, 0, 3, 40, false) : 0,
-      40,
-      { lossYears, totalYears },
-    ),
-    criterion(
-      "consistency",
-      "fcfPositiveYears",
-      fcfYears > 0 && fcfPositiveYears === fcfYears,
-      linScore(fcfPositiveRatio, 0.5, 1.0, 35),
-      35,
-      { fcfPositiveYears, totalYears: fcfYears },
-    ),
-    criterion("consistency", "revenueConsistency", revenueGrowthRatio >= 0.8, linScore(revenueGrowthRatio, 0.5, 1.0, 25), 25, {
-      revenueGrowthRatio,
-      growthYears,
-      totalYears: Math.max(0, revenues.length - 1),
-    }),
+    totalYears > 0
+      ? criterion("consistency", "epsPositiveYears", lossYears === 0, linScore(lossYears, 0, 3, 40, false), 40, {
+          lossYears,
+          totalYears,
+        })
+      : unavailable("consistency", "epsPositiveYears", 40, { lossYears, totalYears }),
+    fcfYears > 0
+      ? criterion(
+          "consistency",
+          "fcfPositiveYears",
+          fcfPositiveYears === fcfYears,
+          linScore(fcfPositiveRatio, 0.5, 1.0, 35),
+          35,
+          { fcfPositiveYears, totalYears: fcfYears },
+        )
+      : unavailable("consistency", "fcfPositiveYears", 35, { fcfPositiveYears, totalYears: fcfYears }),
+    revenues.length >= 2
+      ? criterion("consistency", "revenueConsistency", revenueGrowthRatio >= 0.8, linScore(revenueGrowthRatio, 0.5, 1.0, 25), 25, {
+          revenueGrowthRatio,
+          growthYears,
+          totalYears: revenues.length - 1,
+        })
+      : unavailable("consistency", "revenueConsistency", 25, {
+          revenueGrowthRatio,
+          growthYears,
+          totalYears: Math.max(0, revenues.length - 1),
+        }),
   ];
 }
 
@@ -360,33 +438,62 @@ function scoreValuation(f: TickerFinancials, iv: IntrinsicValueEstimate): Criter
 
   const peBenchmark = Math.min(peOwnAvg || sectorPe, sectorPe);
 
+  // The line between missing and bad matters most on this axis. A company
+  // losing money has no meaningful P/E — but that is an answer, and excusing
+  // it would let loss-makers skip the valuation tests that should mark them
+  // down. So these are unavailable only when the inputs themselves are absent:
+  // no price, or no earnings figure at all.
+  const pricedAndReported = price > 0 && Number.isFinite(latestEps);
+
   return [
-    criterion("valuation", "marginOfSafety", iv.marginOfSafety >= 0.25, linScore(iv.marginOfSafety, 0, 0.25, 40), 40, {
-      intrinsicValuePerShare: iv.intrinsicValuePerShare,
-      currentPrice: iv.currentPrice,
-      marginOfSafety: iv.marginOfSafety,
-    }),
-    criterion(
-      "valuation",
-      "peRelative",
-      Number.isFinite(currentPe) && currentPe > 0 && currentPe < peBenchmark,
-      Number.isFinite(currentPe) && currentPe > 0 ? linScore(currentPe, peBenchmark * 0.6, peBenchmark, 25, false) : 0,
-      25,
-      { currentPe, peOwnAvg, sectorPe },
-    ),
-    criterion("valuation", "peg", Number.isFinite(peg) && peg < 1, linScore(peg, 1.0, 2.0, 20, false), 20, { peg }),
-    criterion(
-      "valuation",
-      "grahamNumber",
-      Number.isFinite(grahamNumber) && price <= grahamNumber,
-      Number.isFinite(grahamNumber) ? linScore(price / grahamNumber, 0.7, 1.2, 15, false) : 0,
-      15,
-      { price, grahamNumber },
-    ),
+    Number.isFinite(iv.intrinsicValuePerShare) && Number.isFinite(iv.marginOfSafety)
+      ? criterion("valuation", "marginOfSafety", iv.marginOfSafety >= 0.25, linScore(iv.marginOfSafety, 0, 0.25, 40), 40, {
+          intrinsicValuePerShare: iv.intrinsicValuePerShare,
+          currentPrice: iv.currentPrice,
+          marginOfSafety: iv.marginOfSafety,
+        })
+      : unavailable("valuation", "marginOfSafety", 40, {
+          intrinsicValuePerShare: iv.intrinsicValuePerShare,
+          currentPrice: iv.currentPrice,
+          marginOfSafety: iv.marginOfSafety,
+        }),
+    pricedAndReported
+      ? criterion(
+          "valuation",
+          "peRelative",
+          currentPe > 0 && currentPe < peBenchmark,
+          currentPe > 0 ? linScore(currentPe, peBenchmark * 0.6, peBenchmark, 25, false) : 0,
+          25,
+          { currentPe, peOwnAvg, sectorPe },
+        )
+      : unavailable("valuation", "peRelative", 25, { currentPe, peOwnAvg, sectorPe }),
+    pricedAndReported
+      ? criterion("valuation", "peg", Number.isFinite(peg) && peg < 1, linScore(peg, 1.0, 2.0, 20, false), 20, { peg })
+      : unavailable("valuation", "peg", 20, { peg }),
+    pricedAndReported && Number.isFinite(bvps)
+      ? criterion(
+          "valuation",
+          "grahamNumber",
+          Number.isFinite(grahamNumber) && price <= grahamNumber,
+          Number.isFinite(grahamNumber) ? linScore(price / grahamNumber, 0.7, 1.2, 15, false) : 0,
+          15,
+          { price, grahamNumber },
+        )
+      : unavailable("valuation", "grahamNumber", 15, { price, grahamNumber }),
   ];
 }
 
 const BUY_CANDIDATE_THRESHOLD = 70;
+
+// Below this share of an axis's points, the axis is graded against this share
+// anyway rather than being scaled up from what little was measured.
+const MIN_MEASURED_SHARE = 0.5;
+
+// Calling something a Buy Candidate is the one place this makes a
+// recommendation rather than a measurement, so it needs the evidence to back
+// it: an axis we could barely read is not grounds for either recommending or
+// rejecting, and shouldn't be presented as the former.
+const MIN_COVERAGE_FOR_BUY = 0.7;
 
 export function scoreTicker(f: TickerFinancials, asOf = new Date().toISOString()): StockScore {
   const intrinsicValue = computeIntrinsicValue(f);
@@ -398,12 +505,35 @@ export function scoreTicker(f: TickerFinancials, asOf = new Date().toISOString()
     ...scoreValuation(f, intrinsicValue),
   ];
 
-  const scores = Object.fromEntries(
-    SCORE_AXES.map((axis) => {
-      const items = criteria.filter((c) => c.axis === axis);
-      return [axis, round1(items.reduce((sum, c) => sum + c.points, 0))];
-    }),
-  ) as AxisScores;
+  // Each axis is graded out of the criteria that could actually be measured,
+  // then rescaled to 100. Where every criterion is measurable — the great
+  // majority — the axis maxPoints already sum to 100 and this is exactly the
+  // old sum. Where some aren't, the alternative would be to score the missing
+  // ones zero, which reads as "measured, and terrible" for what is really our
+  // inability to read the filing.
+  const axisScore = (axis: ScoreAxis) => {
+    const measured = criteria.filter((c) => c.axis === axis && c.available !== false);
+    const max = measured.reduce((sum, c) => sum + c.maxPoints, 0);
+    const got = measured.reduce((sum, c) => sum + c.points, 0);
+    const total = criteria.filter((c) => c.axis === axis).reduce((sum, c) => sum + c.maxPoints, 0);
+    // Rescaling assumes what we measured stands in for what we didn't, which
+    // holds while most of the axis is measured and stops holding well before
+    // the end. Berkshire's balance sheet yields one of five health criteria;
+    // scaled up, a single good interest-coverage reading became a health score
+    // of 100. Past the halfway mark the axis is graded against half its points
+    // regardless, so a thin sample caps out low rather than extrapolating.
+    const denominator = Math.max(max, total * MIN_MEASURED_SHARE);
+    return { score: denominator > 0 ? round1((got / denominator) * 100) : 0, coverage: total > 0 ? max / total : 0 };
+  };
+
+  const graded = Object.fromEntries(SCORE_AXES.map((axis) => [axis, axisScore(axis)])) as Record<
+    ScoreAxis,
+    { score: number; coverage: number }
+  >;
+  const scores = Object.fromEntries(SCORE_AXES.map((axis) => [axis, graded[axis].score])) as AxisScores;
+  const coverage = Object.fromEntries(
+    SCORE_AXES.map((axis) => [axis, Math.round(graded[axis].coverage * 100) / 100]),
+  ) as AxisCoverage;
 
   const totalScore = round1(SCORE_AXES.reduce((sum, axis) => sum + scores[axis] * AXIS_WEIGHTS[axis], 0));
 
@@ -414,10 +544,15 @@ export function scoreTicker(f: TickerFinancials, asOf = new Date().toISOString()
     price: f.quote.price,
     marketCap: f.quote.marketCap,
     scores,
+    coverage,
     totalScore,
-    isBuyCandidate: totalScore >= BUY_CANDIDATE_THRESHOLD && intrinsicValue.marginOfSafety > 0,
+    isBuyCandidate:
+      totalScore >= BUY_CANDIDATE_THRESHOLD &&
+      intrinsicValue.marginOfSafety > 0 &&
+      SCORE_AXES.every((axis) => coverage[axis] >= MIN_COVERAGE_FOR_BUY),
     intrinsicValue,
     criteria,
+    dataSource: f.dataSource,
     asOf,
     scoringVersion: SCORING_VERSION,
   };

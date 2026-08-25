@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import Dashboard from "@/components/Dashboard";
+import DataSourceNote from "@/components/DataSourceNote";
 import { readScores } from "@/lib/store";
 
 // scores.json changes whenever `npm run refresh` runs; read it fresh on
@@ -55,7 +56,8 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <Dashboard scores={scores} />
       )}
 
-      <footer className="mt-auto border-t border-line pt-4 text-[11px] leading-relaxed text-ink-faint">
+      <footer className="mt-auto flex flex-col gap-2 border-t border-line pt-4 text-[11px] leading-relaxed text-ink-faint">
+        <DataSourceNote generatedAt={generatedAt} />
         {tc("disclaimer")}
       </footer>
     </main>

@@ -387,13 +387,21 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
                     </td>
                     {SCORE_AXES.map((axis) => {
                       const v = s.scores[axis];
+                      // Snapshots written before coverage existed report none;
+                      // absent means the axis was scored on everything.
+                      const covered = s.coverage?.[axis] ?? 1;
                       return (
                         <td
                           key={axis}
                           className="px-3 py-2.5 text-right font-mono text-[13px] font-semibold tabular-nums"
                           style={{ color: Number.isFinite(v) ? scoreColor(v, 100) : "var(--ink-faint)" }}
                         >
-                          {Number.isFinite(v) ? v.toFixed(0) : "—"}
+                          <span
+                            className={covered < 1 ? "border-b border-dotted border-warn/70 pb-px" : undefined}
+                            title={covered < 1 ? t("table.partialCoverage", { percent: Math.round(covered * 100) }) : undefined}
+                          >
+                            {Number.isFinite(v) ? v.toFixed(0) : "—"}
+                          </span>
                         </td>
                       );
                     })}

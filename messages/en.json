@@ -99,7 +99,8 @@
       "price": "Price",
       "marketCap": "Market Cap",
       "total": "Overall",
-      "marginOfSafety": "Margin of Safety"
+      "marginOfSafety": "Margin of Safety",
+      "partialCoverage": "Graded on the {percent}% of this axis the filing supplied. The dotted underline marks this."
     },
     "noResults": "No stocks match these filters."
   },
@@ -134,7 +135,8 @@
       "currentPrice": "Current Price",
       "marginOfSafety": "Margin of Safety",
       "ownerEarningsNote": "Based on owner earnings of {value} per share, a 5-year growth rate of {growth}, a {discount} discount rate, and a {terminal} terminal growth rate.",
-      "noShareData": "N/A (no share count data)"
+      "noShareData": "N/A (no share count data)",
+      "negativeOwnerEarnings": "Owner earnings (operating cash flow minus capital expenditure) have been negative over the last three years, so the discounted cash flow model does not apply. This is routine for capital-intensive utilities and infrastructure and does not by itself mean the business is troubled — but it cannot be valued this way, so the margin-of-safety criterion scores at the floor."
     },
     "criteriaTable": {
       "actualValue": "Actual",
@@ -296,5 +298,18 @@
   "localeSwitcher": {
     "en": "English",
     "ko": "한국어"
+  },
+  "dataSource": {
+    "financials": "Financials: SEC EDGAR",
+    "prices": "Prices: Yahoo Finance",
+    "periodTtm": "Trailing 12 months (through {date})",
+    "periodAnnual": "Fiscal year (ended {date})",
+    "updated": "Updated {date}",
+    "tip": "Financial figures come from the filings the company submits to the U.S. Securities and Exchange Commission. \"Trailing 12 months\" means the year ending at the most recent quarter; \"fiscal year\" means the last annual report, with no quarter since folded in. Prices refresh once a day and are not live.",
+    "coverage": "{percent}% measured",
+    "coverageTip": "The share of this axis that the filing actually supplied. Companies report different line items — a bank has no gross margin or current ratio — so some criteria cannot be calculated. Below 100%, the axis was graded on what was found; below half, it is graded against half the points regardless, so a thin sample cannot inflate the score.",
+    "unavailable": "Not measurable",
+    "unavailableReason": "This company's filings do not carry the figure this criterion needs. Scoring it zero would claim we looked and the answer was bad, so it is left out of the axis entirely.",
+    "measuredOf": "{count} not measurable"
   }
 }

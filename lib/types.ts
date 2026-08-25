@@ -71,6 +71,7 @@ export interface TickerFinancials {
   cashFlow: FmpCashFlow[];
   ratios: FmpRatios[];
   keyMetrics: FmpKeyMetrics[];
+  dataSource: DataProvenance;
 }
 
 // The five things a value investor weighs separately. Keeping them apart is
@@ -92,6 +93,13 @@ export const AXIS_WEIGHTS: Record<ScoreAxis, number> = {
 
 export type AxisScores = Record<ScoreAxis, number>;
 
+// Share of an axis's 100 points that could actually be measured, 0-1. Filings
+// don't all carry the same line items — Ford never tags a consolidated debt
+// figure, Berkshire's share count can't be read reliably — and an axis graded
+// on half its criteria deserves to be marked as such rather than presented
+// with the same confidence as a fully measured one.
+export type AxisCoverage = Record<ScoreAxis, number>;
+
 // One scoring criterion. Label/threshold/explanation are NOT stored here —
 // those are static per `id` and looked up from the i18n message catalog at
 // render time (see lib/criteriaText.ts), so this stays language-neutral and
@@ -106,6 +114,13 @@ export interface CriterionResult {
   points: number;
   maxPoints: number;
   values: Record<string, number>;
+  // False when the filing simply doesn't carry the number this criterion
+  // needs. Such a criterion is excluded from its axis entirely — points *and*
+  // maxPoints — rather than scored zero, because zero would mean "we measured
+  // this and it's terrible". Note the narrowness: a figure that is present but
+  // unfavourable (a loss, negative book equity, shrinking revenue) is measured
+  // and scores zero on its merits. Absent from the field means available.
+  available?: boolean;
 }
 
 export interface IntrinsicValueEstimate {
@@ -118,6 +133,20 @@ export interface IntrinsicValueEstimate {
   marginOfSafety: number; // (IV - price) / IV
 }
 
+// Where the newest figures in a score came from and what stretch of time they
+// cover. Without it a ROE of 15% could be last week's quarter or a fiscal year
+// that ended eleven months ago, and nothing on screen would say which.
+// The sources themselves (SEC EDGAR for financials, Yahoo Finance for prices)
+// are the same for every row, so they live in the UI copy rather than being
+// repeated 499 times in the snapshot.
+export interface DataProvenance {
+  // "ttm": trailing twelve months, assembled from quarterly filings.
+  // "annual": straight from the last 10-K, with no quarter since.
+  periodType: "ttm" | "annual";
+  periodEnd: string; // ISO date the newest figures run to
+  fiscalYearEnd: string; // ISO date of the most recent complete fiscal year
+}
+
 export interface StockScore {
   ticker: string;
   companyName: string;
@@ -125,10 +154,12 @@ export interface StockScore {
   price: number;
   marketCap: number;
   scores: AxisScores; // each 0-100
+  coverage: AxisCoverage; // each 0-1; 1 = every criterion on that axis measurable
   totalScore: number; // weighted blend of the axes, 0-100
   isBuyCandidate: boolean;
   intrinsicValue: IntrinsicValueEstimate;
   criteria: CriterionResult[];
+  dataSource: DataProvenance;
   asOf: string; // ISO date the score snapshot was computed
   // Bumped whenever the formula changes, so a score history chart can tell a
   // step caused by the company apart from one caused by us.
