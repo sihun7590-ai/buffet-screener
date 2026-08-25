@@ -24,24 +24,49 @@ export function formatCriterionValue(c: Pick<CriterionResult, "id" | "values">, 
   const na = t("notAvailable");
 
   switch (c.id) {
+    // Quality
     case "roe":
       return Number.isFinite(v.roeAvg) ? pct(v.roeAvg, locale) : na;
     case "roic":
       return Number.isFinite(v.roicAvg) ? pct(v.roicAvg, locale) : na;
     case "grossMargin":
       return Number.isFinite(v.marginAvg) ? `${pct(v.marginAvg, locale)} (±${pct(v.stabilityPenalty, locale)})` : na;
-    case "debt":
-      return `D/E ${Number.isFinite(v.debtEquity) ? num(v.debtEquity, locale) : na}, ${
-        Number.isFinite(v.interestCoverage) ? `${num(v.interestCoverage, locale, 1)}x` : na
-      }`;
-    case "epsConsistency":
-      return `${v.lossYears} · ${pct(v.epsCagr, locale)}`;
-    case "fcf":
-      return `${v.fcfPositiveYears}/${v.totalYears} · ${pct(v.fcfMargin, locale)}`;
+    case "operatingMargin":
+      return Number.isFinite(v.operatingMargin) ? pct(v.operatingMargin, locale) : na;
+    case "fcfMargin":
+      return Number.isFinite(v.fcfMargin) ? pct(v.fcfMargin, locale) : na;
     case "shareCount":
-      return pct(v.shareCountDelta, locale);
+      return Number.isFinite(v.shareCountDelta) ? pct(v.shareCountDelta, locale) : na;
+
+    // Growth
+    case "revenueCagr":
+      return Number.isFinite(v.revenueCagr) ? pct(v.revenueCagr, locale) : na;
+    case "epsCagr":
+      return Number.isFinite(v.epsCagr) ? pct(v.epsCagr, locale) : na;
+    case "fcfCagr":
+      return Number.isFinite(v.fcfCagr) ? pct(v.fcfCagr, locale) : na;
+
+    // Financial health
+    case "debtToEquity":
+      return Number.isFinite(v.debtEquity) ? num(v.debtEquity, locale) : na;
+    case "interestCoverage":
+      return Number.isFinite(v.interestCoverage) ? `${num(v.interestCoverage, locale, 1)}x` : na;
     case "currentRatio":
       return Number.isFinite(v.currentRatio) ? num(v.currentRatio, locale) : na;
+    case "netDebtToEbitda":
+      return Number.isFinite(v.netDebtToEbitda) ? `${num(v.netDebtToEbitda, locale, 1)}x` : na;
+    case "cashToDebt":
+      // Infinity is meaningful here: the company carries no debt at all.
+      if (v.cashToDebt === Infinity) return "∞";
+      return Number.isFinite(v.cashToDebt) ? `${num(v.cashToDebt, locale, 1)}x` : na;
+
+    // Consistency
+    case "epsPositiveYears":
+      return `${v.totalYears - v.lossYears}/${v.totalYears}`;
+    case "fcfPositiveYears":
+      return `${v.fcfPositiveYears}/${v.totalYears}`;
+    case "revenueConsistency":
+      return Number.isFinite(v.revenueGrowthRatio) ? `${v.growthYears}/${v.totalYears}` : na;
     case "peRelative":
       return `${Number.isFinite(v.currentPe) ? num(v.currentPe, locale, 1) : na} / ${
         Number.isFinite(v.peOwnAvg) ? num(v.peOwnAvg, locale, 1) : na

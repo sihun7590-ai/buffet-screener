@@ -73,14 +73,35 @@ export interface TickerFinancials {
   keyMetrics: FmpKeyMetrics[];
 }
 
+// The five things a value investor weighs separately. Keeping them apart is
+// the whole point: "a wonderful business at a fair price" and "a fair
+// business at a wonderful price" score very differently on quality vs
+// valuation, and a single blended number hides which one you're looking at.
+export const SCORE_AXES = ["quality", "growth", "health", "consistency", "valuation"] as const;
+export type ScoreAxis = (typeof SCORE_AXES)[number];
+
+// Each axis is scored out of 100 on its own, then blended into the overall
+// score by these weights.
+export const AXIS_WEIGHTS: Record<ScoreAxis, number> = {
+  quality: 0.3,
+  valuation: 0.25,
+  health: 0.2,
+  growth: 0.15,
+  consistency: 0.1,
+};
+
+export type AxisScores = Record<ScoreAxis, number>;
+
 // One scoring criterion. Label/threshold/explanation are NOT stored here —
 // those are static per `id` and looked up from the i18n message catalog at
 // render time (see lib/criteriaText.ts), so this stays language-neutral and
 // safe to cache in data/scores.json. `values` holds whatever raw numbers
 // that criterion's display text needs to interpolate (NaN allowed for
-// "data unavailable" — rendered as "N/A" by the formatter).
+// "data unavailable" — rendered as "N/A" by the formatter). `maxPoints` is
+// this criterion's share of its own axis's 100 points.
 export interface CriterionResult {
   id: string;
+  axis: ScoreAxis;
   passed: boolean;
   points: number;
   maxPoints: number;
@@ -103,11 +124,13 @@ export interface StockScore {
   sector: string;
   price: number;
   marketCap: number;
-  qualityScore: number; // 0-50
-  valuationScore: number; // 0-50
-  totalScore: number; // 0-100
+  scores: AxisScores; // each 0-100
+  totalScore: number; // weighted blend of the axes, 0-100
   isBuyCandidate: boolean;
   intrinsicValue: IntrinsicValueEstimate;
   criteria: CriterionResult[];
   asOf: string; // ISO date the score snapshot was computed
+  // Bumped whenever the formula changes, so a score history chart can tell a
+  // step caused by the company apart from one caused by us.
+  scoringVersion: number;
 }

@@ -9,14 +9,13 @@ import StockFavoriteButton from "@/components/StockFavoriteButton";
 import CriteriaTable from "@/components/CriteriaTable";
 import PriceChartPanel from "@/components/PriceChartPanel";
 import { getScoreByTicker } from "@/lib/store";
+import { AXIS_WEIGHTS, SCORE_AXES } from "@/lib/types";
 import { fetchCompanySummary } from "@/lib/wikipedia";
 import { fetchRecentNews } from "@/lib/news";
 import { fetchExchangeName, toTradingViewSymbol } from "@/lib/tradingview";
 import universe from "@/data/universe.json";
 
 export const dynamic = "force-dynamic";
-
-const QUALITY_IDS = ["roe", "roic", "grossMargin", "debt", "epsConsistency", "fcf", "shareCount", "currentRatio"];
 
 export default async function StockDetailPage({ params }: { params: Promise<{ locale: string; ticker: string }> }) {
   const { ticker } = await params;
@@ -28,6 +27,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
 
   const locale = await getLocale();
   const t = await getTranslations("stock");
+  const tAxes = await getTranslations("axes");
   const tGlossary = await getTranslations("glossary");
   const tCommon = await getTranslations("common");
   const tSectors = await getTranslations("sectors");
@@ -40,8 +40,6 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
   ]);
   const tvSymbol = toTradingViewSymbol(ticker, exchangeName);
 
-  const qualityCriteria = score.criteria.filter((c) => QUALITY_IDS.includes(c.id));
-  const valuationCriteria = score.criteria.filter((c) => !QUALITY_IDS.includes(c.id));
   const iv = score.intrinsicValue;
   const ivOk = Number.isFinite(iv.intrinsicValuePerShare);
   const mosColor = iv.marginOfSafety > 0 ? "var(--up)" : "var(--down)";
@@ -91,22 +89,23 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
             </div>
           </div>
 
-          <div className="flex items-center gap-6">
-            <div className="flex flex-col gap-3">
-              <div>
-                <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
-                  {t("stats.quality")}
-                  <InfoTip text={tGlossary("quality")} />
+          {/* The breakdown sits beside the headline number rather than under
+              it: the whole point of five axes is seeing *why* the total came
+              out where it did without scrolling. */}
+          <div className="flex flex-wrap items-center gap-x-8 gap-y-5">
+            <div className="flex flex-col gap-2.5">
+              {SCORE_AXES.map((axis) => (
+                <div key={axis}>
+                  <div className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
+                    {tAxes(`${axis}.name`)}
+                    <span className="font-mono normal-case tracking-normal text-ink-faint/70">
+                      {Math.round(AXIS_WEIGHTS[axis] * 100)}%
+                    </span>
+                    <InfoTip text={tAxes(`${axis}.tip`)} />
+                  </div>
+                  <ScoreBar score={score.scores[axis]} max={100} strong />
                 </div>
-                <ScoreBar score={score.qualityScore} max={50} strong />
-              </div>
-              <div>
-                <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
-                  {t("stats.valuation")}
-                  <InfoTip text={tGlossary("valuation")} />
-                </div>
-                <ScoreBar score={score.valuationScore} max={50} strong />
-              </div>
+              ))}
             </div>
             <div className="flex items-start gap-1.5">
               <ScoreGauge score={score.totalScore} max={100} label={t("stats.total")} />
@@ -167,16 +166,14 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
       </Panel>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <CriteriaTable
-          title={t("quality.title", { max: 50 })}
-          titleTip={tGlossary("quality")}
-          criteria={qualityCriteria}
-        />
-        <CriteriaTable
-          title={t("valuation.title", { max: 50 })}
-          titleTip={tGlossary("marginOfSafety")}
-          criteria={valuationCriteria}
-        />
+        {SCORE_AXES.map((axis) => (
+          <CriteriaTable
+            key={axis}
+            title={tAxes(`${axis}.name`)}
+            titleTip={tAxes(`${axis}.tip`)}
+            criteria={score.criteria.filter((c) => c.axis === axis)}
+          />
+        ))}
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">

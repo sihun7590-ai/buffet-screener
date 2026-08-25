@@ -31,9 +31,7 @@
     "sector": "The industry the company operates in. Normal levels of profit and debt differ by industry, so it's only fair to compare companies within the same sector.",
     "price": "The price of one share. This is a delayed quote (typically 15+ minutes), not a live one.",
     "marketCap": "What the whole company is worth: share price × number of shares. B means billion dollars, T means trillion.",
-    "quality": "A score out of 50 for how sturdy and profitable the business is — profitability (ROE/ROIC), debt levels, how steady its earnings are, and how much cash it generates.",
-    "valuation": "A score out of 50 for how cheap the share price is relative to what the business is worth. Even a great company scores low here if it's too expensive.",
-    "total": "Quality (50) + Valuation (50) combined into one score out of 100. The higher it is, the more it looks like a good business available at a fair price.",
+    "total": "Quality, growth, financial health, consistency, and valuation are each scored out of 100, then blended by how much each matters. The higher it is, the more it looks like a good business available at a fair price.",
     "marginOfSafety": "In one line: how big a discount you're getting. If a share works out to be worth $100 and it's trading at $70, you're paying $30 (30%) less than it's worth — that 30% is the margin of safety. It's the cushion that limits the damage if the $100 estimate turns out to be off, which is why it's called a margin of *safety*. Bigger is cheaper; a negative number means the stock costs more than it's worth.",
     "intrinsicValue": "In one line: what one share is actually worth, estimated from the cash the business is likely to generate. It's separate from the price the market is charging today — the gap between the two is the margin of safety. Remember it's an estimate that moves with its assumptions, not a fact.",
     "currentPrice": "What one share is trading for right now.",
@@ -100,9 +98,7 @@
       "sector": "Sector",
       "price": "Price",
       "marketCap": "Market Cap",
-      "quality": "Quality",
-      "valuation": "Valuation",
-      "total": "Total",
+      "total": "Overall",
       "marginOfSafety": "Margin of Safety"
     },
     "noResults": "No stocks match these filters."
@@ -129,10 +125,9 @@
     "chartOpenInTradingView": "Open in TradingView",
     "chartDrawingsNote": "To keep your trend lines permanently, sign in to TradingView and open the chart via \"Open in TradingView\". The chart embedded here is TradingView's free widget, so drawings aren't stored against your account on this site.",
     "stats": {
-      "quality": "Quality",
-      "valuation": "Valuation",
-      "total": "Total"
+      "total": "Overall"
     },
+    "breakdown": "Score Breakdown",
     "dcf": {
       "title": "Intrinsic Value & Margin of Safety",
       "intrinsicValue": "Intrinsic Value (DCF, per share)",
@@ -141,12 +136,6 @@
       "ownerEarningsNote": "Based on owner earnings of {value} per share, a 5-year growth rate of {growth}, a {discount} discount rate, and a {terminal} terminal growth rate.",
       "noShareData": "N/A (no share count data)"
     },
-    "quality": {
-      "title": "Quality — {max} pts"
-    },
-    "valuation": {
-      "title": "Valuation / Margin of Safety — {max} pts"
-    },
     "criteriaTable": {
       "actualValue": "Actual",
       "threshold": "Threshold"
@@ -154,6 +143,28 @@
     "news": {
       "title": "Recent News (last 30 days)",
       "empty": "No related news in the last 30 days."
+    }
+  },
+  "axes": {
+    "quality": {
+      "name": "Quality",
+      "tip": "How good the business itself is: how much it keeps from every sale (margins), how much it earns on the capital it uses (ROE/ROIC), and whether it returns cash to shareholders."
+    },
+    "growth": {
+      "name": "Growth",
+      "tip": "Whether the business is getting bigger — how fast revenue, earnings, and cash have grown over the last five years. Without growth, time doesn't work in your favour no matter how cheaply you buy."
+    },
+    "health": {
+      "name": "Financial Health",
+      "tip": "Whether debt could sink it. This is the balance sheet's ability to survive a bad year — the reason Buffett insists on companies that owe little."
+    },
+    "consistency": {
+      "name": "Consistency",
+      "tip": "Whether results are steady and predictable. Buffett won't buy a company whose future earnings he can't reasonably estimate, however good it looks today."
+    },
+    "valuation": {
+      "name": "Valuation",
+      "tip": "Whether today's price is cheap relative to what the business is worth. Even a great company won't return much if you overpay for it."
     }
   },
   "criteria": {
@@ -172,30 +183,75 @@
       "threshold": "≥ 35%, volatility < 15%",
       "explanation": "Companies with pricing power keep gross margins high and don't see them swing much year to year."
     },
-    "debt": {
-      "label": "Debt Ratio & Interest Coverage",
-      "threshold": "D/E ≤ 0.5, coverage ≥ 5x",
-      "explanation": "Buffett favors low debt — it keeps bankruptcy risk low during downturns."
+    "operatingMargin": {
+      "label": "Operating Margin, 5-yr avg",
+      "threshold": "≥ 15%",
+      "explanation": "What's left from the core business on every dollar of sales — the higher it is, the more the company sets its own prices."
     },
-    "epsConsistency": {
-      "label": "EPS Consistency (last 10 yrs)",
-      "threshold": "0 loss years, trending up",
-      "explanation": "A core Buffett principle — only buy companies with \"predictable\" earnings."
-    },
-    "fcf": {
-      "label": "Free Cash Flow (FCF)",
-      "threshold": "Positive every year, margin ≥ 10%",
-      "explanation": "What matters is cash actually generated, not accounting profit."
+    "fcfMargin": {
+      "label": "Free Cash Flow Margin",
+      "threshold": "≥ 10%",
+      "explanation": "The share of revenue that ends up as actual cash — far harder to dress up than accounting profit."
     },
     "shareCount": {
       "label": "Share Count Trend (buybacks)",
       "threshold": "Declining (share buybacks)",
       "explanation": "A signal of shareholder-friendly capital allocation."
     },
+    "revenueCagr": {
+      "label": "Revenue Growth (5-yr CAGR)",
+      "threshold": "≥ 5%",
+      "explanation": "Whether the company is actually selling more. Flat revenue with rising profit often means it's living on cost cuts."
+    },
+    "epsCagr": {
+      "label": "EPS Growth (5-yr CAGR)",
+      "threshold": "≥ 5%",
+      "explanation": "How fast the earnings attributable to each share are growing."
+    },
+    "fcfCagr": {
+      "label": "Free Cash Flow Growth (5-yr CAGR)",
+      "threshold": "≥ 5%",
+      "explanation": "Whether real cash generation is expanding — the number intrinsic value is built on."
+    },
+    "debtToEquity": {
+      "label": "Debt / Equity",
+      "threshold": "≤ 0.5",
+      "explanation": "How much it owes against what the owners put in. Lower means an easier time surviving a downturn."
+    },
+    "interestCoverage": {
+      "label": "Interest Coverage",
+      "threshold": "≥ 5x",
+      "explanation": "How many times over operating profit covers the interest bill. Below 1x the company isn't even earning its interest."
+    },
     "currentRatio": {
       "label": "Current Ratio",
       "threshold": "≥ 1.5",
       "explanation": "Short-term liquidity — can the company withstand a sudden cash crunch?"
+    },
+    "netDebtToEbitda": {
+      "label": "Net Debt / EBITDA",
+      "threshold": "≤ 3x",
+      "explanation": "How many years of cash earnings it would take to clear the debt left after subtracting cash on hand."
+    },
+    "cashToDebt": {
+      "label": "Cash / Debt",
+      "threshold": "≥ 0.5x",
+      "explanation": "How much of the debt could be repaid from cash on hand today — ∞ means no debt at all."
+    },
+    "epsPositiveYears": {
+      "label": "Profitable Years",
+      "threshold": "Profitable every year",
+      "explanation": "How many of the recent years were free of losses — Buffett's \"predictable earnings\" test."
+    },
+    "fcfPositiveYears": {
+      "label": "Cash-Positive Years",
+      "threshold": "Positive every year",
+      "explanation": "Whether cash generation held up year after year, rather than in one or two good years."
+    },
+    "revenueConsistency": {
+      "label": "Revenue Growth Consistency",
+      "threshold": "Growth in ≥ 80% of years",
+      "explanation": "How many years revenue rose over the prior one — steady beats erratic."
     },
     "peRelative": {
       "label": "P/E vs. own history & sector",

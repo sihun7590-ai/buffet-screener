@@ -1,23 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
-import type { StockScore } from "@/lib/types";
+import { SCORE_AXES, type ScoreAxis, type StockScore } from "@/lib/types";
 import { useFavorites } from "@/lib/supabase/useFavorites";
-import ScoreBar from "./ScoreBar";
+import ScoreBar, { scoreColor } from "./ScoreBar";
 import FavoriteButton from "./FavoriteButton";
 import InfoTip from "./InfoTip";
 
-type SortKey =
-  | "ticker"
-  | "sector"
-  | "price"
-  | "marketCap"
-  | "qualityScore"
-  | "valuationScore"
-  | "totalScore"
-  | "marginOfSafety";
+type SortKey = "ticker" | "sector" | "price" | "marketCap" | ScoreAxis | "totalScore" | "marginOfSafety";
 type SortDir = "asc" | "desc";
 
 const ALL_SECTORS = "";
@@ -27,10 +19,9 @@ const PAGE_SIZE = 60;
 const NUMERIC: Partial<Record<SortKey, (s: StockScore) => number>> = {
   price: (s) => s.price,
   marketCap: (s) => s.marketCap,
-  qualityScore: (s) => s.qualityScore,
-  valuationScore: (s) => s.valuationScore,
   totalScore: (s) => s.totalScore,
   marginOfSafety: (s) => s.intrinsicValue.marginOfSafety,
+  ...Object.fromEntries(SCORE_AXES.map((axis) => [axis, (s: StockScore) => s.scores[axis]])),
 };
 
 const TEXT: Partial<Record<SortKey, (s: StockScore) => string>> = {
@@ -103,6 +94,7 @@ function StatTile({
 
 export default function Dashboard({ scores }: { scores: StockScore[] }) {
   const t = useTranslations("dashboard");
+  const tAxes = useTranslations("axes");
   const tGlossary = useTranslations("glossary");
   const tFavorite = useTranslations("favorite");
   const tSectors = useTranslations("sectors");
@@ -310,7 +302,7 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
           {/* whitespace-nowrap keeps the auto table layout from squeezing a
               column down to a character-per-line (Korean sector labels wrap
               anywhere otherwise); the company name is truncated instead. */}
-          <table className="w-full min-w-[940px] border-collapse whitespace-nowrap text-left">
+          <table className="w-full min-w-[1080px] border-collapse whitespace-nowrap text-left">
             <thead className="sticky top-0 z-20 bg-subtle">
               <tr className="border-b border-line">
                 <th className="w-9 px-3 py-0" />
@@ -321,8 +313,9 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
                 {th("sector", t("table.sector"), tGlossary("sector"))}
                 {th("price", t("table.price"), tGlossary("price"), "right")}
                 {th("marketCap", t("table.marketCap"), tGlossary("marketCap"), "right")}
-                {th("qualityScore", t("table.quality"), tGlossary("quality"))}
-                {th("valuationScore", t("table.valuation"), tGlossary("valuation"))}
+                {SCORE_AXES.map((axis) => (
+                  <Fragment key={axis}>{th(axis, tAxes(`${axis}.name`), tAxes(`${axis}.tip`), "right")}</Fragment>
+                ))}
                 {th("totalScore", t("table.total"), tGlossary("total"))}
                 {th("marginOfSafety", t("table.marginOfSafety"), tGlossary("marginOfSafety"), "right")}
                 <th className="w-10" />
@@ -392,12 +385,18 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
                     <td className="px-3 py-2.5 text-right font-mono text-[13px] tabular-nums text-ink-muted">
                       {formatMarketCap(s.marketCap)}
                     </td>
-                    <td className="px-3 py-2.5">
-                      <ScoreBar score={s.qualityScore} max={50} />
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <ScoreBar score={s.valuationScore} max={50} />
-                    </td>
+                    {SCORE_AXES.map((axis) => {
+                      const v = s.scores[axis];
+                      return (
+                        <td
+                          key={axis}
+                          className="px-3 py-2.5 text-right font-mono text-[13px] font-semibold tabular-nums"
+                          style={{ color: Number.isFinite(v) ? scoreColor(v, 100) : "var(--ink-faint)" }}
+                        >
+                          {Number.isFinite(v) ? v.toFixed(0) : "—"}
+                        </td>
+                      );
+                    })}
                     <td className="px-3 py-2.5">
                       <ScoreBar score={s.totalScore} max={100} strong />
                     </td>
@@ -424,7 +423,7 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={11} className="px-4 py-16 text-center text-sm text-ink-faint">
+                  <td colSpan={14} className="px-4 py-16 text-center text-sm text-ink-faint">
                     {t("noResults")}
                   </td>
                 </tr>
