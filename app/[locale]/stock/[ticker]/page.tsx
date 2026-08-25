@@ -8,6 +8,8 @@ import ScoreGauge from "@/components/ScoreGauge";
 import StockFavoriteButton from "@/components/StockFavoriteButton";
 import CriteriaTable from "@/components/CriteriaTable";
 import PriceChartPanel from "@/components/PriceChartPanel";
+import ScoreHistoryChart from "@/components/ScoreHistoryChart";
+import { fetchScoreHistory } from "@/lib/scoreHistoryQuery";
 import { getScoreByTicker } from "@/lib/store";
 import { AXIS_WEIGHTS, SCORE_AXES } from "@/lib/types";
 import { fetchCompanySummary } from "@/lib/wikipedia";
@@ -27,16 +29,18 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
 
   const locale = await getLocale();
   const t = await getTranslations("stock");
+  const tHistory = await getTranslations("history");
   const tAxes = await getTranslations("axes");
   const tGlossary = await getTranslations("glossary");
   const tCommon = await getTranslations("common");
   const tSectors = await getTranslations("sectors");
 
   const meta = (universe as { ticker: string; wikiTitle: string | null }[]).find((u) => u.ticker === ticker);
-  const [summary, news, exchangeName] = await Promise.all([
+  const [summary, news, exchangeName, history] = await Promise.all([
     meta?.wikiTitle ? fetchCompanySummary(meta.wikiTitle, locale) : Promise.resolve(null),
     fetchRecentNews(ticker),
     fetchExchangeName(ticker),
+    fetchScoreHistory(ticker),
   ]);
   const tvSymbol = toTradingViewSymbol(ticker, exchangeName);
 
@@ -114,6 +118,21 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
           </div>
         </div>
       </Panel>
+
+      {/* Two points is the minimum that can show a direction; below that a
+          chart would be a dot, so the panel simply doesn't appear. */}
+      {history.length >= 2 && (
+        <Panel
+          title={
+            <span className="flex items-center gap-1.5">
+              {tHistory("title")}
+              <InfoTip text={tHistory("tip")} />
+            </span>
+          }
+        >
+          <ScoreHistoryChart points={history} />
+        </Panel>
+      )}
 
       <PriceChartPanel symbol={tvSymbol} locale={locale} />
 

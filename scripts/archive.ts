@@ -24,7 +24,7 @@ async function run() {
 
   // Dated by when the snapshot was computed, not by when this script happens
   // to run, so re-archiving an older file doesn't misfile it as today.
-  const result = await saveScoreHistory(scores, new Date(generatedAt));
+  const result = await saveScoreHistory(scores, { asOf: new Date(generatedAt) });
 
   if (result.disabledReason) {
     console.error(result.disabledReason);

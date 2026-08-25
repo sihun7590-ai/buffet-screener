@@ -50,39 +50,61 @@ const DA_TAGS = ["DepreciationDepletionAndAmortization", "DepreciationAmortizati
 
 const fin = (v: number) => (Number.isFinite(v) ? v : NaN);
 
-export async function fetchTickerFinancials(ticker: string): Promise<TickerFinancials> {
+// Everything one ticker needs from the network, fetched once. Kept separate
+// from the bundle-building below so a backfill can download a company a single
+// time and then rebuild its financials at a dozen different past dates from
+// the same payload, instead of hammering SEC once per date.
+export interface TickerRawData {
+  facts: Awaited<ReturnType<typeof fetchCompanyFacts>>;
+  priceHistory: Awaited<ReturnType<typeof fetchPriceHistory>>;
+}
+
+export async function fetchTickerRawData(ticker: string): Promise<TickerRawData> {
+  await sleep(REQUEST_DELAY_MS);
+  const [facts, priceHistory] = await Promise.all([fetchCompanyFacts(ticker), fetchPriceHistory(ticker)]);
+  return { facts, priceHistory };
+}
+
+// Builds the bundle the scorer expects. With `asOf` set, it reflects only what
+// had been filed by that date and prices the company at that date's close —
+// i.e. what an investor could actually have known then.
+export function buildTickerFinancials(ticker: string, raw: TickerRawData, asOf?: string): TickerFinancials {
   const meta = (universe as { ticker: string; companyName: string; sector: string }[]).find((u) => u.ticker === ticker);
   if (!meta) {
     throw new Error(`${ticker}: data/universe.json에 companyName/sector 메타데이터가 없습니다.`);
   }
 
-  await sleep(REQUEST_DELAY_MS);
-  const [facts, priceHistory] = await Promise.all([fetchCompanyFacts(ticker), fetchPriceHistory(ticker)]);
+  const { facts, priceHistory } = raw;
+  const annual = (tags: string[], instant: boolean) => annualSeries(facts, tags, instant, asOf);
 
-  const revenue = annualSeries(facts, REVENUE_TAGS, false);
+  const revenue = annual(REVENUE_TAGS, false);
   if (revenue.length === 0) {
-    throw new Error(`${ticker}: SEC 재무제표에서 매출 데이터를 찾을 수 없습니다.`);
+    throw new Error(
+      asOf
+        ? `${ticker}: ${asOf} 시점에 공시된 매출 데이터가 없습니다.`
+        : `${ticker}: SEC 재무제표에서 매출 데이터를 찾을 수 없습니다.`,
+    );
   }
   const fiscalEnds = revenue.slice(0, YEARS).map((p) => p.end);
 
-  const netIncome = annualSeries(facts, NET_INCOME_TAGS, false);
-  const epsDiluted = annualSeries(facts, EPS_DILUTED_TAGS, false);
-  const operatingIncome = annualSeries(facts, OPERATING_INCOME_TAGS, false);
-  const interestExpense = annualSeries(facts, INTEREST_EXPENSE_TAGS, false);
-  const sharesDiluted = annualSeries(facts, SHARES_DILUTED_TAGS, false);
-  const grossProfit = annualSeries(facts, GROSS_PROFIT_TAGS, false);
-  const costOfRevenue = annualSeries(facts, COST_OF_REVENUE_TAGS, false);
+  const netIncome = annual(NET_INCOME_TAGS, false);
+  const epsDiluted = annual(EPS_DILUTED_TAGS, false);
+  const operatingIncome = annual(OPERATING_INCOME_TAGS, false);
+  const interestExpense = annual(INTEREST_EXPENSE_TAGS, false);
+  const sharesDiluted = annual(SHARES_DILUTED_TAGS, false);
+  const grossProfit = annual(GROSS_PROFIT_TAGS, false);
+  const costOfRevenue = annual(COST_OF_REVENUE_TAGS, false);
 
-  const currentAssets = annualSeries(facts, CURRENT_ASSETS_TAGS, true);
-  const currentLiabilities = annualSeries(facts, CURRENT_LIABILITIES_TAGS, true);
-  const equity = annualSeries(facts, EQUITY_TAGS, true);
-  const cash = annualSeries(facts, CASH_TAGS, true);
-  const ltDebt = annualSeries(facts, LT_DEBT_TAGS, true);
-  const currentDebt = annualSeries(facts, CURRENT_DEBT_TAGS, true);
+  const currentAssets = annual(CURRENT_ASSETS_TAGS, true);
+  const currentLiabilities = annual(CURRENT_LIABILITIES_TAGS, true);
+  const equity = annual(EQUITY_TAGS, true);
+  const cash = annual(CASH_TAGS, true);
+  const ltDebt = annual(LT_DEBT_TAGS, true);
+  const currentDebt = annual(CURRENT_DEBT_TAGS, true);
 
-  const operatingCashFlow = annualSeries(facts, OPERATING_CASH_FLOW_TAGS, false);
-  const capex = annualSeries(facts, CAPEX_TAGS, false);
-  const da = annualSeries(facts, DA_TAGS, false);
+  const operatingCashFlow = annual(OPERATING_CASH_FLOW_TAGS, false);
+  const capex = annual(CAPEX_TAGS, false);
+  const da = annual(DA_TAGS, false);
 
   const income: FmpIncomeStatement[] = [];
   const balance: FmpBalanceSheet[] = [];
@@ -181,7 +203,8 @@ export async function fetchTickerFinancials(ticker: string): Promise<TickerFinan
     });
   }
 
-  const currentPrice = priceHistory.currentPrice;
+  // At a past date the "current" price is that date's close, not today's.
+  const currentPrice = asOf ? closeNear(priceHistory, asOf) : priceHistory.currentPrice;
   const marketCap = currentPrice * income[0].weightedAverageShsOutDil;
 
   return {
@@ -202,4 +225,8 @@ export async function fetchTickerFinancials(ticker: string): Promise<TickerFinan
     ratios,
     keyMetrics,
   };
+}
+
+export async function fetchTickerFinancials(ticker: string): Promise<TickerFinancials> {
+  return buildTickerFinancials(ticker, await fetchTickerRawData(ticker));
 }

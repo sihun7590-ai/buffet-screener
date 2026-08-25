@@ -82,7 +82,15 @@ export interface FiscalPoint {
 // annual series, deduped by period-end date. For duration facts (revenue,
 // net income, ...) we keep only ~1-year periods to filter out the quarterly
 // entries that show up alongside annual ones in the raw data.
-export function annualSeries(facts: CompanyFacts, tags: string[], instant: boolean): FiscalPoint[] {
+//
+// `asOf` reconstructs the series as it stood on a past date: facts filed after
+// it are dropped entirely, so a year that hadn't been reported yet is absent
+// and a figure later restated reads as it did at the time. Every fact carries
+// its filing date, and a fiscal year reappears in each of the next couple of
+// annual reports as a comparative, which is what makes this possible. Without
+// it, scoring a past date would quietly use numbers nobody could have seen —
+// the look-ahead bias that makes backtests look better than they were.
+export function annualSeries(facts: CompanyFacts, tags: string[], instant: boolean, asOf?: string): FiscalPoint[] {
   const gaap = facts.facts?.["us-gaap"] ?? {};
   const byEnd = new Map<string, { val: number; filed: string; tag: string }>();
 
@@ -92,6 +100,7 @@ export function annualSeries(facts: CompanyFacts, tags: string[], instant: boole
     for (const points of Object.values(concept.units)) {
       for (const pt of points) {
         if (pt.form !== "10-K") continue;
+        if (asOf && pt.filed > asOf) continue; // not public yet on that date
         if (!instant) {
           if (!pt.start) continue;
           const days = (new Date(pt.end).getTime() - new Date(pt.start).getTime()) / 86_400_000;
@@ -102,7 +111,9 @@ export function annualSeries(facts: CompanyFacts, tags: string[], instant: boole
           byEnd.set(pt.end, { val: pt.val, filed: pt.filed, tag });
         } else if (existing.tag === tag && pt.filed > existing.filed) {
           // same tag reported this period again in a later filing (as a
-          // comparative year) — keep the most recently filed value
+          // comparative year) — keep the most recently filed value. Combined
+          // with the asOf cut-off above, "most recent" means most recent as of
+          // that date, which is exactly the figure then in force.
           byEnd.set(pt.end, { val: pt.val, filed: pt.filed, tag });
         }
         // a higher-priority tag already covers this period -> leave it

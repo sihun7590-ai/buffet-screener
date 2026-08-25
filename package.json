@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "refresh": "tsx --env-file-if-exists=.env.local scripts/refresh.ts",
-    "archive": "tsx --env-file-if-exists=.env.local scripts/archive.ts"
+    "archive": "tsx --env-file-if-exists=.env.local scripts/archive.ts",
+    "backfill": "tsx --env-file-if-exists=.env.local scripts/backfill.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",

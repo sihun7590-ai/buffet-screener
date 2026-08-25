@@ -17,10 +17,26 @@ export interface ScoreHistoryResult {
   disabledReason: string | null;
 }
 
-// Appends today's scores to the history table. The screener itself never reads
-// this — it exists so the past survives data/scores.json being overwritten on
-// the next refresh.
-export async function saveScoreHistory(scores: StockScore[], asOf = new Date()): Promise<ScoreHistoryResult> {
+export interface SaveOptions {
+  /** The date these scores describe. Defaults to now. */
+  asOf?: Date;
+  /** True for reconstructed history the site never actually published. */
+  backfilled?: boolean;
+  /**
+   * Store the per-item breakdown alongside the axis scores. Only worth it on
+   * the quarterly backfill rows — everything in it comes from filings, which
+   * change quarterly at most, so daily copies would be pure duplication.
+   */
+  includeCriteria?: boolean;
+}
+
+// Appends scores to the history table. The screener itself never reads this —
+// it exists so the past survives data/scores.json being overwritten on the
+// next refresh.
+export async function saveScoreHistory(
+  scores: StockScore[],
+  { asOf = new Date(), backfilled = false, includeCriteria = false }: SaveOptions = {},
+): Promise<ScoreHistoryResult> {
   const day = asOf.toISOString().slice(0, 10);
   const supabase = createAdminClient();
 
@@ -57,6 +73,8 @@ export async function saveScoreHistory(scores: StockScore[], asOf = new Date()):
       margin_of_safety: orNull(s.intrinsicValue.marginOfSafety),
       is_buy_candidate: s.isBuyCandidate,
       scoring_version: s.scoringVersion,
+      is_backfilled: backfilled,
+      criteria: includeCriteria ? s.criteria : null,
     }));
 
   let written = 0;

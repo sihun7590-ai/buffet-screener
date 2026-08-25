@@ -145,6 +145,12 @@
       "empty": "No related news in the last 30 days."
     }
   },
+  "history": {
+    "title": "Score History",
+    "total": "Overall",
+    "tip": "Each quarter-end is re-scored from the filings that were actually public on that date and that day's share price. If quality held steady while the valuation score rose, the business didn't improve — the stock got cheaper.",
+    "backfillNote": "Past scores are recalculated with today's formula from the data available at the time."
+  },
   "axes": {
     "quality": {
       "name": "Quality",
