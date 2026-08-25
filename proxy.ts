@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import type { NextRequest } from "next/server";
 import createIntlMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
+import { SUPABASE_ANON_KEY, SUPABASE_URL, hasSupabaseConfig } from "./lib/supabase/env";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
@@ -12,7 +13,11 @@ const intlMiddleware = createIntlMiddleware(routing);
 export default async function proxy(request: NextRequest) {
   const response = intlMiddleware(request);
 
-  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+  // Nothing to refresh without a project configured, and skipping spares every
+  // request a doomed round trip. See lib/supabase/env.ts.
+  if (!hasSupabaseConfig()) return response;
+
+  const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
       getAll() {
         return request.cookies.getAll();

@@ -76,6 +76,8 @@ TradingView·Investing.com 같은 전문 트레이딩 화면을 기준으로 만
 ### 배포 시 추가로 해야 하는 설정
 로컬에서 잘 되다가 배포하면 로그인만 안 되는 경우, 대부분 아래 두 가지 중 하나입니다.
 
+> 환경 변수를 빠뜨리고 배포하더라도 사이트 전체가 죽지는 않습니다 — [lib/supabase/env.ts](lib/supabase/env.ts)가 "아무도 로그인하지 않은 상태"로 떨어뜨려서 스크리너·종목 상세는 그대로 열리고, MY Page는 로그인 안내를 보여줍니다. 로그인 기능만 동작하지 않으므로, 로그인이 안 되면 이 값부터 확인하세요.
+
 - **Supabase → Authentication → URL Configuration**: `Site URL`을 실제 도메인으로 지정하고, `Redirect URLs`에 `https<도메인>/auth/callback`을 추가합니다. 이게 없으면 로그인 후 localhost로 돌아가려다 실패합니다. 로컬 개발을 계속하려면 `http://localhost:3000/auth/callback`도 같이 남겨두세요.
 - **Google 로그인**: [Google Cloud Console](https://console.cloud.google.com/apis/credentials)의 OAuth 클라이언트 → 승인된 리디렉션 URI에 Supabase 콜백 주소(`https<프로젝트>.supabase.co/auth/v1/callback`)가 등록되어 있어야 합니다. 이 주소는 앱 도메인이 아니라 Supabase 주소이므로, 앱을 어디에 배포하든 한 번만 등록하면 됩니다. 발급받은 Client ID/Secret은 Supabase → Authentication → Providers → Google에 넣습니다.
 
