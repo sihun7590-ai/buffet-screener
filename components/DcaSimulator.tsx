@@ -90,7 +90,7 @@ export default function DcaSimulator({ prices, currentPrice }: { prices: PricePo
                 onChange={(e) => setDayOfMonth(Number(e.target.value))}
                 className="h-9 rounded-md border border-line bg-subtle px-2.5 text-ink focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
               >
-                {Array.from({ length: 28 }, (_, i) => i + 1).map((d) => (
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
                   <option key={d} value={d}>
                     {t("form.dayOfMonthValue", { day: d })}
                   </option>

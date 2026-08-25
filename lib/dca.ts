@@ -54,12 +54,21 @@ function scheduledDates(config: DcaConfig, startDate: string, endDate: string): 
   if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime()) || start > end) return dates;
 
   if (config.frequency === "monthly") {
-    const day = Math.min(Math.max(Math.round(config.dayOfMonth), 1), 28);
-    const d = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), day));
-    if (d < start) d.setUTCMonth(d.getUTCMonth() + 1);
-    while (d <= end) {
+    // Up to 31 is allowed, but not every month has one — clamp to that
+    // month's actual last day (so "31일" buys on Feb 28/29, Apr/Jun/Sep/Nov
+    // 30) rather than letting Date's own month-overflow silently roll into
+    // the *next* month, which is what naively calling setUTCMonth on a Date
+    // already sitting on day 31 would do.
+    const day = Math.min(Math.max(Math.round(config.dayOfMonth), 1), 31);
+    const dateForMonth = (monthsFromStart: number) => {
+      const month = start.getUTCMonth() + monthsFromStart;
+      const daysInMonth = new Date(Date.UTC(start.getUTCFullYear(), month + 1, 0)).getUTCDate();
+      return new Date(Date.UTC(start.getUTCFullYear(), month, Math.min(day, daysInMonth)));
+    };
+    let offset = 0;
+    if (dateForMonth(0) < start) offset = 1;
+    for (let d = dateForMonth(offset); d <= end; d = dateForMonth(++offset)) {
       dates.push(d.toISOString().slice(0, 10));
-      d.setUTCMonth(d.getUTCMonth() + 1);
     }
   } else if (config.frequency === "weekly") {
     const dow = Math.min(Math.max(Math.round(config.dayOfWeek), 0), 6);

@@ -440,7 +440,7 @@
         "5": "Friday"
       },
       "startDate": "Start date",
-      "note": "If the market's closed that day, the purchase uses the next trading day's close."
+      "note": "Picking a day that doesn't exist in a given month (like the 31st) buys on that month's last day instead. If the market's closed, the purchase uses the next trading day's close."
     },
     "stats": {
       "invested": "Total invested",
