@@ -330,5 +330,25 @@
       "total": "Total",
       "period": "Period"
     }
+  },
+  "alerts": {
+    "title": "What changed",
+    "count": "{count}",
+    "empty": "Nothing notable lately. Sharp score moves and Buy Candidate changes show up here.",
+    "since": "vs {date}",
+    "backfilled": "comparison point is a reconstructed score",
+    "tip": "There is no email or push here. Instead, each watched company is compared against its own past, and the changes worth a second look are collected here. Price moves are already in every broker app; what matters here are the changes that quietly undo the reason you were interested — the balance sheet deteriorating, the margin of safety closing, a company dropping out of Buy Candidate.",
+    "caveat": "Compared against the most recent score at least 30 days old; each item names the date it was compared with. Points computed under different formula versions are not compared — that difference is us changing, not the company.",
+    "kinds": {
+      "totalDrop": "Total {from} → {to} ({change})",
+      "totalRise": "Total {from} → {to} ({change})",
+      "axisDrop": "{axis} {from} → {to} ({change})",
+      "axisRise": "{axis} {from} → {to} ({change})",
+      "buyExited": "No longer a Buy Candidate",
+      "buyEntered": "Became a Buy Candidate",
+      "marginClosed": "Margin of safety closed ({from} → {to})",
+      "marginOpened": "Margin of safety opened ({from} → {to})",
+      "priceDrop": "Price {change} since you added it"
+    }
   }
 }

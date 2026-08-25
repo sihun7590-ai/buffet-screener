@@ -15,6 +15,11 @@ export interface ScoreHistoryPoint {
   valuation: number;
   price: number | null;
   isBackfilled: boolean;
+  // Read only by the watchlist's change detection; the chart plots the six
+  // series above. Optional so a caller that doesn't need them can select less.
+  marginOfSafety?: number | null;
+  isBuyCandidate?: boolean;
+  scoringVersion?: number;
 }
 
 type Series = "total" | ScoreAxis;

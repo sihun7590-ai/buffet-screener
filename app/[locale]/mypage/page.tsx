@@ -3,9 +3,12 @@ import { Link } from "@/i18n/navigation";
 import Panel from "@/components/Panel";
 import BackToListLink from "@/components/BackToListLink";
 import MyFavoritesList, { type MyFavoriteRow } from "@/components/MyFavoritesList";
+import WatchlistAlerts from "@/components/WatchlistAlerts";
 import { createClient } from "@/lib/supabase/server";
 import { getScoreByTicker } from "@/lib/store";
 import { fetchPriceHistory } from "@/lib/price";
+import { fetchScoreHistoryForTickers } from "@/lib/scoreHistoryQuery";
+import { detectAlerts, groupAlertsByTicker, type StockAlert } from "@/lib/alerts";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +66,23 @@ export default async function MyPage() {
     }),
   );
 
+  // One query for the whole list, then compare each company against its own
+  // past. The favourite price is the other half: it's the only record of what
+  // the holding looked like when the user decided they cared.
+  const history = await fetchScoreHistoryForTickers(rows.map((r) => r.ticker));
+  const alerts: StockAlert[] = groupAlertsByTicker(
+    rows.flatMap((row) => {
+      const score = getScoreByTicker(row.ticker);
+      if (!score) return [];
+      return detectAlerts({
+        score,
+        history: history.get(row.ticker) ?? [],
+        priceAtFavorite: row.priceAtFavorite,
+        currentPrice: row.currentPrice,
+      });
+    }),
+  );
+
   return (
     <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-4 px-4 py-6 sm:px-6 sm:py-8">
       <BackToListLink />
@@ -70,6 +90,7 @@ export default async function MyPage() {
         <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-[28px]">{t("title")}</h1>
         <p className="text-[13px] text-ink-muted">{t("subtitle")}</p>
       </div>
+      {rows.length > 0 && <WatchlistAlerts alerts={alerts} />}
       <MyFavoritesList userId={user.id} initialRows={rows} />
     </main>
   );

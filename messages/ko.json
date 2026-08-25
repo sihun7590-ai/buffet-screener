@@ -330,5 +330,25 @@
       "total": "종합",
       "period": "기간"
     }
+  },
+  "alerts": {
+    "title": "관심 종목 변화",
+    "count": "{count}건",
+    "empty": "최근 눈에 띄는 변화가 없습니다. 점수가 크게 움직이거나 Buy Candidate 상태가 바뀌면 여기에 표시됩니다.",
+    "since": "{date} 대비",
+    "backfilled": "비교 시점은 재구성된 점수입니다",
+    "tip": "이메일이나 푸시 알림은 없습니다. 대신 관심 종목을 그 종목의 과거와 비교해서, 다시 볼 만한 변화를 여기에 모아 보여줍니다. 주가 등락은 증권사 앱이 이미 보여주니까, 여기서 중요한 건 관심을 갖게 된 이유를 조용히 무너뜨리는 변화입니다 — 재무가 나빠지거나, 안전마진이 사라지거나, Buy Candidate에서 빠지는 것.",
+    "caveat": "최근 30일 이전 시점 중 가장 가까운 점수와 비교합니다. 비교 시점은 항목마다 표시됩니다. 계산식 버전이 다른 시점끼리는 비교하지 않습니다 — 회사가 변한 게 아니라 우리 기준이 바뀐 것이기 때문입니다.",
+    "kinds": {
+      "totalDrop": "종합 점수 {from} → {to} ({change})",
+      "totalRise": "종합 점수 {from} → {to} ({change})",
+      "axisDrop": "{axis} {from} → {to} ({change})",
+      "axisRise": "{axis} {from} → {to} ({change})",
+      "buyExited": "Buy Candidate에서 빠졌습니다",
+      "buyEntered": "Buy Candidate에 들어왔습니다",
+      "marginClosed": "안전마진이 사라졌습니다 ({from} → {to})",
+      "marginOpened": "안전마진이 생겼습니다 ({from} → {to})",
+      "priceDrop": "즐겨찾기 이후 주가 {change}"
+    }
   }
 }
