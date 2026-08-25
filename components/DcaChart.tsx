@@ -76,6 +76,7 @@ export default function DcaChart({ curve }: { curve: DcaResult["equityCurve"] })
         <svg
           ref={svgRef}
           viewBox={`0 0 ${W} ${H}`}
+          preserveAspectRatio="none"
           className="h-[220px] w-full min-w-[480px]"
           role="img"
           aria-label={t("chart.title")}

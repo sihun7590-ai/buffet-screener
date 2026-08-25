@@ -123,6 +123,7 @@ export default function ScoreHistoryChart({ points }: { points: ScoreHistoryPoin
         <svg
           ref={svgRef}
           viewBox={`0 0 ${W} ${H}`}
+          preserveAspectRatio="none"
           className="h-[260px] w-full min-w-[560px]"
           role="img"
           aria-label={t("title")}

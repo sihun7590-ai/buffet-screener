@@ -120,6 +120,7 @@ export default function BacktestChart({
         <svg
           ref={svgRef}
           viewBox={`0 0 ${W} ${H}`}
+          preserveAspectRatio="none"
           className="h-[280px] w-full min-w-[560px]"
           role="img"
           aria-label={t("chartTitle")}
