@@ -10,9 +10,32 @@ import { FIXTURE_FINANCIALS } from "../data/fixtures";
 import { fetchTickerFinancials } from "../lib/sec";
 import { scoreTicker } from "../lib/scoring";
 import { writeScores } from "../lib/store";
+import { saveScoreHistory } from "../lib/scoreHistory";
 import type { StockScore, TickerFinancials } from "../lib/types";
 
 const useFixture = process.argv.includes("--fixture");
+
+// data/scores.json is a snapshot that the next run overwrites, so the same
+// scores are also appended to Supabase — that copy is what score history,
+// alerts on score changes, and backtesting will read. Sample data is excluded:
+// fixture numbers in the history table would corrupt the real series.
+async function archive(scores: StockScore[]) {
+  try {
+    const result = await saveScoreHistory(scores);
+    if (result.disabledReason) {
+      console.log(`점수 히스토리: ${result.disabledReason}`);
+      return;
+    }
+    console.log(`점수 히스토리: ${result.day}자 ${result.written}건 저장 완료.`);
+    if (result.skippedTickers.length > 0) {
+      console.log(`  점수를 계산하지 못해 제외: ${result.skippedTickers.join(", ")}`);
+    }
+  } catch (err) {
+    // The snapshot is already written and is what the site serves, so a
+    // history-only failure shouldn't fail the whole refresh.
+    console.error(`점수 히스토리 저장에 실패했습니다 (data/scores.json은 정상 저장됨): ${(err as Error).message}`);
+  }
+}
 
 async function run() {
   if (useFixture) {
@@ -44,6 +67,8 @@ async function run() {
   if (failures.length > 0) {
     console.log("실패한 종목:", failures.join(", "));
   }
+
+  await archive(scores);
 }
 
 run().catch((err) => {

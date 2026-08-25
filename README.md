@@ -81,7 +81,7 @@ TradingView·Investing.com 같은 전문 트레이딩 화면을 기준으로 만
 
 ### 최초 설정 (한 번만)
 1. [supabase.com](https://supabase.com)에서 무료 프로젝트 생성
-2. 프로젝트 SQL Editor에서 [supabase/schema.sql](supabase/schema.sql) 내용을 실행 — `favorites` 테이블 + Row Level Security 정책(내 데이터만 조회/수정 가능)을 만듭니다
+2. 프로젝트 SQL Editor에서 [supabase/migrations/](supabase/migrations/)의 `.sql` 파일을 **번호 순서대로** 실행 (이미 실행한 파일은 건너뛰세요)
 3. 프로젝트의 **Connect → App Frameworks → Next.js**에서 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` 확인 → `.env.local`에 채우기 (`.env.local.example` 참고)
 4. Vercel에 배포 중이라면 Vercel 프로젝트 **Settings → Environment Variables**에도 같은 두 값을 추가하고 재배포해야 실제 서비스에서도 로그인이 동작합니다
 5. 기본적으로 회원가입 시 이메일 인증 링크를 보냅니다 (Supabase Auth 기본 동작). 테스트 중 매번 이메일 인증이 번거로우면 프로젝트의 **Authentication → Providers → Email → "Confirm email"**을 꺼서 즉시 로그인되게 할 수 있습니다 (실제 서비스에서는 켜두는 걸 권장)
@@ -101,6 +101,17 @@ TradingView·Investing.com 같은 전문 트레이딩 화면을 기준으로 만
 - 즐겨찾기: 대시보드 행/종목 상세 페이지의 하트 버튼으로 토글. `favorites` 테이블에 `(user_id, ticker, price_at_favorite, favorited_at)`로 저장 — `price_at_favorite`는 찜한 시점의 주가입니다
 - MY Page (`/mypage`): 로그인한 유저의 즐겨찾기 목록을 서버에서 조회하고, 각 티커의 실시간 현재가([lib/price.ts](lib/price.ts))를 가져와 `(현재가 − 찜한 시점 주가) / 찜한 시점 주가`로 등락률을 계산해 보여줍니다
 - 로그인 세션은 `proxy.ts`(next-intl 미들웨어와 함께 실행)에서 매 요청마다 갱신됩니다 — [lib/supabase/client.ts](lib/supabase/client.ts)는 브라우저용, [lib/supabase/server.ts](lib/supabase/server.ts)는 Server Component/Route Handler용입니다
+
+## 점수 히스토리
+
+`data/scores.json`은 **스냅샷**이라 `npm run refresh`를 돌리면 어제 점수가 사라집니다. 그래서 같은 점수를 Supabase `score_history` 테이블에도 함께 적재합니다 — 점수 추이 차트, "점수 급등" 알림, 백테스트는 전부 과거가 남아 있어야 가능합니다.
+
+- 화면이 읽는 경로는 지금도 `data/scores.json` 그대로입니다. DB 왕복이 없고, 기존 동작이 바뀌지 않습니다.
+- 테이블에는 **축별 점수만** 저장합니다 (항목별 상세는 스냅샷에). 그래서 S&P 500 전체를 매일 쌓아도 1년에 수십 MB 수준이라 무료 티어 안에서 몇 년을 버팁니다.
+- `(ticker, as_of)`가 기본키라 같은 날 배치를 다시 돌리면 그날 행을 덮어씁니다.
+- 적재에는 **service_role 키**가 필요합니다 ([lib/supabase/admin.ts](lib/supabase/admin.ts)). 이 키는 RLS를 우회하므로 `.env.local`에만 두고 절대 커밋하거나 브라우저에 노출하지 마세요. `NEXT_PUBLIC_` 접두사를 붙이면 Next.js가 클라이언트 번들에 넣어버립니다.
+- 키가 없으면 적재만 건너뛰고 `npm run refresh`는 정상 동작합니다. 히스토리 적재가 실패해도 스냅샷 저장은 이미 끝난 뒤라 배치 전체가 실패하지는 않습니다.
+- 30분짜리 배치를 다시 돌리지 않고 적재만 재실행하려면 `npm run archive` — 현재 `scores.json`을 그 파일의 생성 시각 기준으로 적재합니다.
 
 ## 다국어 지원
 
@@ -151,8 +162,11 @@ app/[locale]/mypage/page.tsx          MY Page (즐겨찾기 + 찜한 시점 대�
 app/auth/callback/route.ts            이메일 인증 콜백
 lib/supabase/client.ts, server.ts     Supabase 클라이언트 (브라우저용 / 서버용)
 lib/supabase/useFavorites.ts          즐겨찾기 상태 구독/토글 훅
-supabase/schema.sql                   favorites 테이블 + RLS 정책 (SQL Editor에서 1회 실행)
+lib/supabase/admin.ts                 service_role 클라이언트 (배치 전용 — 브라우저에 절대 노출 금지)
+lib/scoreHistory.ts                   점수 스냅샷을 score_history 테이블에 적재
+supabase/migrations/*.sql             DB 스키마 (SQL Editor에서 번호 순서대로 1회씩 실행)
 scripts/refresh.ts                    배치 갱신 스크립트 (npm run refresh)
+scripts/archive.ts                    현재 scores.json만 히스토리에 적재 (npm run archive)
 data/universe.json                    스크리닝 대상 티커 + 회사명/섹터/위키피디아 문서명
 data/fixtures.ts                      샘플 데이터 (npm run refresh -- --fixture)
 ```
