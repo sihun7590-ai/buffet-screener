@@ -338,6 +338,228 @@ data/universe.json                    스크리닝 대상 티커 + 회사명/섹
 data/fixtures.ts                      샘플 데이터 (npm run refresh -- --fixture)
 ```
 
+## 배포
+
+### Vercel 한 클릭 배포
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsihuny%2Fbuffett-screener&env=NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY,SUPABASE_SERVICE_ROLE_KEY&envDescription=Supabase%20Project%20Settings%20%E2%86%92%20API%20Keys에서%20확인&envLink=https%3A%2F%2Fsupabase.com)
+
+위 버튼을 클릭하면 자동으로 저장소를 fork하고 Vercel 프로젝트를 생성합니다.
+
+### 수동 배포 단계
+
+#### 1단계: GitHub 저장소 fork
+
+본 저장소를 GitHub 계정으로 fork한 다음, 자신의 저장소 주소를 확인합니다 (`https://github.com/your-username/buffett-screener`).
+
+#### 2단계: Supabase 프로젝트 생성 및 스키마 설정
+
+1. [supabase.com](https://supabase.com)에서 무료 프로젝트 생성
+2. SQL Editor에서 [supabase/migrations/](supabase/migrations/)의 `.sql` 파일을 **번호 순서대로** 실행
+3. **Project Settings → API Keys**에서 다음 두 값 확인:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` (anon key)
+
+#### 3단계: Vercel 배포
+
+1. [vercel.com](https://vercel.com)에서 GitHub 계정으로 로그인
+2. "Add New... → Project"에서 fork한 저장소 선택
+3. Framework는 "Next.js" 자동 선택
+4. "Environment Variables" 섹션에서:
+   - `NEXT_PUBLIC_SUPABASE_URL`: 위에서 복사한 Supabase URL
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: 위에서 복사한 anon key
+   - `SUPABASE_SERVICE_ROLE_KEY`: (선택사항, 배포만으로는 필요 없음)
+5. "Deploy" 클릭
+
+#### 4단계: 로그인 기능 설정 (선택)
+
+회원가입/로그인을 활성화하려면:
+
+1. Supabase 프로젝트 → **Authentication → URL Configuration**:
+   - `Site URL`: 배포된 Vercel 도메인 (예: `https://your-app.vercel.app`)
+   - `Redirect URLs`에 `https://your-app.vercel.app/auth/callback` 추가
+
+2. (선택) **Google 로그인**을 쓰려면:
+   - [Google Cloud Console](https://console.cloud.google.com/apis/credentials)에서 OAuth 클라이언트 생성
+   - 승인된 리디렉션 URI에 `https://{your-project}.supabase.co/auth/v1/callback` 등록
+   - Client ID/Secret을 Supabase → Authentication → Providers → Google에 등록
+
+#### 5단계: 점수 갱신 스케줄 설정 (선택)
+
+GitHub Actions로 자동 점수 갱신을 하려면:
+
+1. fork한 GitHub 저장소 → **Settings → Secrets and variables → Actions**
+2. 다음 3개 secrets 추가:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+3. `.github/workflows/refresh.yml`이 **평일 23:00 UTC**(한국시간 다음 날 아침 8시)마다 자동 실행됩니다
+
+또는 수동 실행: Actions 탭에서 "점수 갱신" workflow를 선택하고 "Run workflow" 클릭.
+
+### 커스텀 도메인 (선택)
+
+Vercel 프로젝트 → **Settings → Domains**에서 자신의 도메인 연결:
+
+1. 도메인 입력 및 "Add"
+2. DNS 레코드 추가 (Vercel이 설정 방법을 안내)
+
+### 배포 후 체크리스트
+
+- [ ] Vercel 대시보드에서 배포 상태 확인 (초록색 "Ready")
+- [ ] 사이트 방문해 스크리너 및 종목 상세 페이지 정상 로드 확인
+- [ ] Supabase 환경 변수가 올바르게 설정되었는지 확인 (MY Page 로그인 시도)
+- [ ] GitHub Actions secrets이 설정되었으면, 배치가 다음 스케줄에 실행되는지 확인
+
+## 데이터 갱신
+
+### 수동 갱신
+
+```bash
+# S&P 500 전체(503개 종목)를 다시 계산하고 data/scores.json 업데이트
+npm run refresh
+
+# 현재 scores.json을 Supabase 히스토리에 적재 (생성 시각 기준)
+npm run archive
+
+# 과거 시점의 점수를 역사적으로 재구성 (백테스트용)
+npm run backfill                          # 최근 3년, 분기별
+npm run backfill -- --years 5             # 최근 5년
+npm run backfill -- --ticker LULU         # 특정 종목만
+npm run backfill -- --dry-run              # 계산만 하고 적재하지 않음
+```
+
+### 자동 갱신 (GitHub Actions)
+
+`.github/workflows/refresh.yml`이 **평일 23:00 UTC**(미국 장 마감 몇 시간 뒤, 한국시간 다음 날 아침 8시)에 자동 실행됩니다.
+
+- 배치가 S&P 500을 다시 계산
+- `data/scores.json` 변경사항을 자동 커밋
+- Vercel이 푸시를 감지해 자동 재배포
+- 점수 히스토리가 Supabase에 적재됨
+
+**필수 조건**: GitHub 저장소의 Secrets에 Supabase 키 3개 등록 (위의 "5단계" 참고)
+
+### 데이터 소스 및 주기
+
+| 항목 | 소스 | 갱신 주기 | 지연 | 비고 |
+|---|---|---|---|---|
+| **재무제표** | SEC EDGAR | 분기/연간 | ~1-2주 | 회사 공시 후 SEC에 올라올 때까지 |
+| **주가** | Yahoo Finance | 실시간 | ~1일 | 전일 종가 기준 |
+| **회사 소개** | 위키피디아 | 페이지 로드 시 | - | 종목 상세 페이지 열 때만 조회 |
+| **뉴스** | Yahoo Finance | 페이지 로드 시 | - | 종목 상세 페이지 열 때만 조회 |
+| **인사이더 거래** | SEC Form 4 | 페이지 로드 시 | ~2일 | 거래 후 영업일 기준 2일 이내 신고 |
+
+### FAQ: 내 계산과 화면 점수가 다르다면?
+
+1. **배치가 최근에 돌았는가?** `data/scores.json`의 타임스탬프 확인
+2. **샘플 데이터를 보고 있는가?** 대시보드 상단 노란 배너 확인
+3. **로컬에서 재계산했는가?** `npm run refresh` 후 `npm run dev` 재시작
+4. **Vercel에 푸시했는가?** GitHub 푸시 후 Vercel 배포 완료 대기
+
+## 문제 해결
+
+### "내가 본 점수가 웹사이트와 다르다"
+
+**원인**: 로컬 `data/scores.json`이 오래되었을 가능성이 높습니다.
+
+**해결**:
+```bash
+npm run refresh   # 최신 데이터로 재계산
+npm run dev       # 개발 서버 재시작
+```
+
+배치는 ~30분 소요되므로 기다려야 합니다. Vercel 배포 중이라면:
+1. Vercel 대시보드에서 배포 완료 확인
+2. 브라우저 캐시 비우기 (Ctrl+Shift+Delete 또는 DevTools → Application → Clear Storage)
+3. 사이트 새로고침
+
+### "Form 4 인사이더 거래가 안 보인다"
+
+**원인**: SEC 서버 일시적 장애, 네트워크 오류, 또는 그 회사가 최근 거래 신고가 없을 수 있습니다.
+
+**해결**:
+1. 다시 시도해보기 (브라우저 새로고침)
+2. 나머지 점수·재무제표는 정상이므로 거래가 없는 것일 수 있음
+3. SEC EDGAR에서 직접 확인: [SEC EDGAR](https://www.sec.gov/cgi-bin/browse-edgar)에서 회사명 검색 → Form 4 필터
+
+### "다크 테마에서 차트가 안 보인다"
+
+**확인**: TradingView 임베드 차트의 테마가 현재 다크/라이트 모드에 맞게 변경되고 있습니다. 만약 차트 배경이 보이지 않는다면:
+
+1. **브라우저 새로고침** (Ctrl+R 또는 Cmd+R)
+2. **광고 차단 확장 프로그램 비활성화** (TradingView 서버 `s3.tradingview.com`이 차단될 수 있음)
+3. **기업 방화벽/보안 프로그램 확인** (특히 국내 은행·공공기관 보안 소프트웨어가 HTTPS 검사로 차단 가능)
+
+차트가 계속 로드되지 않으면 화면에 원인 설명과 해결 방법을 안내합니다.
+
+### "로그인이 안 된다"
+
+로컬 개발 중:
+1. `.env.local`에 Supabase URL과 anon key가 채워져 있는가 확인
+2. Supabase 프로젝트 → **Authentication → Email**에서 "Confirm email" 토글이 꺼져 있는가 확인 (테스트 중에는 보통 꺼둠)
+
+배포된 Vercel 사이트:
+1. Vercel 프로젝트 → **Settings → Environment Variables**에서 두 개 변수가 설정되었는가 확인
+2. Supabase → **Authentication → URL Configuration**에서 Site URL과 Redirect URLs가 올바른가 확인
+3. Vercel에서 환경 변수 설정 후 **재배포** 필요 (단순 redeploy로는 안 되고, 변수 변경 후 재배포)
+
+### "점수 갱신(npm run refresh) 중에 오류가 난다"
+
+개별 종목 몇 개 실패는 정상입니다 (SEC에 데이터가 없는 종목들). 하지만:
+
+- **500개 종목 중 25개 이상 실패**: 데이터 소스(SEC/Yahoo) 장애 또는 IP 차단 가능성
+  - 시간을 두고 다시 시도하세요
+  - GitHub Actions에서도 같은 오류가 나는지 확인
+
+- **특정 종목만 실패**: 그 회사의 SEC 등록 정보 이상 (예: CIK 매핑 오류)
+  - [lib/xbrl.ts](lib/xbrl.ts)의 `CIK_OVERRIDES`에 수동 매핑 추가
+  - 또는 [Issues](https://github.com/sihuny/buffett-screener/issues)에 보고
+
+## 기술 스택
+
+| 영역 | 기술 | 용도 |
+|---|---|---|
+| **Frontend Framework** | Next.js 14 (App Router) | React 기반 프레임 |
+| **언어** | TypeScript + React | 타입 안전성, 컴포넌트 UI |
+| **스타일** | Tailwind CSS 4 | 유틸리티 CSS, 다크/라이트 테마 |
+| **다국어** | next-intl | 한국어/영어 URL 라우팅 및 메시지 관리 |
+| **인증** | Supabase Auth | 이메일 로그인/회원가입 (선택사항) |
+| **데이터 저장** | Supabase (PostgreSQL) | 즐겨찾기, 점수 히스토리, 사용자 정보 |
+| **캐시 저장소** | 로컬 JSON 파일 (`data/scores.json`) | 일일 점수 스냅샷 (최속 조회) |
+| **재무 데이터** | SEC EDGAR API (무료) | 분기/연간 재무제표 (XBRL 원본) |
+| **주가 데이터** | Yahoo Finance (무료) | 현재가, 과거 종가, 뉴스 |
+| **차트** | TradingView 무료 임베드 | 주가 차트 및 드로잉 도구 |
+| **회사 정보** | 위키피디아 API | 회사 소개 요약 |
+| **자동화** | GitHub Actions | 평일 자동 점수 갱신 |
+| **배포** | Vercel | 호스팅 및 CI/CD |
+| **런타임** | Node.js (Vercel 서버리스) | 백엔드 실행 환경 |
+
+### 주요 의존성
+
+```json
+{
+  "next": "16.3.1",
+  "react": "19.2.8",
+  "typescript": "^5",
+  "@supabase/supabase-js": "^2.112.4",
+  "next-intl": "^4.13.7",
+  "tailwindcss": "^4",
+  "fast-xml-parser": "^5.11.0"
+}
+```
+
+- **fast-xml-parser**: SEC Form 4(인사이더 거래) XML 파싱용
+- 그 외 의존성은 Next.js 공식 스택에 포함된 최소 구성
+
+### 아키텍처 하이라이트
+
+- **배치 기반 점수 캐싱**: 서버에서 500개 종목을 실시간 계산하면 3-5초 느려집니다. 대신 매일 배치로 미리 계산해 `data/scores.json`에 저장하고, 사용자는 그 파일을 즉시 로드합니다.
+- **다중 데이터 소스 통합**: SEC(재무) + Yahoo(주가) + Wikipedia(정보) + TradingView(차트)를 조합해 완전한 정보 스택 구성
+- **점수 히스토리 추적**: 모든 계산 결과를 Supabase에 적재해 시계열 분석, 백테스트, 알림 로직 지원
+- **계산 버전 관리**: 기준을 바꾸면 `SCORING_VERSION`을 올려, 역사적 시점의 점수를 현재 기준으로 자동 재구성할 수 있음
+- **완전 무료 스택**: SEC/Yahoo/Wikipedia/TradingView 모두 API 키 불필요, Supabase 무료 티어(PostgreSQL 500MB)로도 3년치 히스토리 충분
+
 ## 참고 사항
 
 - 이 프로젝트가 보여주는 점수·내재가치는 모두 **참고용 계산 결과**이며 투자 조언이 아닙니다.
