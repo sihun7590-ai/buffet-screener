@@ -311,5 +311,24 @@
     "unavailable": "Not measurable",
     "unavailableReason": "This company's filings do not carry the figure this criterion needs. Scoring it zero would claim we looked and the answer was bad, so it is left out of the axis entirely.",
     "measuredOf": "{count} not measurable"
+  },
+  "peers": {
+    "title": "Sector comparison",
+    "tip": "A score of 62 means little on its own — a bank and a software company are graded on the same five axes but land in very different ranges. This shows where the company sits among its GICS sector. The vertical line on each bar is the sector median: a bar past the line is above the middle of its field.",
+    "peerCount": "{count} companies",
+    "rankOf": "#{rank} of {count}",
+    "median": "median {value}",
+    "lowCoverage": "Some axes for this company were graded on the {percent}% its filings supplied.",
+    "caveat": "The table lists the companies closest in market capitalisation — a $2T company and an $8B one in the same sector are not really in the same business. \"Period\" is the date each company's figures run to; fiscal calendars differ, so these can be up to a year apart. Retailers in particular show different leverage at different quarter ends because of inventory and payables cycles. An asterisk marks a company with criteria we could not measure.",
+    "columns": {
+      "company": "Company",
+      "marketCap": "Market cap",
+      "roe": "ROE",
+      "debtToEquity": "D/E",
+      "pe": "P/E",
+      "marginOfSafety": "Margin of safety",
+      "total": "Total",
+      "period": "Period"
+    }
   }
 }

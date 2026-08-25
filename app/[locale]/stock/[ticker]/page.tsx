@@ -10,7 +10,9 @@ import CriteriaTable from "@/components/CriteriaTable";
 import PriceChartPanel from "@/components/PriceChartPanel";
 import ScoreHistoryChart from "@/components/ScoreHistoryChart";
 import DataSourceNote from "@/components/DataSourceNote";
+import PeerComparison from "@/components/PeerComparison";
 import { fetchScoreHistory } from "@/lib/scoreHistoryQuery";
+import { comparePeers } from "@/lib/peers";
 import { getScoreByTicker, readScores } from "@/lib/store";
 import { AXIS_WEIGHTS, SCORE_AXES } from "@/lib/types";
 import { fetchCompanySummary } from "@/lib/wikipedia";
@@ -36,7 +38,8 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
   const tCommon = await getTranslations("common");
   const tSectors = await getTranslations("sectors");
   const tSource = await getTranslations("dataSource");
-  const { generatedAt } = readScores();
+  const { generatedAt, scores: allScores } = readScores();
+  const peers = comparePeers(allScores, score.ticker);
 
   const meta = (universe as { ticker: string; wikiTitle: string | null }[]).find((u) => u.ticker === ticker);
   const [summary, news, exchangeName, history] = await Promise.all([
@@ -156,6 +159,8 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
           <ScoreHistoryChart points={history} />
         </Panel>
       )}
+
+      {peers && <PeerComparison comparison={peers} />}
 
       <PriceChartPanel symbol={tvSymbol} locale={locale} />
 
