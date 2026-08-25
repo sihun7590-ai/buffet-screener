@@ -10,6 +10,8 @@
     "refresh": "tsx scripts/refresh.ts"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.12.5",
+    "@supabase/supabase-js": "^2.112.4",
     "next": "16.3.1",
     "next-intl": "^4.13.7",
     "react": "19.2.8",

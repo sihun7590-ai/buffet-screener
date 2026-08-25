@@ -1,11 +1,13 @@
 import { notFound } from "next/navigation";
 import { getTranslations, getLocale } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
 import Panel from "@/components/Panel";
+import BackToListLink from "@/components/BackToListLink";
+import InfoTip from "@/components/InfoTip";
 import ScoreBar from "@/components/ScoreBar";
 import ScoreGauge from "@/components/ScoreGauge";
+import StockFavoriteButton from "@/components/StockFavoriteButton";
 import CriteriaTable from "@/components/CriteriaTable";
-import TradingViewChart from "@/components/TradingViewChart";
+import PriceChartPanel from "@/components/PriceChartPanel";
 import { getScoreByTicker } from "@/lib/store";
 import { fetchCompanySummary } from "@/lib/wikipedia";
 import { fetchRecentNews } from "@/lib/news";
@@ -26,6 +28,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
 
   const locale = await getLocale();
   const t = await getTranslations("stock");
+  const tGlossary = await getTranslations("glossary");
   const tCommon = await getTranslations("common");
   const tSectors = await getTranslations("sectors");
 
@@ -49,15 +52,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
 
   return (
     <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-4 px-4 py-5 sm:px-6 sm:py-7">
-      <Link
-        href="/"
-        className="inline-flex w-fit items-center gap-1.5 text-xs font-medium text-ink-muted transition-colors hover:text-brand"
-      >
-        <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <path strokeLinecap="round" strokeLinejoin="round" d="m12 5-5 5 5 5" />
-        </svg>
-        {t("backToList")}
-      </Link>
+      <BackToListLink />
 
       <Panel>
         <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-6">
@@ -67,10 +62,12 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
                 {score.ticker}
               </h1>
               {score.isBuyCandidate && (
-                <span className="rounded bg-up/15 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-up">
+                <span className="flex items-center gap-1.5 rounded bg-up/15 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-up">
                   {t("buyCandidate")}
+                  <InfoTip text={tGlossary("buyCandidate")} className="border-up/50 text-up" />
                 </span>
               )}
+              <StockFavoriteButton ticker={score.ticker} price={score.price} />
             </div>
             <p className="mt-2 text-[15px] font-medium text-ink-muted">{score.companyName}</p>
             <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -87,8 +84,9 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
               <span className="font-mono text-[30px] font-bold leading-none tabular-nums text-ink">
                 {usdFmt(score.price)}
               </span>
-              <span className="text-[11px] uppercase tracking-[0.1em] text-ink-faint">
+              <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.1em] text-ink-faint">
                 {t("dcf.currentPrice")}
+                <InfoTip text={tGlossary("currentPrice")} />
               </span>
             </div>
           </div>
@@ -96,46 +94,59 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
           <div className="flex items-center gap-6">
             <div className="flex flex-col gap-3">
               <div>
-                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
+                <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
                   {t("stats.quality")}
+                  <InfoTip text={tGlossary("quality")} />
                 </div>
                 <ScoreBar score={score.qualityScore} max={50} strong />
               </div>
               <div>
-                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
+                <div className="mb-1.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
                   {t("stats.valuation")}
+                  <InfoTip text={tGlossary("valuation")} />
                 </div>
                 <ScoreBar score={score.valuationScore} max={50} strong />
               </div>
             </div>
-            <ScoreGauge score={score.totalScore} max={100} label={t("stats.total")} />
+            <div className="flex items-start gap-1.5">
+              <ScoreGauge score={score.totalScore} max={100} label={t("stats.total")} />
+              <InfoTip text={tGlossary("total")} />
+            </div>
           </div>
         </div>
       </Panel>
 
-      <Panel title={t("priceChart")} padded={false}>
-        <TradingViewChart symbol={tvSymbol} locale={locale} />
-      </Panel>
+      <PriceChartPanel symbol={tvSymbol} locale={locale} />
 
-      <Panel title={t("dcf.title")}>
+      <Panel
+        title={
+          <span className="flex items-center gap-1.5">
+            {t("dcf.title")}
+            <InfoTip text={tGlossary("marginOfSafety")} />
+          </span>
+        }
+      >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="rounded-lg border border-line bg-subtle px-4 py-3">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
               {t("dcf.intrinsicValue")}
+              <InfoTip text={tGlossary("intrinsicValue")} />
             </div>
             <div className="mt-1.5 font-mono text-xl font-bold tabular-nums text-ink">
               {ivOk ? usdFmt(iv.intrinsicValuePerShare) : tCommon("notAvailable")}
             </div>
           </div>
           <div className="rounded-lg border border-line bg-subtle px-4 py-3">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
               {t("dcf.currentPrice")}
+              <InfoTip text={tGlossary("currentPrice")} />
             </div>
             <div className="mt-1.5 font-mono text-xl font-bold tabular-nums text-ink">{usdFmt(iv.currentPrice)}</div>
           </div>
           <div className="rounded-lg border border-line bg-subtle px-4 py-3">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
+            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
               {t("dcf.marginOfSafety")}
+              <InfoTip text={tGlossary("marginOfSafety")} />
             </div>
             <div
               className="mt-1.5 font-mono text-xl font-bold tabular-nums"
@@ -156,8 +167,16 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
       </Panel>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <CriteriaTable title={t("quality.title", { max: 50 })} criteria={qualityCriteria} />
-        <CriteriaTable title={t("valuation.title", { max: 50 })} criteria={valuationCriteria} />
+        <CriteriaTable
+          title={t("quality.title", { max: 50 })}
+          titleTip={tGlossary("quality")}
+          criteria={qualityCriteria}
+        />
+        <CriteriaTable
+          title={t("valuation.title", { max: 50 })}
+          titleTip={tGlossary("marginOfSafety")}
+          criteria={valuationCriteria}
+        />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">

@@ -2,6 +2,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import type { CriterionResult } from "@/lib/types";
 import { formatCriterionValue } from "@/lib/criteriaText";
 import Panel from "./Panel";
+import InfoTip from "./InfoTip";
 import { scoreColor } from "./ScoreBar";
 
 function StatusDot({ passed }: { passed: boolean }) {
@@ -25,9 +26,11 @@ function StatusDot({ passed }: { passed: boolean }) {
 
 export default async function CriteriaTable({
   title,
+  titleTip,
   criteria,
 }: {
   title: string;
+  titleTip?: string;
   criteria: CriterionResult[];
 }) {
   const locale = await getLocale();
@@ -40,7 +43,12 @@ export default async function CriteriaTable({
 
   return (
     <Panel
-      title={title}
+      title={
+        <span className="flex items-center gap-1.5">
+          {title}
+          {titleTip && <InfoTip text={titleTip} />}
+        </span>
+      }
       padded={false}
       trailing={
         <span className="font-mono text-[13px] font-bold tabular-nums" style={{ color: scoreColor(total, max) }}>

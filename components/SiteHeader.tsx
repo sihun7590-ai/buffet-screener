@@ -1,7 +1,9 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { createClient } from "@/lib/supabase/server";
 import LocaleSwitcher from "./LocaleSwitcher";
 import ThemeToggle from "./ThemeToggle";
+import SignOutButton from "./SignOutButton";
 
 function Logo() {
   return (
@@ -22,6 +24,10 @@ function Logo() {
 
 export default async function SiteHeader() {
   const t = await getTranslations("nav");
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-surface/90 backdrop-blur-md">
@@ -37,6 +43,31 @@ export default async function SiteHeader() {
         </Link>
 
         <div className="ml-auto flex items-center gap-2">
+          {user ? (
+            <>
+              <Link
+                href="/mypage"
+                className="flex h-8 items-center gap-1.5 rounded-md border border-line bg-subtle px-2.5 text-xs font-semibold text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
+              >
+                <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.7">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M10 17S3.3 12.7 3.3 8a3.7 3.7 0 0 1 6.7-2.2A3.7 3.7 0 0 1 16.7 8c0 4.7-6.7 9-6.7 9Z"
+                  />
+                </svg>
+                {t("myPage")}
+              </Link>
+              <SignOutButton />
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="flex h-8 items-center rounded-md border border-line bg-subtle px-2.5 text-xs font-semibold text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
+            >
+              {t("login")}
+            </Link>
+          )}
           <LocaleSwitcher />
           <ThemeToggle />
         </div>

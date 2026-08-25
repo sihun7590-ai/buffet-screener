@@ -9,11 +9,67 @@
   },
   "nav": {
     "brand": "BUFFETT SCREENER",
-    "tagline": "S&P 500 value screener"
+    "tagline": "S&P 500 value screener",
+    "myPage": "My Page",
+    "login": "Sign In",
+    "signOut": "Sign Out"
   },
   "theme": {
     "toDark": "Switch to dark theme",
     "toLight": "Switch to light theme"
+  },
+  "favorite": {
+    "add": "Add to favorites",
+    "remove": "Remove from favorites"
+  },
+  "glossary": {
+    "universe": "How many stocks this site has scored and analysed. The universe is the S&P 500 — the 500 largest, most established US companies.",
+    "buyCandidate": "A stock that scores well AND looks cheaper than our estimate of what it's worth. It isn't a recommendation to buy — it just means it's worth a closer look.",
+    "avgScore": "The average total score (out of 100) across every stock analysed. A stock scoring above this number is doing better than typical.",
+    "undervalued": "How many of the stocks trade below what they're estimated to be worth — that is, how many have a positive margin of safety.",
+    "stock": "The company's name and its ticker — the short code it trades under (for example, Apple is AAPL).",
+    "sector": "The industry the company operates in. Normal levels of profit and debt differ by industry, so it's only fair to compare companies within the same sector.",
+    "price": "The price of one share. This is a delayed quote (typically 15+ minutes), not a live one.",
+    "marketCap": "What the whole company is worth: share price × number of shares. B means billion dollars, T means trillion.",
+    "quality": "A score out of 50 for how sturdy and profitable the business is — profitability (ROE/ROIC), debt levels, how steady its earnings are, and how much cash it generates.",
+    "valuation": "A score out of 50 for how cheap the share price is relative to what the business is worth. Even a great company scores low here if it's too expensive.",
+    "total": "Quality (50) + Valuation (50) combined into one score out of 100. The higher it is, the more it looks like a good business available at a fair price.",
+    "marginOfSafety": "In one line: how big a discount you're getting. If a share works out to be worth $100 and it's trading at $70, you're paying $30 (30%) less than it's worth — that 30% is the margin of safety. It's the cushion that limits the damage if the $100 estimate turns out to be off, which is why it's called a margin of *safety*. Bigger is cheaper; a negative number means the stock costs more than it's worth.",
+    "intrinsicValue": "In one line: what one share is actually worth, estimated from the cash the business is likely to generate. It's separate from the price the market is charging today — the gap between the two is the margin of safety. Remember it's an estimate that moves with its assumptions, not a fact.",
+    "currentPrice": "What one share is trading for right now.",
+    "priceAtFavorite": "The share price on the day you tapped the heart to add this stock to your favorites.",
+    "change": "Today's price compared with the price on the day you favorited it. Green + means it's up since then; red − means it's down.",
+    "favoritedAt": "The date you added this stock to your favorites.",
+    "priceChart": "How the share price has moved over time. Each bar is one day, and the toolbar on the left lets you draw your own trend lines."
+  },
+  "auth": {
+    "signInTitle": "Sign In",
+    "signUpTitle": "Create Account",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign In",
+    "signUp": "Create Account",
+    "continueWithGoogle": "Continue with Google",
+    "orDivider": "OR",
+    "switchToSignUp": "Don't have an account? Sign up",
+    "switchToSignIn": "Already have an account? Sign in",
+    "confirmSent": "We sent a confirmation link to {email}. Click it to finish creating your account, then come back and sign in."
+  },
+  "mypage": {
+    "title": "My Page",
+    "subtitle": "Stocks you've favorited, and how much they've moved since you did.",
+    "signInPrompt": "Sign in to save favorite stocks and track them here.",
+    "signInCta": "Sign In",
+    "empty": "No favorites yet — tap the heart on any stock to add it here.",
+    "table": {
+      "stock": "Stock",
+      "score": "Score",
+      "priceAtFavorite": "Price when favorited",
+      "currentPrice": "Current price",
+      "change": "Change",
+      "favoritedAt": "Favorited",
+      "remove": "Remove from favorites"
+    }
   },
   "dashboard": {
     "title": "Buffett Value Stock Screener",
@@ -52,10 +108,26 @@
     "noResults": "No stocks match these filters."
   },
   "stock": {
-    "backToList": "← Back to list",
+    "backToList": "Back to list",
     "buyCandidate": "Buy Candidate",
     "companyOverview": "Company Overview",
     "priceChart": "Price Chart",
+    "chartUnavailable": "Couldn't load the price chart.",
+    "chartUnavailableHint": "An ad blocker, a network issue, or HTTPS inspection by locally installed security software can all cause this. If reloading doesn't help, try another device.",
+    "chartRetry": "Try again",
+    "chartHelp": {
+      "summary": "Chart still not showing? See how to fix it",
+      "step1": "Start with a hard reload (<b>Ctrl + F5</b>). If that doesn't help, try a different browser (Chrome, Edge, Safari).",
+      "step2": "Turn off ad blockers (AdBlock, uBlock Origin, AdGuard) for this site, or allowlist it. The chart is loaded from TradingView, which some block lists cover.",
+      "step3": "Open <link>https://s3.tradingview.com/tv.js</link> directly in a new tab. If you see <b>\"Your connection is not private\"</b> or <b>NET::ERR_CERT_AUTHORITY_INVALID</b>, the HTTPS (SSL) inspection feature of security software installed on your computer is the cause.",
+      "step4": "If step 3 applies, open that security program's settings and either disable <b>HTTPS/SSL inspection</b> or add <b>tradingview.com</b> as an exception.",
+      "step5": "On a corporate or school network, a firewall may be blocking it. If the chart loads fine over mobile data, it's a network issue.",
+      "step6": "Even if none of the above works, the <b>Open in TradingView</b> button below shows the same chart in a new window. Scores and financial data are unaffected."
+    },
+    "chartFullscreen": "View fullscreen",
+    "chartExitFullscreen": "Exit fullscreen",
+    "chartOpenInTradingView": "Open in TradingView",
+    "chartDrawingsNote": "To keep your trend lines permanently, sign in to TradingView and open the chart via \"Open in TradingView\". The chart embedded here is TradingView's free widget, so drawings aren't stored against your account on this site.",
     "stats": {
       "quality": "Quality",
       "valuation": "Valuation",

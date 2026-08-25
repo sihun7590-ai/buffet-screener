@@ -4,7 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import type { StockScore } from "@/lib/types";
+import { useFavorites } from "@/lib/supabase/useFavorites";
 import ScoreBar from "./ScoreBar";
+import FavoriteButton from "./FavoriteButton";
+import InfoTip from "./InfoTip";
 
 type SortKey =
   | "ticker"
@@ -73,11 +76,24 @@ function SortCaret({ active, dir }: { active: boolean; dir: SortDir }) {
   );
 }
 
-function StatTile({ label, value, tone }: { label: string; value: string; tone?: "up" | "brand" }) {
+function StatTile({
+  label,
+  value,
+  tip,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tip: string;
+  tone?: "up" | "brand";
+}) {
   const color = tone === "up" ? "var(--up)" : tone === "brand" ? "var(--brand)" : "var(--ink)";
   return (
     <div className="rounded-xl border border-line bg-surface px-4 py-3 shadow-[var(--shadow)]">
-      <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">{label}</div>
+      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
+        <span>{label}</span>
+        <InfoTip text={tip} />
+      </div>
       <div className="mt-1.5 font-mono text-xl font-bold tabular-nums" style={{ color }}>
         {value}
       </div>
@@ -87,9 +103,12 @@ function StatTile({ label, value, tone }: { label: string; value: string; tone?:
 
 export default function Dashboard({ scores }: { scores: StockScore[] }) {
   const t = useTranslations("dashboard");
+  const tGlossary = useTranslations("glossary");
+  const tFavorite = useTranslations("favorite");
   const tSectors = useTranslations("sectors");
   const locale = useLocale();
   const router = useRouter();
+  const { isSignedIn, favorites, toggle } = useFavorites();
 
   const [query, setQuery] = useState("");
   const [sector, setSector] = useState(ALL_SECTORS);
@@ -150,28 +169,46 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
     }
   };
 
-  const th = (key: SortKey, label: string, align: "left" | "right" = "left") => (
+  // The "?" sits beside the sort button rather than inside it — nesting a
+  // button in a button is invalid, and clicking for help shouldn't re-sort.
+  // It always trails the label, never the sort caret: on a right-aligned
+  // column, reversing the whole row would strand it at the far edge of the
+  // cell where it reads as belonging to nothing.
+  const th = (key: SortKey, label: string, tip: string, align: "left" | "right" = "left") => (
     <th className={`px-3 py-0 ${align === "right" ? "text-right" : "text-left"}`}>
-      <button
-        type="button"
-        onClick={() => toggleSort(key)}
-        className={`group inline-flex h-9 items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors hover:text-ink ${
-          sortKey === key ? "text-ink" : "text-ink-faint"
-        } ${align === "right" ? "flex-row-reverse" : ""}`}
-      >
-        <span>{label}</span>
-        <SortCaret active={sortKey === key} dir={sortDir} />
-      </button>
+      <span className="inline-flex h-9 items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() => toggleSort(key)}
+          className={`group inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors hover:text-ink ${
+            sortKey === key ? "text-ink" : "text-ink-faint"
+          } ${align === "right" ? "flex-row-reverse" : ""}`}
+        >
+          <span>{label}</span>
+          <SortCaret active={sortKey === key} dir={sortDir} />
+        </button>
+        <InfoTip text={tip} />
+      </span>
     </th>
   );
 
   return (
     <div className="flex flex-col gap-5">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile label={t("stats.universe")} value={String(stats.universe)} />
-        <StatTile label={t("stats.buyCandidates")} value={String(stats.buyCandidates)} tone="up" />
-        <StatTile label={t("stats.avgScore")} value={stats.avgScore} />
-        <StatTile label={t("stats.undervalued")} value={String(stats.undervalued)} tone="brand" />
+        <StatTile label={t("stats.universe")} value={String(stats.universe)} tip={tGlossary("universe")} />
+        <StatTile
+          label={t("stats.buyCandidates")}
+          value={String(stats.buyCandidates)}
+          tip={tGlossary("buyCandidate")}
+          tone="up"
+        />
+        <StatTile label={t("stats.avgScore")} value={stats.avgScore} tip={tGlossary("avgScore")} />
+        <StatTile
+          label={t("stats.undervalued")}
+          value={String(stats.undervalued)}
+          tip={tGlossary("undervalued")}
+          tone="brand"
+        />
       </div>
 
       <div className="flex flex-wrap items-center gap-x-3 gap-y-3 rounded-xl border border-line bg-surface p-3 shadow-[var(--shadow)]">
@@ -276,17 +313,18 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
           <table className="w-full min-w-[940px] border-collapse whitespace-nowrap text-left">
             <thead className="sticky top-0 z-20 bg-subtle">
               <tr className="border-b border-line">
+                <th className="w-9 px-3 py-0" />
                 <th className="w-12 px-3 py-0 text-right text-[11px] font-semibold text-ink-faint">
                   {t("table.rank")}
                 </th>
-                {th("ticker", t("table.stock"))}
-                {th("sector", t("table.sector"))}
-                {th("price", t("table.price"), "right")}
-                {th("marketCap", t("table.marketCap"), "right")}
-                {th("qualityScore", t("table.quality"))}
-                {th("valuationScore", t("table.valuation"))}
-                {th("totalScore", t("table.total"))}
-                {th("marginOfSafety", t("table.marginOfSafety"), "right")}
+                {th("ticker", t("table.stock"), tGlossary("stock"))}
+                {th("sector", t("table.sector"), tGlossary("sector"))}
+                {th("price", t("table.price"), tGlossary("price"), "right")}
+                {th("marketCap", t("table.marketCap"), tGlossary("marketCap"), "right")}
+                {th("qualityScore", t("table.quality"), tGlossary("quality"))}
+                {th("valuationScore", t("table.valuation"), tGlossary("valuation"))}
+                {th("totalScore", t("table.total"), tGlossary("total"))}
+                {th("marginOfSafety", t("table.marginOfSafety"), tGlossary("marginOfSafety"), "right")}
                 <th className="w-10" />
               </tr>
             </thead>
@@ -300,6 +338,21 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
                     onClick={() => router.push(`/stock/${s.ticker}`)}
                     className="cursor-pointer border-b border-line/60 transition-colors last:border-b-0 hover:bg-surface-hover"
                   >
+                    <td className="px-3 py-2.5">
+                      <FavoriteButton
+                        size="sm"
+                        active={favorites.has(s.ticker)}
+                        title={tFavorite(favorites.has(s.ticker) ? "remove" : "add")}
+                        className="text-ink-faint hover:text-down"
+                        onToggle={() => {
+                          if (isSignedIn === false) {
+                            router.push("/login");
+                            return;
+                          }
+                          toggle(s.ticker, s.price);
+                        }}
+                      />
+                    </td>
                     <td className="px-3 py-2.5 text-right font-mono text-xs tabular-nums text-ink-faint">
                       {i + 1}
                     </td>
@@ -371,7 +424,7 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
               })}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-4 py-16 text-center text-sm text-ink-faint">
+                  <td colSpan={11} className="px-4 py-16 text-center text-sm text-ink-faint">
                     {t("noResults")}
                   </td>
                 </tr>
