@@ -11,12 +11,14 @@ import PriceChartPanel from "@/components/PriceChartPanel";
 import ScoreHistoryChart from "@/components/ScoreHistoryChart";
 import DataSourceNote from "@/components/DataSourceNote";
 import PeerComparison from "@/components/PeerComparison";
+import InsiderActivity from "@/components/InsiderActivity";
 import { fetchScoreHistory } from "@/lib/scoreHistoryQuery";
 import { comparePeers } from "@/lib/peers";
 import { getScoreByTicker, readScores } from "@/lib/store";
 import { AXIS_WEIGHTS, SCORE_AXES } from "@/lib/types";
 import { fetchCompanySummary } from "@/lib/wikipedia";
 import { fetchRecentNews } from "@/lib/news";
+import { fetchInsiderTransactions } from "@/lib/insiderTrading";
 import { fetchExchangeName, toTradingViewSymbol } from "@/lib/tradingview";
 import universe from "@/data/universe.json";
 
@@ -42,9 +44,10 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
   const peers = comparePeers(allScores, score.ticker);
 
   const meta = (universe as { ticker: string; wikiTitle: string | null }[]).find((u) => u.ticker === ticker);
-  const [summary, news, exchangeName, history] = await Promise.all([
+  const [summary, news, insiderTransactions, exchangeName, history] = await Promise.all([
     meta?.wikiTitle ? fetchCompanySummary(meta.wikiTitle, locale) : Promise.resolve(null),
     fetchRecentNews(ticker),
+    fetchInsiderTransactions(ticker),
     fetchExchangeName(ticker),
     fetchScoreHistory(ticker),
   ]);
@@ -263,6 +266,8 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
           )}
         </Panel>
       </div>
+
+      <InsiderActivity transactions={insiderTransactions} />
 
       <footer className="mt-auto border-t border-line pt-4 text-[11px] leading-relaxed text-ink-faint">
         {tCommon("disclaimer")}
