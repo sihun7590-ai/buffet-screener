@@ -102,7 +102,15 @@
       "marginOfSafety": "Margin of Safety",
       "partialCoverage": "Graded on the {percent}% of this axis the filing supplied. The dotted underline marks this."
     },
-    "noResults": "No stocks match these filters."
+    "noResults": "No stocks match these filters.",
+    "weights": {
+      "button": "Adjust weights",
+      "title": "Adjust weights",
+      "tip": "The defaults are Quality 30% · Valuation 25% · Financial Health 20% · Growth 15% · Consistency 10%. Move the sliders to set the five axes' relative importance yourself, and the total score and ranking recompute against that. Prefer stability over growth? Raise Financial Health. Everything runs in this browser only — nothing is saved to the server — and persists on this device the next time you open the page.",
+      "reset": "Reset to default",
+      "customBadge": "Custom",
+      "customTip": "The total shown here is recomputed using the weights you set above, not the defaults (Quality 30% · Valuation 25% · Financial Health 20% · Growth 15% · Consistency 10%)."
+    }
   },
   "stock": {
     "backToList": "Back to list",

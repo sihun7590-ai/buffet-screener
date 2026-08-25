@@ -1,13 +1,28 @@
 "use client";
 
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { SCORE_AXES, type ScoreAxis, type StockScore } from "@/lib/types";
 import { useFavorites } from "@/lib/supabase/useFavorites";
+import {
+  customIsBuyCandidate,
+  customTotalScore,
+  DEFAULT_SLIDER_WEIGHTS,
+  isDefaultWeights,
+  isValidSliderWeights,
+  normalizeWeights,
+  type SliderWeights,
+} from "@/lib/customWeights";
 import ScoreBar, { scoreColor } from "./ScoreBar";
 import FavoriteButton from "./FavoriteButton";
 import InfoTip from "./InfoTip";
+
+// Local to this browser only — the whole point is a quick "what if I weighted
+// this differently" that costs nothing to try, not a preference tied to an
+// account. Versioned so a future change to the axis set doesn't hand old
+// clients a shape that no longer matches SCORE_AXES.
+const WEIGHTS_STORAGE_KEY = "buffett-screener:weights:v1";
 
 type SortKey = "ticker" | "sector" | "price" | "marketCap" | ScoreAxis | "totalScore" | "marginOfSafety";
 type SortDir = "asc" | "desc";
@@ -16,10 +31,12 @@ const ALL_SECTORS = "";
 const MIN_SCORE_STEPS = [0, 50, 60, 70, 80];
 const PAGE_SIZE = 60;
 
+// totalScore is deliberately absent here — it depends on the current weight
+// blend, which is component state, so compare() takes a totalOf callback for
+// that one key instead of a static lookup.
 const NUMERIC: Partial<Record<SortKey, (s: StockScore) => number>> = {
   price: (s) => s.price,
   marketCap: (s) => s.marketCap,
-  totalScore: (s) => s.totalScore,
   marginOfSafety: (s) => s.intrinsicValue.marginOfSafety,
   ...Object.fromEntries(SCORE_AXES.map((axis) => [axis, (s: StockScore) => s.scores[axis]])),
 };
@@ -29,8 +46,8 @@ const TEXT: Partial<Record<SortKey, (s: StockScore) => string>> = {
   sector: (s) => s.sector,
 };
 
-function compare(a: StockScore, b: StockScore, key: SortKey, dir: SortDir): number {
-  const numeric = NUMERIC[key];
+function compare(a: StockScore, b: StockScore, key: SortKey, dir: SortDir, totalOf: (s: StockScore) => number): number {
+  const numeric = key === "totalScore" ? totalOf : NUMERIC[key];
   if (numeric) {
     const av = numeric(a);
     const bv = numeric(b);
@@ -110,6 +127,56 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
   const [sortDir, setSortDir] = useState<SortDir>("desc");
   const [visible, setVisible] = useState(PAGE_SIZE);
 
+  const [sliders, setSliders] = useState<SliderWeights>(DEFAULT_SLIDER_WEIGHTS);
+  const [weightsLoaded, setWeightsLoaded] = useState(false);
+  const [weightsPanelOpen, setWeightsPanelOpen] = useState(false);
+
+  // Read after mount, not in the initial state, so the first render matches
+  // the server's (default weights) and only flips to a saved preference once
+  // hydration is already settled.
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(WEIGHTS_STORAGE_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (isValidSliderWeights(parsed)) setSliders(parsed);
+    } catch {
+      // Corrupt or blocked storage — the default blend is a fine fallback.
+    }
+    setWeightsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    // Guards against overwriting a saved preference with the default before
+    // the load effect above has had a chance to run.
+    if (!weightsLoaded) return;
+    try {
+      localStorage.setItem(WEIGHTS_STORAGE_KEY, JSON.stringify(sliders));
+    } catch {
+      // Private browsing or a full quota — the session still works, it just
+      // won't be remembered next time.
+    }
+  }, [sliders, weightsLoaded]);
+
+  const isCustomWeights = useMemo(() => !isDefaultWeights(sliders), [sliders]);
+  const weights = useMemo(() => normalizeWeights(sliders), [sliders]);
+
+  // One pass over the universe per weight change rather than recomputing per
+  // cell — 499 rows redone on every keystroke of search would otherwise still
+  // be fine, but this keeps sort/filter/render all reading the same number.
+  const effective = useMemo(() => {
+    const map = new Map<string, { total: number; isBuyCandidate: boolean }>();
+    for (const s of scores) {
+      const total = isCustomWeights ? customTotalScore(s, weights) : s.totalScore;
+      map.set(s.ticker, { total, isBuyCandidate: isCustomWeights ? customIsBuyCandidate(s, total) : s.isBuyCandidate });
+    }
+    return map;
+  }, [scores, weights, isCustomWeights]);
+  const effectiveTotal = useCallback((s: StockScore) => effective.get(s.ticker)?.total ?? s.totalScore, [effective]);
+  const effectiveBuyCandidate = useCallback(
+    (s: StockScore) => effective.get(s.ticker)?.isBuyCandidate ?? s.isBuyCandidate,
+    [effective],
+  );
+
   const priceFmt = useMemo(
     () => new Intl.NumberFormat(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
     [locale],
@@ -122,25 +189,25 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
   );
 
   const stats = useMemo(() => {
-    const finite = scores.filter((s) => Number.isFinite(s.totalScore));
-    const avg = finite.length ? finite.reduce((sum, s) => sum + s.totalScore, 0) / finite.length : NaN;
+    const totals = scores.map(effectiveTotal).filter(Number.isFinite);
+    const avg = totals.length ? totals.reduce((sum, v) => sum + v, 0) / totals.length : NaN;
     return {
       universe: scores.length,
-      buyCandidates: scores.filter((s) => s.isBuyCandidate).length,
+      buyCandidates: scores.filter(effectiveBuyCandidate).length,
       avgScore: Number.isFinite(avg) ? avg.toFixed(1) : "N/A",
       undervalued: scores.filter((s) => s.intrinsicValue.marginOfSafety > 0).length,
     };
-  }, [scores]);
+  }, [scores, effectiveTotal, effectiveBuyCandidate]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return scores
       .filter((s) => sector === ALL_SECTORS || s.sector === sector)
-      .filter((s) => s.totalScore >= minScore)
-      .filter((s) => !buyOnly || s.isBuyCandidate)
+      .filter((s) => effectiveTotal(s) >= minScore)
+      .filter((s) => !buyOnly || effectiveBuyCandidate(s))
       .filter((s) => !q || s.ticker.toLowerCase().includes(q) || s.companyName.toLowerCase().includes(q))
-      .sort((a, b) => compare(a, b, sortKey, sortDir));
-  }, [scores, sector, minScore, buyOnly, query, sortKey, sortDir]);
+      .sort((a, b) => compare(a, b, sortKey, sortDir, effectiveTotal));
+  }, [scores, sector, minScore, buyOnly, query, sortKey, sortDir, effectiveTotal, effectiveBuyCandidate]);
 
   // A narrowed result set should start from the top again, not deep in a
   // "load more" run from the previous filter.
@@ -274,6 +341,20 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
           {t("filters.buyCandidateOnly")}
         </button>
 
+        <button
+          type="button"
+          onClick={() => setWeightsPanelOpen((v) => !v)}
+          aria-pressed={weightsPanelOpen}
+          className={`flex h-9 items-center gap-1.5 rounded-md border px-3 text-xs font-semibold transition-colors ${
+            weightsPanelOpen || isCustomWeights
+              ? "border-brand bg-brand/10 text-brand"
+              : "border-line bg-subtle text-ink-muted hover:text-ink"
+          }`}
+        >
+          {t("weights.button")}
+          {isCustomWeights && <span className="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden="true" />}
+        </button>
+
         {filtersActive && (
           <button
             type="button"
@@ -293,6 +374,45 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
           {t("tickerCount", { count: filtered.length })}
         </span>
       </div>
+
+      {weightsPanelOpen && (
+        <div className="rounded-xl border border-line bg-surface p-4 shadow-[var(--shadow)]">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-ink-muted">
+              {t("weights.title")}
+              <InfoTip text={t("weights.tip")} />
+            </h3>
+            {isCustomWeights && (
+              <button
+                type="button"
+                onClick={() => setSliders(DEFAULT_SLIDER_WEIGHTS)}
+                className="text-xs font-medium text-ink-faint underline-offset-2 transition-colors hover:text-ink hover:underline"
+              >
+                {t("weights.reset")}
+              </button>
+            )}
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            {SCORE_AXES.map((axis) => (
+              <div key={axis} className="flex flex-col gap-1.5">
+                <div className="flex items-baseline justify-between gap-2 text-[11px] font-semibold text-ink-muted">
+                  <span>{tAxes(`${axis}.name`)}</span>
+                  <span className="font-mono tabular-nums text-ink">{Math.round(weights[axis] * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={sliders[axis]}
+                  onChange={(e) => setSliders((prev) => ({ ...prev, [axis]: Number(e.target.value) }))}
+                  aria-label={tAxes(`${axis}.name`)}
+                  className="w-full accent-brand"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-[var(--shadow)]">
         {/* An overflow-x container is implicitly overflow-y too, so the grid
@@ -316,7 +436,26 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
                 {SCORE_AXES.map((axis) => (
                   <Fragment key={axis}>{th(axis, tAxes(`${axis}.name`), tAxes(`${axis}.tip`), "right")}</Fragment>
                 ))}
-                {th("totalScore", t("table.total"), tGlossary("total"))}
+                <th className="px-3 py-0 text-left">
+                  <span className="inline-flex h-9 items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => toggleSort("totalScore")}
+                      className={`group inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors hover:text-ink ${
+                        sortKey === "totalScore" ? "text-ink" : "text-ink-faint"
+                      }`}
+                    >
+                      <span>{t("table.total")}</span>
+                      <SortCaret active={sortKey === "totalScore"} dir={sortDir} />
+                    </button>
+                    <InfoTip text={isCustomWeights ? t("weights.customTip") : tGlossary("total")} />
+                    {isCustomWeights && (
+                      <span className="rounded bg-brand/15 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-brand">
+                        {t("weights.customBadge")}
+                      </span>
+                    )}
+                  </span>
+                </th>
                 {th("marginOfSafety", t("table.marginOfSafety"), tGlossary("marginOfSafety"), "right")}
                 <th className="w-10" />
               </tr>
@@ -325,6 +464,8 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
               {rows.map((s, i) => {
                 const mos = s.intrinsicValue.marginOfSafety;
                 const mosOk = Number.isFinite(mos);
+                const total = effectiveTotal(s);
+                const isBuyCandidate = effectiveBuyCandidate(s);
                 return (
                   <tr
                     key={s.ticker}
@@ -362,7 +503,7 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
                             >
                               {s.ticker}
                             </Link>
-                            {s.isBuyCandidate && (
+                            {isBuyCandidate && (
                               <span className="rounded bg-up/15 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-up">
                                 Buy
                               </span>
@@ -406,7 +547,7 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
                       );
                     })}
                     <td className="px-3 py-2.5">
-                      <ScoreBar score={s.totalScore} max={100} strong />
+                      <ScoreBar score={total} max={100} strong />
                     </td>
                     <td
                       className="px-3 py-2.5 text-right font-mono text-[13px] font-semibold tabular-nums"

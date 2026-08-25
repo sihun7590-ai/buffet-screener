@@ -483,7 +483,11 @@ function scoreValuation(f: TickerFinancials, iv: IntrinsicValueEstimate): Criter
   ];
 }
 
-const BUY_CANDIDATE_THRESHOLD = 70;
+// Exported so the dashboard's custom-weight recompute (lib/customWeights.ts)
+// applies the same bar to a user-chosen blend that the default scoring uses —
+// a company shouldn't qualify under someone's weights by a rule that's
+// secretly different from the one described on screen.
+export const BUY_CANDIDATE_THRESHOLD = 70;
 
 // Below this share of an axis's points, the axis is graded against this share
 // anyway rather than being scaled up from what little was measured.
@@ -493,7 +497,7 @@ const MIN_MEASURED_SHARE = 0.5;
 // recommendation rather than a measurement, so it needs the evidence to back
 // it: an axis we could barely read is not grounds for either recommending or
 // rejecting, and shouldn't be presented as the former.
-const MIN_COVERAGE_FOR_BUY = 0.7;
+export const MIN_COVERAGE_FOR_BUY = 0.7;
 
 export function scoreTicker(f: TickerFinancials, asOf = new Date().toISOString()): StockScore {
   const intrinsicValue = computeIntrinsicValue(f);
