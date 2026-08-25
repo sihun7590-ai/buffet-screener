@@ -11,7 +11,9 @@ import {
 
 // Bump when the formula changes. Stored on every score so a history chart can
 // distinguish "the company changed" from "we changed how we measure".
-export const SCORING_VERSION = 2;
+// v3: trailing-twelve-month periods from quarterly filings, and growth
+// annualised by elapsed time rather than by how many entries are in the series.
+export const SCORING_VERSION = 3;
 
 // Rough sector P/E benchmarks for the "cheaper than its sector" check —
 // neither SEC nor Yahoo expose a sector-average endpoint, so this is a
@@ -48,13 +50,48 @@ function cagr(first: number, last: number, years: number): number {
   return (last / first) ** (1 / years) - 1;
 }
 
-// Compound growth across a full oldest→newest series, capped at 5 years of
-// look-back so one distant outlier year can't define the trend.
-function seriesCagr(ascending: number[], maxYears = 5): number {
-  const usable = ascending.filter(Number.isFinite);
-  const span = Math.min(maxYears, usable.length - 1);
-  if (span <= 0) return NaN;
-  return cagr(usable[usable.length - 1 - span], usable[usable.length - 1], span);
+export interface DatedValue {
+  date: string;
+  value: number;
+}
+
+const YEAR_MS = 365.25 * 86_400_000;
+const yearsBetween = (from: string, to: string) => (new Date(to).getTime() - new Date(from).getTime()) / YEAR_MS;
+
+// Compound growth across a full oldest→newest series, looking back at most
+// `maxYears`.
+//
+// Annualised by the elapsed time between the two endpoints rather than by how
+// many entries sit between them. Those are not the same once a trailing-
+// twelve-month period joins the fiscal years: counting entries would divide
+// roughly four years of growth by five and understate every company's growth
+// in exactly the same direction.
+function seriesCagr(points: DatedValue[], maxYears = 5): number {
+  const usable = points.filter((p) => Number.isFinite(p.value));
+  if (usable.length < 2) return NaN;
+
+  const last = usable[usable.length - 1];
+  let from = usable[usable.length - 2];
+  for (let i = usable.length - 2; i >= 0; i--) {
+    if (yearsBetween(usable[i].date, last.date) > maxYears + 0.5) break;
+    from = usable[i];
+  }
+
+  const years = yearsBetween(from.date, last.date);
+  if (years <= 0) return NaN;
+  return cagr(from.value, last.value, years);
+}
+
+// Drops entries that overlap a more recent one. A trailing-twelve-month period
+// covers most of the fiscal year before it, so averaging the two would count
+// those months twice and quietly weight the average toward recent quarters.
+function withoutOverlaps(points: DatedValue[], minGapYears = 0.75): DatedValue[] {
+  const out: DatedValue[] = [];
+  for (let i = points.length - 1; i >= 0; i--) {
+    const last = out[out.length - 1];
+    if (!last || yearsBetween(points[i].date, last.date) >= minGapYears) out.push(points[i]);
+  }
+  return out.reverse();
 }
 
 // Linearly scales `value` between [low, high] into [0, maxPoints].
@@ -89,8 +126,14 @@ function criterion(
 export function computeIntrinsicValue(f: TickerFinancials): IntrinsicValueEstimate {
   const cashFlows = [...f.cashFlow].reverse(); // oldest -> newest
   // capitalExpenditure is stored as a negative outflow, so FCF = OCF + capex.
-  const fcfHistory = cashFlows.map((c) => c.freeCashFlow ?? c.operatingCashFlow + c.capitalExpenditure);
-  const recent = fcfHistory.slice(-3);
+  const fcfHistory: DatedValue[] = cashFlows.map((c) => ({
+    date: c.date,
+    value: c.freeCashFlow ?? c.operatingCashFlow + c.capitalExpenditure,
+  }));
+  // Three years of cash flow, smoothing out a lumpy year — but three
+  // *distinct* years, not a trailing-twelve-month period stacked on the fiscal
+  // year it mostly duplicates.
+  const recent = withoutOverlaps(fcfHistory).slice(-3).map((p) => p.value);
   const shares = f.income[0]?.weightedAverageShsOutDil;
 
   // Without a usable share count we can't derive a per-share intrinsic value
@@ -191,9 +234,9 @@ function scoreGrowth(f: TickerFinancials): CriterionResult[] {
   const incomeAsc = [...f.income].reverse();
   const cashFlowAsc = [...f.cashFlow].reverse();
 
-  const revenueCagr = seriesCagr(incomeAsc.map((i) => i.revenue));
-  const epsCagr = seriesCagr(incomeAsc.map((i) => i.eps));
-  const fcfCagr = seriesCagr(cashFlowAsc.map((c) => c.freeCashFlow));
+  const revenueCagr = seriesCagr(incomeAsc.map((i) => ({ date: i.date, value: i.revenue })));
+  const epsCagr = seriesCagr(incomeAsc.map((i) => ({ date: i.date, value: i.eps })));
+  const fcfCagr = seriesCagr(cashFlowAsc.map((c) => ({ date: c.date, value: c.freeCashFlow })));
 
   return [
     criterion("growth", "revenueCagr", revenueCagr >= 0.05, linScore(revenueCagr, 0, 0.1, 35), 35, { revenueCagr }),
@@ -307,7 +350,7 @@ function scoreValuation(f: TickerFinancials, iv: IntrinsicValueEstimate): Criter
   const currentPe = f.quote.price > 0 && latestEps > 0 ? f.quote.price / latestEps : f.ratios[0]?.priceToEarningsRatio ?? NaN;
   const sectorPe = SECTOR_AVG_PE[f.profile.sector] ?? DEFAULT_SECTOR_PE;
 
-  const epsCagr = seriesCagr([...f.income].reverse().map((i) => i.eps));
+  const epsCagr = seriesCagr([...f.income].reverse().map((i) => ({ date: i.date, value: i.eps })));
   const peg = currentPe > 0 && epsCagr > 0 ? currentPe / (epsCagr * 100) : NaN;
 
   const eps = f.income[0]?.eps ?? NaN;
