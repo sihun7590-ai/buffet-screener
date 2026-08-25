@@ -34,7 +34,7 @@ const CIK_OVERRIDES: Record<string, string> = {
   // entirely (that file is a best-effort convenience index, not authoritative).
 };
 
-async function loadTickerCikMap(): Promise<Map<string, string>> {
+export async function loadTickerCikMap(): Promise<Map<string, string>> {
   if (tickerCikCache) return tickerCikCache;
   const data = await secFetch<Record<string, TickerCikRow>>("https://www.sec.gov/files/company_tickers.json");
   const map = new Map<string, string>();

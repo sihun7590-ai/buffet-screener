@@ -358,5 +358,30 @@
       "marginOpened": "Margin of safety opened ({from} → {to})",
       "priceDrop": "Price {change} since you added it"
     }
+  },
+  "insiderTrading": {
+    "title": "Insider Trading (Form 4)",
+    "tip": "A company's officers, directors, and anyone owning 10%+ of its stock are legally required to report to the SEC within two business days whenever they buy or sell shares of their own company (Form 4). The table below shows their most recent reported trades.",
+    "empty": "No Form 4 transactions reported recently.",
+    "caveat": "A purchase is often read as a positive signal, since it means an insider is spending their own money — but a sale is much weaker evidence of anything. Insiders sell for all kinds of reasons unrelated to their view of the company: diversification, taxes, a scheduled 10b5-1 plan, buying a house. Don't read a sale as bearish the way a purchase is often read as bullish. This table also covers only plain share transactions bought or sold on the market — not option grants or RSU vesting.",
+    "columns": {
+      "date": "Date",
+      "insider": "Insider",
+      "direction": "Direction",
+      "shares": "Shares",
+      "price": "Price",
+      "value": "Value",
+      "source": "Source"
+    },
+    "direction": {
+      "acquired": "Bought",
+      "disposed": "Sold"
+    },
+    "role": {
+      "director": "Director",
+      "officer": "Officer",
+      "tenPercentOwner": "10%+ Owner"
+    },
+    "sourceLink": "View filing"
   }
 }
