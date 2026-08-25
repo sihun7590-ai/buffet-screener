@@ -15,6 +15,27 @@ import type { StockScore, TickerFinancials } from "../lib/types";
 
 const useFixture = process.argv.includes("--fixture");
 
+// Run unattended (GitHub Actions), this job overwrites the file the site
+// serves and appends a row per ticker to score history — so a bad run is
+// worse than no run. `--max-failures=N` refuses to write anything when more
+// than N tickers fail, which is what a source going down or blocking us looks
+// like. Interactive runs leave it unset and keep the old behaviour.
+// Parsed up front, not where it's used: the check happens after half an hour
+// of downloading, and a typo should be a startup error rather than a wasted
+// run.
+const MAX_FAILURES = (() => {
+  const arg = process.argv.find((a) => a.startsWith("--max-failures="));
+  if (!arg) return Infinity;
+  const n = Number(arg.slice("--max-failures=".length));
+  // A typo would otherwise yield NaN, and every comparison against NaN is
+  // false — silently disabling the guard in exactly the runs that rely on it.
+  if (!Number.isInteger(n) || n < 0) {
+    console.error(`--max-failures 값이 잘못됐습니다: ${arg}. 0 이상의 정수여야 합니다.`);
+    process.exit(1);
+  }
+  return n;
+})();
+
 // data/scores.json is a snapshot that the next run overwrites, so the same
 // scores are also appended to Supabase — that copy is what score history,
 // alerts on score changes, and backtesting will read. Sample data is excluded:
@@ -60,6 +81,13 @@ async function run() {
       failures.push(ticker);
       console.log(`실패 (${(err as Error).message})`);
     }
+  }
+
+  if (failures.length > MAX_FAILURES) {
+    console.error(`실패 ${failures.length}개가 허용치 ${MAX_FAILURES}개를 넘었습니다.`);
+    console.error("실패한 종목:", failures.join(", "));
+    console.error("data/scores.json과 점수 히스토리를 건드리지 않고 중단합니다.");
+    process.exit(1);
   }
 
   writeScores(scores, "live");

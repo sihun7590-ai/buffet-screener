@@ -1,0 +1,63 @@
+# Rescores the universe every US trading day and commits the result.
+#
+# Two things come out of a run: data/scores.json, which is what the site
+# serves, and a row per ticker in Supabase, which is the score history the
+# charts read and backtesting will eventually need. The history is the reason
+# this is a schedule rather than something to run by hand — a day that never
+# runs is a gap in the series.
+name: 점수 갱신
+
+on:
+  schedule:
+    # 23:00 UTC on weekdays: a few hours after the US close, so the day's
+    # prices have settled and any filings made that day are on EDGAR.
+    - cron: "0 23 * * 1-5"
+  workflow_dispatch:
+
+# A run takes about half an hour. Overlapping runs would race each other to
+# push the same file, so a late one waits rather than starting alongside.
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: 스코어 갱신
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        # Roughly 5% of the universe. Individual tickers fail routinely (a
+        # handful have no usable SEC data at all), but a jump past this means
+        # a source is down or is blocking the runner — in which case writing
+        # a thinned-out scores.json over a good one, and recording it as that
+        # day's history, does real damage. The script exits non-zero without
+        # touching either.
+        run: npm run refresh -- --max-failures=25
+
+      - name: 결과 커밋
+        run: |
+          if git diff --quiet -- data/scores.json; then
+            echo "변경 없음 — 커밋하지 않습니다."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/scores.json
+          git commit -m "점수 갱신 $(date -u +%Y-%m-%d)"
+          git push

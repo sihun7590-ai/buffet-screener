@@ -113,6 +113,16 @@ TradingView·Investing.com 같은 전문 트레이딩 화면을 기준으로 만
 - 키가 없으면 적재만 건너뛰고 `npm run refresh`는 정상 동작합니다. 히스토리 적재가 실패해도 스냅샷 저장은 이미 끝난 뒤라 배치 전체가 실패하지는 않습니다.
 - 30분짜리 배치를 다시 돌리지 않고 적재만 재실행하려면 `npm run archive` — 현재 `scores.json`을 그 파일의 생성 시각 기준으로 적재합니다.
 
+### 자동 갱신 (GitHub Actions)
+
+[.github/workflows/refresh.yml](.github/workflows/refresh.yml)이 **평일 23:00 UTC**(미국 장 마감 몇 시간 뒤, 한국시간 다음 날 아침 8시)에 배치를 돌리고, 바뀐 `data/scores.json`을 커밋합니다. Vercel이 그 푸시를 받아 재배포하므로 사이트도 함께 갱신됩니다. Actions 탭에서 **Run workflow**로 수동 실행도 됩니다.
+
+히스토리가 쌓이는 게 스케줄로 돌리는 이유입니다 — 안 돈 날은 시계열의 구멍입니다. (구멍이 생겨도 `npm run backfill`로 메울 수 있습니다. 그래서 하루 이틀 실패해도 치명적이지는 않습니다.)
+
+저장소 **Settings → Secrets and variables → Actions**에 세 개가 등록돼 있어야 합니다: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`. `.env.local`과 같은 값입니다.
+
+**안전장치 — `--max-failures=25`.** 배치가 덮어쓰는 건 사이트가 읽는 파일이고, 동시에 그날의 히스토리로 영구히 남습니다. 그래서 **나쁜 실행은 안 도는 것보다 나쁩니다.** 개별 종목 실패는 원래 몇 개씩 나지만(SEC에 쓸 만한 데이터가 아예 없는 종목들), 유니버스의 5%를 넘으면 그건 종목 문제가 아니라 데이터 소스가 죽었거나 러너 IP를 차단한 겁니다. 이때 스크립트는 `scores.json`과 히스토리 **둘 다 손대지 않고** 종료 코드 1로 끝냅니다.
+
 ### 과거 점수 재구성 (백필)
 
 ```bash
