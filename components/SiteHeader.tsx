@@ -43,6 +43,12 @@ export default async function SiteHeader() {
         </Link>
 
         <div className="ml-auto flex items-center gap-2">
+          <Link
+            href="/backtest"
+            className="hidden h-8 items-center rounded-md border border-line bg-subtle px-2.5 text-xs font-semibold text-ink-muted transition-colors hover:border-line-strong hover:text-ink sm:flex"
+          >
+            {t("backtest")}
+          </Link>
           {user ? (
             <>
               <Link
