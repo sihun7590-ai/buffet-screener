@@ -419,5 +419,42 @@
       "tenPercentOwner": "10%+ Owner"
     },
     "sourceLink": "View filing"
+  },
+  "dca": {
+    "title": "Dollar-Cost Averaging Simulator",
+    "tip": "Simulates buying a fixed dollar amount of this stock on a repeating schedule and shows what it would be worth today. Reflects price moves only — no trading fees, taxes, or dividends.",
+    "form": {
+      "amount": "Amount per purchase",
+      "frequency": "Frequency",
+      "freqDaily": "Daily",
+      "freqWeekly": "Weekly",
+      "freqMonthly": "Monthly",
+      "dayOfMonth": "Purchase day",
+      "dayOfMonthValue": "Day {day} of each month",
+      "dayOfWeek": "Purchase weekday",
+      "weekday": {
+        "1": "Monday",
+        "2": "Tuesday",
+        "3": "Wednesday",
+        "4": "Thursday",
+        "5": "Friday"
+      },
+      "startDate": "Start date",
+      "note": "If the market's closed that day, the purchase uses the next trading day's close."
+    },
+    "stats": {
+      "invested": "Total invested",
+      "value": "Current value",
+      "return": "Return",
+      "returnTip": "(current value − total invested) / total invested. Excludes dividends, fees, and taxes.",
+      "purchases": "Purchases",
+      "sharesNote": "Holding {shares} shares (assumes fractional shares)"
+    },
+    "chart": {
+      "title": "Cumulative invested vs. value",
+      "invested": "Invested",
+      "value": "Value"
+    },
+    "emptyState": "No purchases under these settings — check the start date."
   }
 }

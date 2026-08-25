@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Panel from "@/components/Panel";
@@ -23,6 +24,12 @@ function GoogleIcon() {
 export default function LoginPage() {
   const t = useTranslations("auth");
   const router = useRouter();
+  // Set by proxy.ts when it bounced an anonymous visitor here, already
+  // locale-prefixed (e.g. "/en/stock/AAPL") — navigated with a plain reload
+  // rather than next-intl's router, since pushing an already-prefixed path
+  // through next-intl's locale-relative router would prefix the locale twice.
+  const searchParams = useSearchParams();
+  const next = searchParams.get("next");
   const [mode, setMode] = useState<Mode>("signIn");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -57,17 +64,23 @@ export default function LoginPage() {
       setError(signInError.message);
       return;
     }
-    router.push("/mypage");
-    router.refresh();
+    if (next) {
+      window.location.href = next;
+    } else {
+      router.push("/mypage");
+      router.refresh();
+    }
   };
 
   // Supabase redirects the whole page to the provider, so there's no local
   // busy/success state to manage here — the browser navigates away.
   const signInWithOAuth = async (provider: "google") => {
     setError(null);
+    const redirectTo = new URL("/auth/callback", window.location.origin);
+    if (next) redirectTo.searchParams.set("next", next);
     const { error: oauthError } = await createClient().auth.signInWithOAuth({
       provider,
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: redirectTo.toString() },
     });
     if (oauthError) setError(oauthError.message);
   };

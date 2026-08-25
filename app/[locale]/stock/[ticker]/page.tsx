@@ -12,6 +12,7 @@ import ScoreHistoryChart from "@/components/ScoreHistoryChart";
 import DataSourceNote from "@/components/DataSourceNote";
 import PeerComparison from "@/components/PeerComparison";
 import InsiderActivity from "@/components/InsiderActivity";
+import DcaSimulator from "@/components/DcaSimulator";
 import { fetchScoreHistory } from "@/lib/scoreHistoryQuery";
 import { comparePeers } from "@/lib/peers";
 import { getScoreByTicker, readScores } from "@/lib/store";
@@ -19,10 +20,23 @@ import { AXIS_WEIGHTS, SCORE_AXES } from "@/lib/types";
 import { fetchCompanySummary } from "@/lib/wikipedia";
 import { fetchRecentNews } from "@/lib/news";
 import { fetchInsiderTransactions } from "@/lib/insiderTrading";
+import { fetchPriceHistory } from "@/lib/price";
+import type { PricePoint } from "@/lib/dca";
 import { fetchExchangeName, toTradingViewSymbol } from "@/lib/tradingview";
 import universe from "@/data/universe.json";
 
 export const dynamic = "force-dynamic";
+
+// Yahoo's history endpoint occasionally 404s for thinly-covered tickers; the
+// DCA panel just doesn't render rather than taking the whole page down with
+// it, same treatment as fetchRecentNews/fetchInsiderTransactions below.
+async function safePriceHistory(ticker: string) {
+  try {
+    return await fetchPriceHistory(ticker);
+  } catch {
+    return null;
+  }
+}
 
 export default async function StockDetailPage({ params }: { params: Promise<{ locale: string; ticker: string }> }) {
   const { ticker } = await params;
@@ -44,14 +58,24 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
   const peers = comparePeers(allScores, score.ticker);
 
   const meta = (universe as { ticker: string; wikiTitle: string | null }[]).find((u) => u.ticker === ticker);
-  const [summary, news, insiderTransactions, exchangeName, history] = await Promise.all([
+  const [summary, news, insiderTransactions, exchangeName, history, priceHistory] = await Promise.all([
     meta?.wikiTitle ? fetchCompanySummary(meta.wikiTitle, locale) : Promise.resolve(null),
     fetchRecentNews(ticker),
     fetchInsiderTransactions(ticker),
     fetchExchangeName(ticker),
     fetchScoreHistory(ticker),
+    safePriceHistory(ticker),
   ]);
   const tvSymbol = toTradingViewSymbol(ticker, exchangeName);
+
+  // Yahoo's chart endpoint returns unix seconds and can carry null closes on
+  // half-days; DCA math needs a dense ascending {date, close} series and
+  // nothing else.
+  const dcaPrices: PricePoint[] = priceHistory
+    ? priceHistory.timestamps
+        .map((ts, i) => ({ date: new Date(ts * 1000).toISOString().slice(0, 10), close: priceHistory.closes[i] }))
+        .filter((p): p is PricePoint => p.close != null)
+    : [];
 
   const iv = score.intrinsicValue;
   // Regulated utilities routinely spend more on plant than they take in, so
@@ -166,6 +190,8 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
       {peers && <PeerComparison comparison={peers} />}
 
       <PriceChartPanel symbol={tvSymbol} locale={locale} />
+
+      {dcaPrices.length >= 2 && <DcaSimulator prices={dcaPrices} currentPrice={score.price} />}
 
       <Panel
         title={

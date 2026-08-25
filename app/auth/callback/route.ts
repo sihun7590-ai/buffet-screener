@@ -13,5 +13,8 @@ export async function GET(request: Request) {
     await supabase.auth.exchangeCodeForSession(code);
   }
 
-  return NextResponse.redirect(`${origin}/`);
+  // Carries the page the visitor was originally trying to reach (set by
+  // proxy.ts, round-tripped through the OAuth/email-confirmation redirect).
+  const next = searchParams.get("next");
+  return NextResponse.redirect(`${origin}${next && next.startsWith("/") ? next : "/"}`);
 }
