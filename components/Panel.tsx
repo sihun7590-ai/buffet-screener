@@ -16,9 +16,7 @@ export default function Panel({
   className?: string;
 }) {
   return (
-    <section
-      className={`overflow-hidden rounded-xl border border-line bg-surface shadow-[var(--shadow)] ${className}`}
-    >
+    <section className={`overflow-hidden rounded-[20px] border border-line bg-surface ${className}`}>
       {title && (
         <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-3">
           <h2 className="text-[11px] font-bold uppercase tracking-[0.13em] text-ink-muted">{title}</h2>

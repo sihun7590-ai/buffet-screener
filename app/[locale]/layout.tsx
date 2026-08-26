@@ -1,26 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Manrope, JetBrains_Mono } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import Sidebar from "@/components/Sidebar";
 import SiteHeader from "@/components/SiteHeader";
 import "../globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
-
-// Runs before first paint so the dark shell never flashes white. The app is
-// dark-first (a trading terminal reads as one); the toggle stores an explicit
-// override in localStorage.
-const THEME_INIT = `(function(){try{document.documentElement.dataset.theme=localStorage.getItem("theme")==="light"?"light":"dark"}catch(e){document.documentElement.dataset.theme="dark"}})()`;
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -46,19 +44,14 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
-    <html
-      lang={locale}
-      data-theme="dark"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      suppressHydrationWarning
-    >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
-      </head>
-      <body className="flex min-h-full flex-col bg-canvas text-ink">
+    <html lang={locale} className={`${manrope.variable} ${jetbrainsMono.variable} h-full antialiased`}>
+      <body className="flex min-h-full bg-canvas text-ink">
         <NextIntlClientProvider>
-          <SiteHeader />
-          {children}
+          <Sidebar />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <SiteHeader />
+            {children}
+          </div>
         </NextIntlClientProvider>
       </body>
     </html>

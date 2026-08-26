@@ -13,7 +13,21 @@
     "myPage": "My Page",
     "login": "Sign In",
     "signOut": "Sign Out",
-    "backtest": "Backtest"
+    "backtest": "Backtest",
+    "searchPlaceholder": "Search ticker or company"
+  },
+  "sidebar": {
+    "dashboard": "Screener",
+    "stockDetail": "Stock Detail",
+    "backtest": "Backtest",
+    "myPage": "My Watchlist",
+    "account": "Account",
+    "asOf": "Data as of",
+    "asOfEmpty": "Not refreshed yet",
+    "sourceFinancials": "Financials: SEC EDGAR",
+    "sourcePrices": "Prices: Yahoo Finance",
+    "weights": "Weight settings",
+    "darkMode": "Dark mode"
   },
   "theme": {
     "toDark": "Switch to dark theme",
@@ -21,7 +35,8 @@
   },
   "favorite": {
     "add": "Add to favorites",
-    "remove": "Remove from favorites"
+    "remove": "Remove from favorites",
+    "label": "Favorite"
   },
   "glossary": {
     "universe": "How many stocks this site has scored and analysed. The universe is the S&P 500 — the 500 largest, most established US companies.",
@@ -44,6 +59,7 @@
   "auth": {
     "signInTitle": "Sign In",
     "signUpTitle": "Create Account",
+    "welcomeSubtitle": "Sign in to save your watchlist and weight settings.",
     "email": "Email",
     "password": "Password",
     "signIn": "Sign In",
@@ -60,6 +76,16 @@
     "signInPrompt": "Sign in to save favorite stocks and track them here.",
     "signInCta": "Sign In",
     "empty": "No favorites yet — tap the heart on any stock to add it here.",
+    "summary": {
+      "favorites": "Watchlist",
+      "avgScore": "Avg. Total Score",
+      "buyCandidates": "Buy Candidates"
+    },
+    "card": {
+      "priceAtFavorite": "Price when favorited",
+      "currentPrice": "Current price",
+      "marginOfSafety": "Margin of safety"
+    },
     "table": {
       "stock": "Stock",
       "score": "Score",
@@ -111,6 +137,26 @@
       "reset": "Reset to default",
       "customBadge": "Custom",
       "customTip": "The total shown here is recomputed using the weights you set above, not the defaults (Quality 30% · Valuation 25% · Financial Health 20% · Growth 15% · Consistency 10%)."
+    },
+    "widgets": {
+      "avgScore": "Average Score",
+      "avgScoreTip": "The average total score across every screened stock, independent of the current filters.",
+      "buyCandidateToday": "Today's Buy Candidate",
+      "buyCandidateTip": "The Buy Candidate with the largest margin of safety.",
+      "buyCandidateEmpty": "No stock currently meets the Buy Candidate bar.",
+      "topMarginOfSafety": "Top Margin of Safety",
+      "topMarginOfSafetyTip": "The 5 stocks with the largest margin of safety.",
+      "viewAll": "View all"
+    },
+    "csvExport": "Export CSV",
+    "sort": {
+      "label": "Sort",
+      "totalScore": "Total score",
+      "price": "Price",
+      "marketCap": "Market cap",
+      "marginOfSafety": "Margin of safety",
+      "ticker": "Ticker",
+      "sector": "Sector"
     }
   },
   "stock": {
@@ -165,22 +211,27 @@
   "axes": {
     "quality": {
       "name": "Quality",
+      "short": "Qlty",
       "tip": "How good the business itself is: how much it keeps from every sale (margins), how much it earns on the capital it uses (ROE/ROIC), and whether it returns cash to shareholders."
     },
     "growth": {
       "name": "Growth",
+      "short": "Grw",
       "tip": "Whether the business is getting bigger — how fast revenue, earnings, and cash have grown over the last five years. Without growth, time doesn't work in your favour no matter how cheaply you buy."
     },
     "health": {
       "name": "Financial Health",
+      "short": "Hlth",
       "tip": "Whether debt could sink it. This is the balance sheet's ability to survive a bad year — the reason Buffett insists on companies that owe little."
     },
     "consistency": {
       "name": "Consistency",
+      "short": "Cnst",
       "tip": "Whether results are steady and predictable. Buffett won't buy a company whose future earnings he can't reasonably estimate, however good it looks today."
     },
     "valuation": {
       "name": "Valuation",
+      "short": "Val",
       "tip": "Whether today's price is cheap relative to what the business is worth. Even a great company won't return much if you overpay for it."
     }
   },
@@ -372,7 +423,26 @@
       "holdings": "The range of how many tickers this strategy actually held from quarter to quarter. Fewer holdings (say, under 20) means one or two big movers can swing the whole strategy's result more — since every position gets an equal dollar amount, holding count is a direct measure of how much any single stock matters.",
       "universe": "Every scored company held in equal dollar amounts, regardless of size. This is NOT the real S&P 500 — the real index is market-cap-weighted (bigger companies count for more), so in a stretch like the last few years where a handful of mega-caps drove most of the index's gains, this equal-weight result can lag the real index.",
       "spy": "The real, survivorship-bias-free market return, computed from the actual traded price of the S&P 500 tracking ETF (ticker: SPY). This is the only genuine benchmark on this page — the other three are internal strategies, not real indexes.",
-      "chart": "Each strategy starts at 100 and compounds its quarterly return forward. A higher line means more growth by that point. Click a legend chip to toggle a strategy on or off."
+      "chart": "Each strategy starts at 100 and compounds its quarterly return forward. A higher line means more growth by that point. Click a legend chip to toggle a strategy on or off.",
+      "sharpe": "Return divided by how bumpy the ride was to get it. Same return, less volatility along the way, higher number. With only ~3 years of quarterly data, treat this as a rough read, not a settled figure."
+    },
+    "kpi": {
+      "headline": "Top 20 · vs. SPY",
+      "totalReturn": "Total Return",
+      "cagr": "CAGR",
+      "maxDrawdown": "Max Drawdown (quarter-end only)",
+      "sharpe": "Sharpe Ratio",
+      "benchmarkNote": "S&P 500 (SPY) {value}"
+    },
+    "yearlyReturns": {
+      "title": "Yearly Returns (Top 20)",
+      "note": "Bucketed from quarterly data starting 2023, so there are only a few bars."
+    },
+    "periodDetail": {
+      "title": "Period Detail (Top 20 vs. SPY)",
+      "trailing1y": "Trailing 1yr (as available)",
+      "allTime": "Full period (2023 Q1–)",
+      "winRate": "Win rate (by quarter)"
     }
   },
   "alerts": {

@@ -30,8 +30,8 @@ export default function FavoriteButton({
       <svg
         viewBox="0 0 20 20"
         className={dim}
-        fill={active ? "var(--down)" : "none"}
-        stroke={active ? "var(--down)" : "currentColor"}
+        fill={active ? "var(--brand)" : "none"}
+        stroke={active ? "var(--brand)" : "currentColor"}
         strokeWidth="1.6"
       >
         <path

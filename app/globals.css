@@ -1,68 +1,89 @@
 @import "tailwindcss";
 
-/* Trading-terminal look: dark by default with a full light theme. Both are
-   driven by `data-theme` on <html> (set before first paint by the inline
-   script in layout.tsx), so every token below swaps at runtime with no
-   reload and no flash. Components use the semantic tokens directly
-   (bg-surface, text-ink-muted, ...) instead of `dark:` variants. */
+/* Dark-terminal palette, single theme. Was light+dark switched via
+   `data-theme` on <html>; the redesign has no light spec, so that switch and
+   the light block are gone — every token here is the one dark palette.
+   Components still consume the semantic tokens (bg-surface, text-ink-muted,
+   ...) rather than literal colors, so this file is the only place a color
+   value should ever live. */
 
-:root,
-[data-theme="light"] {
-  --canvas: #f2f4f9;
-  --surface: #ffffff;
-  --surface-hover: #f5f7fb;
-  --subtle: #eef1f7;
-  --line: #dee2ec;
-  --line-strong: #c3cad9;
-  --ink: #0f1320;
-  --ink-muted: #596174;
-  --ink-faint: #8b93a5;
-  --brand: #1c5ede;
-  --up: #0a9d78;
-  --down: #dd3a4d;
-  --warn: #b3750c;
-  --shadow: 0 1px 2px rgb(15 19 32 / 0.05), 0 12px 28px -18px rgb(15 19 32 / 0.35);
-}
-
-[data-theme="dark"] {
-  --canvas: #0a0d14;
-  --surface: #121620;
-  --surface-hover: #191e2b;
-  --subtle: #191e2b;
-  --line: #252b3a;
-  --line-strong: #363d51;
-  --ink: #d6dae4;
-  --ink-muted: #878fa1;
-  --ink-faint: #656d7f;
-  --brand: #4c8dff;
+:root {
+  --canvas: #08080b;
+  --canvas-sidebar: #0c0c11;
+  --surface: #101015;
+  --surface-2: #111116;
+  --surface-3: #15151c;
+  --surface-4: #16161d;
+  --surface-5: #14141a;
+  --surface-hover: #13111c;
+  --subtle: #111116;
+  --line: #1e1e27;
+  --line-strong: #22222c;
+  --border-2: #22222c;
+  --border-3: #24242f;
+  --divider: #1c1c25;
+  --divider-2: #17171e;
+  --sidebar-border: #1c1c24;
+  --ink: #f2f2f5;
+  --ink-2: #c9c9d4;
+  --ink-muted: #8b8b99;
+  --ink-4: #6d6d7c;
+  --ink-faint: #5f5f6d;
+  --ink-6: #4a4a57;
+  --brand: #7b61ff;
+  --brand-text: #a595ff;
+  --brand-text-2: #c4b9ff;
+  --brand-soft: rgba(123, 97, 255, 0.14);
+  --brand-grad: linear-gradient(145deg, #8b73ff, #5b3fe0);
+  --panel-grad: linear-gradient(150deg, #181330 0%, #101015 62%);
+  --panel-border: #262034;
+  --brand-border: #3a2f60;
   --up: #26a69a;
   --down: #ef5350;
   --warn: #d9a441;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.45), 0 12px 28px -18px rgb(0 0 0 / 0.8);
+  --shadow: 0 8px 20px -8px rgba(123, 97, 255, 0.8);
 }
 
 @theme inline {
   --color-canvas: var(--canvas);
+  --color-canvas-sidebar: var(--canvas-sidebar);
   --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-4: var(--surface-4);
+  --color-surface-5: var(--surface-5);
   --color-surface-hover: var(--surface-hover);
   --color-subtle: var(--subtle);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
+  --color-border-2: var(--border-2);
+  --color-border-3: var(--border-3);
+  --color-divider: var(--divider);
+  --color-divider-2: var(--divider-2);
+  --color-sidebar-border: var(--sidebar-border);
   --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
   --color-ink-muted: var(--ink-muted);
+  --color-ink-4: var(--ink-4);
   --color-ink-faint: var(--ink-faint);
+  --color-ink-6: var(--ink-6);
   --color-brand: var(--brand);
+  --color-brand-text: var(--brand-text);
+  --color-brand-text-2: var(--brand-text-2);
+  --color-brand-soft: var(--brand-soft);
+  --color-panel-border: var(--panel-border);
+  --color-brand-border: var(--brand-border);
   --color-up: var(--up);
   --color-down: var(--down);
   --color-warn: var(--warn);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-manrope);
+  --font-mono: var(--font-jetbrains-mono);
 }
 
 body {
   background: var(--canvas);
   color: var(--ink);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-manrope), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -78,8 +99,8 @@ body {
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -87,28 +108,17 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--line-strong);
-  border: 2px solid transparent;
-  background-clip: content-box;
+  background: #2a2a36;
   border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--ink-faint);
-  background-clip: content-box;
 }
 
 /* Native controls keep their light chrome inside the dark shell otherwise. */
 select,
 input,
 button {
-  color-scheme: inherit;
-}
-
-[data-theme="dark"] {
   color-scheme: dark;
-}
-
-[data-theme="light"] {
-  color-scheme: light;
 }

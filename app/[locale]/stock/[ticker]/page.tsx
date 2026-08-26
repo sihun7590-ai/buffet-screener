@@ -94,82 +94,101 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
     <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-4 px-4 py-5 sm:px-6 sm:py-7">
       <BackToListLink />
 
-      <Panel>
-        <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-6">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="font-mono text-[32px] font-bold leading-none tracking-tight text-ink">
-                {score.ticker}
-              </h1>
-              {score.isBuyCandidate && (
-                <span className="flex items-center gap-1.5 rounded bg-up/15 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-up">
-                  {t("buyCandidate")}
-                  <InfoTip text={tGlossary("buyCandidate")} className="border-up/50 text-up" />
-                </span>
-              )}
-              <StockFavoriteButton ticker={score.ticker} price={score.price} />
-            </div>
-            <p className="mt-2 text-[15px] font-medium text-ink-muted">{score.companyName}</p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span className="rounded border border-line bg-subtle px-2 py-0.5 text-[11px] text-ink-muted">
-                {tSectors(score.sector)}
+      <section
+        className="flex flex-wrap items-center gap-4 rounded-[20px] border border-panel-border p-[22px]"
+        style={{ background: "linear-gradient(140deg,#181330,#101015 60%)" }}
+      >
+        <span className="grid h-[58px] w-[58px] shrink-0 place-items-center rounded-2xl border border-panel-border bg-[#191428] font-mono text-[16px] font-bold text-brand-text-2">
+          {score.ticker.slice(0, 2)}
+        </span>
+        <div className="flex flex-col gap-1.5">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <span className="font-mono text-[26px] font-bold leading-none tracking-tight text-ink">{score.ticker}</span>
+            {score.isBuyCandidate && (
+              <span className="flex items-center gap-1.5 rounded-[6px] bg-up/15 px-2 py-1 text-[10px] font-extrabold uppercase tracking-[0.06em] text-up">
+                {t("buyCandidate")}
+                <InfoTip text={tGlossary("buyCandidate")} className="border-up/50 text-up" />
               </span>
-              {exchangeName && (
-                <span className="rounded border border-line bg-subtle px-2 py-0.5 font-mono text-[11px] text-ink-faint">
-                  {exchangeName}
-                </span>
-              )}
-            </div>
-            <div className="mt-5 flex items-baseline gap-2">
-              <span className="font-mono text-[30px] font-bold leading-none tabular-nums text-ink">
-                {usdFmt(score.price)}
-              </span>
-              <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-[0.1em] text-ink-faint">
-                {t("dcf.currentPrice")}
-                <InfoTip text={tGlossary("currentPrice")} />
-              </span>
-            </div>
+            )}
+            <span className="rounded-[6px] border border-border-3 bg-surface-4 px-2 py-0.5 text-[11px] font-semibold text-ink-muted">
+              {tSectors(score.sector)}
+            </span>
           </div>
+          <span className="text-[13px] text-ink-muted">
+            {score.companyName}
+            {exchangeName ? ` · ${exchangeName}` : ""}
+          </span>
+        </div>
 
-          {/* The breakdown sits beside the headline number rather than under
-              it: the whole point of five axes is seeing *why* the total came
-              out where it did without scrolling. */}
-          <div className="flex flex-wrap items-center gap-x-8 gap-y-5">
-            <div className="flex flex-col gap-2.5">
-              {SCORE_AXES.map((axis) => {
-                // Older snapshots predate coverage tracking; absent means the
-                // axis was scored on everything, which is what full means.
-                const covered = score.coverage?.[axis] ?? 1;
-                return (
-                  <div key={axis}>
-                    <div className="mb-1 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
+        <div className="ml-auto flex flex-wrap items-center gap-6">
+          <span className="flex flex-col gap-1">
+            <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.06em] text-ink-4">
+              {t("dcf.currentPrice")}
+              <InfoTip text={tGlossary("currentPrice")} />
+            </span>
+            <span className="font-mono text-[26px] font-bold tabular-nums text-ink">{usdFmt(score.price)}</span>
+          </span>
+          <span className="flex flex-col gap-1">
+            <span className="text-[10px] font-bold uppercase tracking-[0.06em] text-ink-4">{t("dcf.intrinsicValue")}</span>
+            <span className="font-mono text-[26px] font-bold tabular-nums text-brand-text">
+              {ivOk ? usdFmt(iv.intrinsicValuePerShare) : tCommon("notAvailable")}
+            </span>
+          </span>
+          <span className="flex flex-col gap-1">
+            <span className="text-[10px] font-bold uppercase tracking-[0.06em] text-ink-4">{t("dcf.marginOfSafety")}</span>
+            <span className="font-mono text-[26px] font-bold tabular-nums" style={{ color: ivOk ? mosColor : "var(--ink-faint)" }}>
+              {ivOk ? pctFmt(iv.marginOfSafety) : tCommon("notAvailable")}
+            </span>
+          </span>
+          <StockFavoriteButton ticker={score.ticker} price={score.price} variant="prominent" />
+        </div>
+      </section>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_auto]">
+        <section className="flex flex-col gap-4 rounded-[20px] border border-line bg-surface p-5">
+          <div className="flex items-baseline justify-between">
+            <span className="text-[13px] font-bold text-ink-2">{t("breakdown")}</span>
+            <span className="flex items-baseline gap-1.5">
+              <span className="font-mono text-[28px] font-bold tabular-nums text-ink">{score.totalScore.toFixed(1)}</span>
+              <span className="text-[13px] text-ink-faint">/100</span>
+            </span>
+          </div>
+          <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-5">
+            {SCORE_AXES.map((axis) => {
+              // Older snapshots predate coverage tracking; absent means the
+              // axis was scored on everything, which is what full means.
+              const covered = score.coverage?.[axis] ?? 1;
+              return (
+                <div key={axis} className="flex flex-col gap-1.5">
+                  <div className="flex items-baseline justify-between gap-1.5 text-[11px] font-semibold text-ink-2">
+                    <span className="flex items-center gap-1">
                       {tAxes(`${axis}.name`)}
-                      <span className="font-mono normal-case tracking-normal text-ink-faint/70">
-                        {Math.round(AXIS_WEIGHTS[axis] * 100)}%
-                      </span>
                       <InfoTip text={tAxes(`${axis}.tip`)} />
-                      {covered < 1 && (
-                        <span className="flex items-center gap-1 rounded border border-warn/40 px-1 py-px font-mono text-[9px] normal-case tracking-normal text-warn">
-                          {tSource("coverage", { percent: Math.round(covered * 100) })}
-                          <InfoTip text={tSource("coverageTip")} className="border-warn/50 text-warn" />
-                        </span>
-                      )}
-                    </div>
-                    <ScoreBar score={score.scores[axis]} max={100} strong />
+                    </span>
+                    <span className="text-[10px] font-normal text-ink-faint">{Math.round(AXIS_WEIGHTS[axis] * 100)}%</span>
                   </div>
-                );
-              })}
-            </div>
-            <div className="flex items-start gap-1.5">
-              <ScoreGauge score={score.totalScore} max={100} label={t("stats.total")} />
-              <InfoTip text={tGlossary("total")} />
-            </div>
+                  <ScoreBar score={score.scores[axis]} max={100} strong />
+                  {covered < 1 && (
+                    <span className="flex items-center gap-1 self-start rounded border border-warn/40 px-1 py-px font-mono text-[9px] text-warn">
+                      {tSource("coverage", { percent: Math.round(covered * 100) })}
+                      <InfoTip text={tSource("coverageTip")} className="border-warn/50 text-warn" />
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+        <div className="flex items-center justify-center rounded-[20px] border border-line bg-surface p-5">
+          <div className="flex items-start gap-1.5">
+            <ScoreGauge score={score.totalScore} max={100} label={t("stats.total")} />
+            <InfoTip text={tGlossary("total")} />
           </div>
         </div>
+      </div>
 
-        <div className="mt-5 border-t border-line pt-3.5">
-          <DataSourceNote provenance={score.dataSource} generatedAt={generatedAt} />
-        </div>
+      <Panel>
+        <DataSourceNote provenance={score.dataSource} generatedAt={generatedAt} />
       </Panel>
 
       {/* Two points is the minimum that can show a direction; below that a

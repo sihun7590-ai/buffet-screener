@@ -258,3 +258,42 @@ export function runBacktest(rows: QuarterlyScoreRow[], spyQuotes: BenchmarkQuote
 
   return { generatedAt: new Date().toISOString(), quarterDates: dates, strategies };
 }
+
+// --- Derived views for the redesigned backtest page --------------------
+// These read the already-computed `quarters` a strategy carries in
+// data/backtest.json — no new fetch, no re-running `npm run backtest`.
+// They're kept separate from runBacktest/summarize so the stored JSON
+// shape doesn't need to change to get them.
+
+/**
+ * Annualized Sharpe ratio from a strategy's quarterly returns (no
+ * risk-free-rate subtraction — the risk-free quarterly rate over this window
+ * is small enough relative to these returns that treating it as a benchmark
+ * of 0 doesn't change the ranking, and this project already avoids importing
+ * a rate series it would otherwise have to source and justify).
+ */
+export function sharpeRatio(quarters: QuarterReturn[]): number {
+  const returns = quarters.map((q) => q.return);
+  if (returns.length === 0) return 0;
+  const mean = returns.reduce((sum, r) => sum + r, 0) / returns.length;
+  const variance = returns.reduce((sum, r) => sum + (r - mean) ** 2, 0) / returns.length;
+  const stdev = Math.sqrt(variance);
+  if (stdev === 0) return 0;
+  return (mean * 4) / (stdev * Math.sqrt(4));
+}
+
+/** Quarterly returns compounded into calendar years — as many bars as the data actually spans, never a fixed count. */
+export function yearlyReturns(quarters: QuarterReturn[]): { year: string; return: number }[] {
+  const byYear = new Map<string, number>();
+  for (const q of quarters) {
+    const year = q.to.slice(0, 4);
+    const prior = byYear.get(year);
+    byYear.set(year, prior != null ? (1 + prior) * (1 + q.return) - 1 : q.return);
+  }
+  return [...byYear.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([year, ret]) => ({ year, return: ret }));
+}
+
+/** Compounded return over the trailing N quarters (fewer if the series is shorter). */
+export function trailingReturn(quarters: QuarterReturn[], count: number): number {
+  return quarters.slice(-count).reduce((acc, q) => acc * (1 + q.return), 1) - 1;
+}

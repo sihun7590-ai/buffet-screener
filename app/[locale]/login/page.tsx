@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import type { FormEvent } from "react";
 import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/lib/supabase/client";
-import Panel from "@/components/Panel";
 
 type Mode = "signIn" | "signUp";
 
@@ -22,6 +21,14 @@ function GoogleIcon() {
 }
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const t = useTranslations("auth");
   const router = useRouter();
   // Set by proxy.ts when it bounced an anonymous visitor here, already
@@ -86,41 +93,60 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-4 py-16 sm:px-6">
-      <Panel title={t(mode === "signIn" ? "signInTitle" : "signUpTitle")}>
+    <main className="grid flex-1 place-items-center px-7 py-10">
+      <div
+        className="flex w-full max-w-[400px] flex-col gap-5 rounded-[22px] border border-panel-border p-8"
+        style={{ background: "linear-gradient(160deg,#161228,#101015 62%)" }}
+      >
+        <div className="flex flex-col gap-2">
+          <span className="grid h-10 w-10 place-items-center rounded-[13px]" style={{ background: "var(--brand-grad)" }}>
+            <svg viewBox="0 0 20 20" className="h-[19px] w-[19px]" fill="#fff" aria-hidden="true">
+              <rect x="3" y="9" width="3.4" height="7.5" rx="1.2" />
+              <rect x="8.3" y="5" width="3.4" height="11.5" rx="1.2" opacity="0.75" />
+              <rect x="13.6" y="11" width="3.4" height="5.5" rx="1.2" />
+            </svg>
+          </span>
+          <h1 className="mt-1.5 text-[22px] font-extrabold tracking-tight text-ink">
+            {t(mode === "signIn" ? "signInTitle" : "signUpTitle")}
+          </h1>
+          {!confirmSent && <p className="text-[13px] leading-relaxed text-ink-muted">{t("welcomeSubtitle")}</p>}
+        </div>
+
         {confirmSent ? (
           <p className="text-[13px] leading-relaxed text-ink-muted">{t("confirmSent", { email })}</p>
         ) : (
-          <div className="flex flex-col gap-4">
-            <button
-              type="button"
-              onClick={() => signInWithOAuth("google")}
-              className="flex h-9 items-center justify-center gap-2 rounded-md border border-line bg-surface text-[13px] font-semibold text-ink transition-colors hover:bg-surface-hover"
-            >
-              <GoogleIcon />
-              {t("continueWithGoogle")}
-            </button>
+          <>
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => signInWithOAuth("google")}
+                className="flex h-11 items-center justify-center gap-2.5 rounded-xl border border-line-strong bg-surface-2 text-[13px] font-semibold text-ink-2 transition-colors hover:text-ink"
+              >
+                <GoogleIcon />
+                {t("continueWithGoogle")}
+              </button>
 
-            <div className="flex items-center gap-3 text-[11px] text-ink-faint">
-              <span className="h-px flex-1 bg-line" />
-              {t("orDivider")}
-              <span className="h-px flex-1 bg-line" />
+              <div className="flex items-center gap-3 text-[11px] text-ink-faint">
+                <span className="h-px flex-1 bg-line" />
+                {t("orDivider")}
+                <span className="h-px flex-1 bg-line" />
+              </div>
             </div>
 
-            <form onSubmit={submit} className="flex flex-col gap-3">
-              <label className="flex flex-col gap-1 text-[13px]">
-                <span className="text-ink-muted">{t("email")}</span>
+            <form onSubmit={submit} className="flex flex-col gap-2.5">
+              <label className="flex flex-col gap-1.5 text-[13px]">
+                <span className="text-[11px] font-bold tracking-[0.04em] text-ink-2">{t("email")}</span>
                 <input
                   type="email"
                   required
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="h-9 rounded-md border border-line bg-subtle px-2.5 text-ink focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                  className="h-[42px] rounded-xl border border-line-strong bg-surface-2 px-3.5 text-ink focus:border-brand-border focus:bg-[#141020] focus:outline-none"
                 />
               </label>
-              <label className="flex flex-col gap-1 text-[13px]">
-                <span className="text-ink-muted">{t("password")}</span>
+              <label className="flex flex-col gap-1.5 text-[13px]">
+                <span className="text-[11px] font-bold tracking-[0.04em] text-ink-2">{t("password")}</span>
                 <input
                   type="password"
                   required
@@ -128,7 +154,7 @@ export default function LoginPage() {
                   autoComplete={mode === "signIn" ? "current-password" : "new-password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="h-9 rounded-md border border-line bg-subtle px-2.5 text-ink focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+                  className="h-[42px] rounded-xl border border-line-strong bg-surface-2 px-3.5 text-ink focus:border-brand-border focus:bg-[#141020] focus:outline-none"
                 />
               </label>
 
@@ -137,7 +163,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={busy}
-                className="mt-1 h-9 rounded-md bg-brand text-[13px] font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="mt-1.5 h-11 rounded-xl bg-brand text-[13px] font-bold text-white shadow-[var(--shadow)] transition-opacity hover:opacity-90 disabled:opacity-50"
               >
                 {t(mode === "signIn" ? "signIn" : "signUp")}
               </button>
@@ -148,14 +174,14 @@ export default function LoginPage() {
                   setMode(mode === "signIn" ? "signUp" : "signIn");
                   setError(null);
                 }}
-                className="text-[12px] text-ink-muted underline-offset-2 hover:text-brand hover:underline"
+                className="text-center text-[11px] text-ink-faint underline-offset-2 hover:text-brand-text hover:underline"
               >
                 {t(mode === "signIn" ? "switchToSignUp" : "switchToSignIn")}
               </button>
             </form>
-          </div>
+          </>
         )}
-      </Panel>
+      </div>
     </main>
   );
 }

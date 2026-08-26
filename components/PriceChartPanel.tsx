@@ -76,7 +76,7 @@ export default function PriceChartPanel({ symbol, locale }: { symbol: string; lo
   return (
     <div ref={wrapRef} className={expanded ? "fixed inset-0 z-50 flex flex-col bg-canvas p-2 sm:p-3" : ""}>
       <section
-        className={`flex min-h-0 flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-[var(--shadow)] ${
+        className={`flex min-h-0 flex-col overflow-hidden rounded-[20px] border border-line bg-surface ${
           expanded ? "flex-1" : ""
         }`}
       >

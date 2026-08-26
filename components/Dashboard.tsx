@@ -1,8 +1,8 @@
 "use client";
 
-import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Link, useRouter } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { SCORE_AXES, type ScoreAxis, type StockScore } from "@/lib/types";
 import { useFavorites } from "@/lib/supabase/useFavorites";
 import {
@@ -14,7 +14,8 @@ import {
   normalizeWeights,
   type SliderWeights,
 } from "@/lib/customWeights";
-import ScoreBar, { scoreColor } from "./ScoreBar";
+import { scoreColor } from "./ScoreBar";
+import ScoreGauge from "./ScoreGauge";
 import FavoriteButton from "./FavoriteButton";
 import InfoTip from "./InfoTip";
 
@@ -30,6 +31,7 @@ type SortDir = "asc" | "desc";
 const ALL_SECTORS = "";
 const MIN_SCORE_STEPS = [0, 50, 60, 70, 80];
 const PAGE_SIZE = 60;
+const SORT_OPTIONS: SortKey[] = ["totalScore", "marginOfSafety", "price", "marketCap", "ticker", "sector"];
 
 // totalScore is deliberately absent here — it depends on the current weight
 // blend, which is component state, so compare() takes a totalOf callback for
@@ -63,56 +65,26 @@ function compare(a: StockScore, b: StockScore, key: SortKey, dir: SortDir, total
   return dir === "desc" ? -result : result;
 }
 
-function formatMarketCap(v: number) {
+// A cell any given ticker might be genuinely missing (SEC never tagged the
+// figure) — CSV output should say so plainly rather than leave the column
+// blank, which reads as a scraping bug rather than a known data gap.
+function csvCell(v: number | string, formatter?: (v: number) => string): string {
+  if (typeof v === "string") return `"${v.replace(/"/g, '""')}"`;
   if (!Number.isFinite(v)) return "N/A";
-  if (v >= 1_000_000_000_000) return `$${(v / 1_000_000_000_000).toFixed(2)}T`;
-  return `$${(v / 1_000_000_000).toFixed(1)}B`;
+  return formatter ? formatter(v) : String(v);
 }
 
-function SortCaret({ active, dir }: { active: boolean; dir: SortDir }) {
+function SortCaret({ dir }: { dir: SortDir }) {
   return (
-    <svg
-      viewBox="0 0 12 12"
-      className={`h-2.5 w-2.5 shrink-0 transition-opacity ${active ? "opacity-100" : "opacity-0 group-hover:opacity-40"}`}
-      aria-hidden="true"
-    >
-      <path
-        d={active && dir === "asc" ? "M6 3.5 9.5 8h-7z" : "M6 8.5 2.5 4h7z"}
-        fill={active ? "var(--brand)" : "currentColor"}
-      />
+    <svg viewBox="0 0 12 12" className="h-2.5 w-2.5 shrink-0" aria-hidden="true">
+      <path d={dir === "asc" ? "M6 3.5 9.5 8h-7z" : "M6 8.5 2.5 4h7z"} fill="var(--brand)" />
     </svg>
-  );
-}
-
-function StatTile({
-  label,
-  value,
-  tip,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tip: string;
-  tone?: "up" | "brand";
-}) {
-  const color = tone === "up" ? "var(--up)" : tone === "brand" ? "var(--brand)" : "var(--ink)";
-  return (
-    <div className="rounded-xl border border-line bg-surface px-4 py-3 shadow-[var(--shadow)]">
-      <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
-        <span>{label}</span>
-        <InfoTip text={tip} />
-      </div>
-      <div className="mt-1.5 font-mono text-xl font-bold tabular-nums" style={{ color }}>
-        {value}
-      </div>
-    </div>
   );
 }
 
 export default function Dashboard({ scores }: { scores: StockScore[] }) {
   const t = useTranslations("dashboard");
   const tAxes = useTranslations("axes");
-  const tGlossary = useTranslations("glossary");
   const tFavorite = useTranslations("favorite");
   const tSectors = useTranslations("sectors");
   const locale = useLocale();
@@ -133,11 +105,14 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
 
   // Read after mount, not in the initial state, so the first render matches
   // the server's (default weights) and only flips to a saved preference once
-  // hydration is already settled.
+  // hydration is already settled. localStorage has no subscribe primitive
+  // worth building here (this component is the only writer), so this stays a
+  // plain mount effect rather than useSyncExternalStore.
   useEffect(() => {
     try {
       const raw = localStorage.getItem(WEIGHTS_STORAGE_KEY);
       const parsed = raw ? JSON.parse(raw) : null;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time read of a browser-only store, not a value derivable during render
       if (isValidSliderWeights(parsed)) setSliders(parsed);
     } catch {
       // Corrupt or blocked storage — the default blend is a fine fallback.
@@ -194,10 +169,31 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
     return {
       universe: scores.length,
       buyCandidates: scores.filter(effectiveBuyCandidate).length,
-      avgScore: Number.isFinite(avg) ? avg.toFixed(1) : "N/A",
+      avgScore: avg,
       undervalued: scores.filter((s) => s.intrinsicValue.marginOfSafety > 0).length,
     };
   }, [scores, effectiveTotal, effectiveBuyCandidate]);
+
+  // Highlighted separately from the filtered/sorted list below — these three
+  // widgets always read the whole universe, independent of the filter bar,
+  // so narrowing the list to one sector doesn't make the "today" picks vanish.
+  const topBuyCandidate = useMemo(() => {
+    const candidates = scores.filter(effectiveBuyCandidate);
+    if (candidates.length === 0) return null;
+    return candidates.reduce((best, s) =>
+      s.intrinsicValue.marginOfSafety > best.intrinsicValue.marginOfSafety ? s : best,
+    );
+  }, [scores, effectiveBuyCandidate]);
+
+  const topMarginOfSafety = useMemo(
+    () =>
+      [...scores]
+        .filter((s) => Number.isFinite(s.intrinsicValue.marginOfSafety))
+        .sort((a, b) => b.intrinsicValue.marginOfSafety - a.intrinsicValue.marginOfSafety)
+        .slice(0, 5),
+    [scores],
+  );
+  const topMarginValue = topMarginOfSafety[0]?.intrinsicValue.marginOfSafety ?? 0;
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -210,67 +206,206 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
   }, [scores, sector, minScore, buyOnly, query, sortKey, sortDir, effectiveTotal, effectiveBuyCandidate]);
 
   // A narrowed result set should start from the top again, not deep in a
-  // "load more" run from the previous filter.
-  useEffect(() => {
+  // "load more" run from the previous filter. Adjusted during render — React's
+  // documented alternative to an effect for "reset state when a value changes"
+  // — so there's no extra commit where `visible` still reflects the old filter.
+  const filterSignature = `${query}|${sector}|${minScore}|${buyOnly}`;
+  const [prevFilterSignature, setPrevFilterSignature] = useState(filterSignature);
+  if (filterSignature !== prevFilterSignature) {
+    setPrevFilterSignature(filterSignature);
     setVisible(PAGE_SIZE);
-  }, [query, sector, minScore, buyOnly]);
+  }
 
   const rows = filtered.slice(0, visible);
   const remaining = filtered.length - rows.length;
   const filtersActive = query !== "" || sector !== ALL_SECTORS || minScore !== 0 || buyOnly;
 
-  const toggleSort = (key: SortKey) => {
-    if (key === sortKey) {
-      setSortDir((d) => (d === "desc" ? "asc" : "desc"));
-    } else {
-      setSortKey(key);
-      setSortDir(TEXT[key] ? "asc" : "desc");
-    }
+  const exportCsv = () => {
+    const header = ["rank", "ticker", "company", "sector", "price", "marketCap", ...SCORE_AXES, "total", "marginOfSafety"];
+    const lines = [header.join(",")];
+    filtered.forEach((s, i) => {
+      lines.push(
+        [
+          i + 1,
+          s.ticker,
+          csvCell(s.companyName),
+          csvCell(tSectors(s.sector)),
+          csvCell(s.price, (v) => v.toFixed(2)),
+          csvCell(s.marketCap),
+          ...SCORE_AXES.map((axis) => csvCell(s.scores[axis])),
+          csvCell(effectiveTotal(s), (v) => v.toFixed(1)),
+          csvCell(s.intrinsicValue.marginOfSafety, (v) => (v * 100).toFixed(1)),
+        ].join(","),
+      );
+    });
+    const blob = new Blob(["﻿" + lines.join("\n")], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `screener-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
-  // The "?" sits beside the sort button rather than inside it — nesting a
-  // button in a button is invalid, and clicking for help shouldn't re-sort.
-  // It always trails the label, never the sort caret: on a right-aligned
-  // column, reversing the whole row would strand it at the far edge of the
-  // cell where it reads as belonging to nothing.
-  const th = (key: SortKey, label: string, tip: string, align: "left" | "right" = "left") => (
-    <th className={`px-3 py-0 ${align === "right" ? "text-right" : "text-left"}`}>
-      <span className="inline-flex h-9 items-center gap-1.5">
-        <button
-          type="button"
-          onClick={() => toggleSort(key)}
-          className={`group inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors hover:text-ink ${
-            sortKey === key ? "text-ink" : "text-ink-faint"
-          } ${align === "right" ? "flex-row-reverse" : ""}`}
-        >
-          <span>{label}</span>
-          <SortCaret active={sortKey === key} dir={sortDir} />
-        </button>
-        <InfoTip text={tip} />
-      </span>
-    </th>
-  );
+  const goToStock = (ticker: string) => router.push(`/stock/${ticker}`);
+
+  const favoriteToggle = (s: StockScore) => {
+    if (isSignedIn === false) {
+      router.push("/login");
+      return;
+    }
+    toggle(s.ticker, s.price);
+  };
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatTile label={t("stats.universe")} value={String(stats.universe)} tip={tGlossary("universe")} />
-        <StatTile
-          label={t("stats.buyCandidates")}
-          value={String(stats.buyCandidates)}
-          tip={tGlossary("buyCandidate")}
-          tone="up"
-        />
-        <StatTile label={t("stats.avgScore")} value={stats.avgScore} tip={tGlossary("avgScore")} />
-        <StatTile
-          label={t("stats.undervalued")}
-          value={String(stats.undervalued)}
-          tip={tGlossary("undervalued")}
-          tone="brand"
-        />
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-end justify-between gap-3.5">
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-[26px] font-extrabold tracking-tight text-ink">{t("title")}</h1>
+          <p className="max-w-[620px] text-[13px] leading-relaxed text-ink-muted">{t("subtitle")}</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setWeightsPanelOpen((v) => !v)}
+            aria-pressed={weightsPanelOpen}
+            className={`flex h-[38px] items-center gap-2 rounded-[11px] border px-3.5 text-xs font-semibold transition-colors ${
+              weightsPanelOpen || isCustomWeights
+                ? "border-brand-border bg-brand-soft text-brand-text-2"
+                : "border-line-strong bg-surface-2 text-ink-2 hover:text-ink"
+            }`}
+          >
+            <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+              <path d="M4 6h12M6.5 10h7M9 14h2" />
+            </svg>
+            {t("weights.button")}
+            {isCustomWeights && <span className="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden="true" />}
+          </button>
+          <button
+            type="button"
+            onClick={exportCsv}
+            className="flex h-[38px] items-center gap-2 rounded-[11px] bg-brand px-4 text-xs font-bold text-white shadow-[var(--shadow)] transition-opacity hover:opacity-90"
+          >
+            <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M4 13.5 8 9l3 2.5L16 6" />
+            </svg>
+            {t("csvExport")}
+          </button>
+        </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-3 rounded-xl border border-line bg-surface p-3 shadow-[var(--shadow)]">
+      <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
+        <div className="flex flex-col gap-3.5 rounded-[20px] border border-line bg-surface p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-[13px] font-bold text-ink-2">{t("widgets.avgScore")}</span>
+            <InfoTip text={t("widgets.avgScoreTip")} />
+          </div>
+          <div className="flex justify-center py-1">
+            <ScoreGauge score={stats.avgScore} max={100} size={140} />
+          </div>
+        </div>
+
+        <div
+          className="flex flex-col gap-3.5 rounded-[20px] border border-panel-border p-5"
+          style={{ background: "var(--panel-grad)" }}
+        >
+          <div className="flex items-center justify-between">
+            <span className="flex items-center gap-2 text-[13px] font-bold text-ink">
+              <span className="grid h-[22px] w-[22px] place-items-center rounded-[7px] bg-brand-soft text-brand-text">
+                <svg viewBox="0 0 20 20" className="h-3 w-3" fill="currentColor" aria-hidden="true">
+                  <path d="M10 2.6 11.9 7l4.6.5-3.4 3.2.9 4.7L10 13.2l-4 2.2.9-4.7L3.5 7.5 8.1 7z" />
+                </svg>
+              </span>
+              {t("widgets.buyCandidateToday")}
+              <InfoTip text={t("widgets.buyCandidateTip")} />
+            </span>
+            <span className="rounded-full bg-up/15 px-2.5 py-1 font-mono text-[10px] font-bold text-up">
+              {t("tickerCount", { count: stats.buyCandidates })}
+            </span>
+          </div>
+          {topBuyCandidate ? (
+            <>
+              <div className="flex flex-wrap items-end gap-3.5">
+                <button type="button" onClick={() => goToStock(topBuyCandidate.ticker)} className="flex items-center gap-3 text-left">
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-[13px] border border-panel-border bg-[#191428] font-mono text-[13px] font-bold text-brand-text-2">
+                    {topBuyCandidate.ticker.slice(0, 2)}
+                  </span>
+                  <span className="flex flex-col gap-1">
+                    <span className="flex items-center gap-2">
+                      <span className="font-mono text-[19px] font-bold tracking-tight text-ink">{topBuyCandidate.ticker}</span>
+                      <span className="rounded bg-up/15 px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide text-up">
+                        Buy
+                      </span>
+                    </span>
+                    <span className="text-[12px] text-ink-muted">{topBuyCandidate.companyName}</span>
+                  </span>
+                </button>
+                <div className="ml-auto flex flex-col items-end gap-1">
+                  <span className="font-mono text-[22px] font-bold tabular-nums text-ink">${priceFmt.format(topBuyCandidate.price)}</span>
+                  <span className="font-mono text-[12px] font-semibold text-up">
+                    +{(topBuyCandidate.intrinsicValue.marginOfSafety * 100).toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+              <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(60px, 1fr))" }}>
+                {SCORE_AXES.map((axis) => {
+                  const v = topBuyCandidate.scores[axis];
+                  const color = Number.isFinite(v) ? scoreColor(v, 100) : "var(--ink-faint)";
+                  return (
+                    <div key={axis} className="flex flex-col gap-1.5 rounded-xl bg-white/[0.03] px-2.5 py-2.5">
+                      <span className="truncate text-[10px] font-semibold text-ink-muted">{tAxes(`${axis}.name`)}</span>
+                      <span className="font-mono text-[15px] font-bold tabular-nums" style={{ color }}>
+                        {Number.isFinite(v) ? v.toFixed(0) : "—"}
+                      </span>
+                      <span className="block h-1 w-full overflow-hidden rounded-full bg-border-2">
+                        <span className="block h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, v))}%`, background: color }} />
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          ) : (
+            <p className="py-6 text-center text-[12px] text-ink-faint">{t("widgets.buyCandidateEmpty")}</p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-3 rounded-[20px] border border-line bg-surface p-5">
+          <div className="flex items-center justify-between">
+            <span className="text-[13px] font-bold text-ink-2">{t("widgets.topMarginOfSafety")}</span>
+            <InfoTip text={t("widgets.topMarginOfSafetyTip")} />
+          </div>
+          <div className="flex flex-col gap-0.5">
+            {topMarginOfSafety.map((s, i) => (
+              <button
+                key={s.ticker}
+                type="button"
+                onClick={() => goToStock(s.ticker)}
+                className="flex items-center gap-2.5 rounded-[10px] px-2 py-2 text-left transition-colors hover:bg-surface-4"
+              >
+                <span className="w-3.5 font-mono text-[11px] font-semibold text-ink-6">{i + 1}</span>
+                <span className="flex min-w-0 flex-col gap-0.5">
+                  <span className="font-mono text-[13px] font-bold text-ink">{s.ticker}</span>
+                  <span className="max-w-[110px] truncate text-[10px] text-ink-4">{s.companyName}</span>
+                </span>
+                <span className="ml-auto flex items-center gap-2">
+                  <span className="block h-[5px] w-11 overflow-hidden rounded-full bg-border-2">
+                    <span
+                      className="block h-full rounded-full bg-up"
+                      style={{ width: `${Math.max(4, Math.min(100, (s.intrinsicValue.marginOfSafety / (topMarginValue || 1)) * 100))}%` }}
+                    />
+                  </span>
+                  <span className="w-[52px] text-right font-mono text-[12px] font-bold tabular-nums text-up">
+                    +{(s.intrinsicValue.marginOfSafety * 100).toFixed(1)}%
+                  </span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-3 rounded-[18px] border border-line bg-surface p-3">
         <div className="relative min-w-[190px] flex-1 sm:max-w-xs">
           <svg
             viewBox="0 0 20 20"
@@ -289,7 +424,7 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t("search")}
             aria-label={t("search")}
-            className="h-9 w-full rounded-md border border-line bg-subtle pl-8 pr-3 text-[13px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+            className="h-9 w-full rounded-[10px] border border-line-strong bg-surface-3 pl-8 pr-3 text-[13px] text-ink placeholder:text-ink-faint focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           />
         </div>
 
@@ -297,7 +432,7 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
           value={sector}
           onChange={(e) => setSector(e.target.value)}
           aria-label={t("filters.sector")}
-          className="h-9 cursor-pointer rounded-md border border-line bg-subtle px-2.5 text-[13px] text-ink-muted transition-colors hover:text-ink focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+          className="h-9 cursor-pointer rounded-[10px] border border-line-strong bg-surface-3 px-2.5 text-[13px] text-ink-2 transition-colors hover:text-ink focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
         >
           {sectors.map((s) => (
             <option key={s} value={s}>
@@ -307,19 +442,17 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
         </select>
 
         <div className="flex items-center gap-1.5">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">
-            {t("filters.minScore")}
-          </span>
-          <div className="flex overflow-hidden rounded-md border border-line">
+          <span className="text-[11px] font-bold uppercase tracking-[0.04em] text-ink-4">{t("filters.minScore")}</span>
+          <div className="flex gap-1">
             {MIN_SCORE_STEPS.map((step) => (
               <button
                 key={step}
                 type="button"
                 onClick={() => setMinScore(step)}
-                className={`h-9 border-l border-line px-2.5 font-mono text-xs font-semibold tabular-nums transition-colors first:border-l-0 ${
+                className={`h-9 rounded-[10px] border px-2.5 font-mono text-xs font-semibold tabular-nums transition-colors ${
                   minScore === step
-                    ? "bg-brand text-white"
-                    : "bg-subtle text-ink-muted hover:bg-surface-hover hover:text-ink"
+                    ? "border-brand bg-brand text-white"
+                    : "border-line-strong bg-surface-3 text-ink-muted hover:bg-surface-hover hover:text-ink"
                 }`}
               >
                 {step === 0 ? t("filters.any") : `${step}+`}
@@ -332,28 +465,39 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
           type="button"
           onClick={() => setBuyOnly((v) => !v)}
           aria-pressed={buyOnly}
-          className={`h-9 rounded-md border px-3 text-xs font-semibold transition-colors ${
-            buyOnly
-              ? "border-up bg-up/15 text-up"
-              : "border-line bg-subtle text-ink-muted hover:text-ink"
+          className={`flex h-9 items-center gap-2 rounded-[10px] border px-3 text-xs font-semibold transition-colors ${
+            buyOnly ? "border-brand-border bg-brand-soft text-brand-text-2" : "border-line-strong bg-surface-3 text-ink-muted hover:text-ink"
           }`}
         >
+          <span
+            className="grid h-3.5 w-3.5 place-items-center rounded"
+            style={{ border: `1px solid ${buyOnly ? "var(--brand-text-2)" : "var(--ink-muted)"}`, background: buyOnly ? "var(--brand)" : "transparent" }}
+          />
           {t("filters.buyCandidateOnly")}
         </button>
 
-        <button
-          type="button"
-          onClick={() => setWeightsPanelOpen((v) => !v)}
-          aria-pressed={weightsPanelOpen}
-          className={`flex h-9 items-center gap-1.5 rounded-md border px-3 text-xs font-semibold transition-colors ${
-            weightsPanelOpen || isCustomWeights
-              ? "border-brand bg-brand/10 text-brand"
-              : "border-line bg-subtle text-ink-muted hover:text-ink"
-          }`}
-        >
-          {t("weights.button")}
-          {isCustomWeights && <span className="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden="true" />}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[11px] font-bold uppercase tracking-[0.04em] text-ink-4">{t("sort.label")}</span>
+          <select
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value as SortKey)}
+            className="h-9 cursor-pointer rounded-[10px] border border-line-strong bg-surface-3 px-2.5 text-[13px] text-ink-2 transition-colors hover:text-ink focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
+          >
+            {SORT_OPTIONS.map((key) => (
+              <option key={key} value={key}>
+                {t(`sort.${key}`)}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => setSortDir((d) => (d === "desc" ? "asc" : "desc"))}
+            aria-label={t("sort.label")}
+            className="grid h-9 w-9 place-items-center rounded-[10px] border border-line-strong bg-surface-3 text-ink-muted transition-colors hover:text-ink"
+          >
+            <SortCaret dir={sortDir} />
+          </button>
+        </div>
 
         {filtersActive && (
           <button
@@ -370,13 +514,11 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
           </button>
         )}
 
-        <span className="ml-auto font-mono text-xs tabular-nums text-ink-muted">
-          {t("tickerCount", { count: filtered.length })}
-        </span>
+        <span className="ml-auto font-mono text-xs tabular-nums text-ink-muted">{t("tickerCount", { count: filtered.length })}</span>
       </div>
 
       {weightsPanelOpen && (
-        <div className="rounded-xl border border-line bg-surface p-4 shadow-[var(--shadow)]">
+        <div className="rounded-[18px] border border-line bg-surface p-4">
           <div className="flex items-center justify-between gap-3">
             <h3 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-ink-muted">
               {t("weights.title")}
@@ -414,185 +556,117 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-[var(--shadow)]">
-        {/* An overflow-x container is implicitly overflow-y too, so the grid
-            gets its own scroll pane on desktop and the header sticks to the
-            top of that pane rather than being pushed over the first row. */}
-        <div className="overflow-auto lg:max-h-[calc(100vh-11rem)]">
-          {/* whitespace-nowrap keeps the auto table layout from squeezing a
-              column down to a character-per-line (Korean sector labels wrap
-              anywhere otherwise); the company name is truncated instead. */}
-          <table className="w-full min-w-[1080px] border-collapse whitespace-nowrap text-left">
-            <thead className="sticky top-0 z-20 bg-subtle">
-              <tr className="border-b border-line">
-                <th className="w-9 px-3 py-0" />
-                <th className="w-12 px-3 py-0 text-right text-[11px] font-semibold text-ink-faint">
-                  {t("table.rank")}
-                </th>
-                {th("ticker", t("table.stock"), tGlossary("stock"))}
-                {th("sector", t("table.sector"), tGlossary("sector"))}
-                {th("price", t("table.price"), tGlossary("price"), "right")}
-                {th("marketCap", t("table.marketCap"), tGlossary("marketCap"), "right")}
-                {SCORE_AXES.map((axis) => (
-                  <Fragment key={axis}>{th(axis, tAxes(`${axis}.name`), tAxes(`${axis}.tip`), "right")}</Fragment>
-                ))}
-                <th className="px-3 py-0 text-left">
-                  <span className="inline-flex h-9 items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => toggleSort("totalScore")}
-                      className={`group inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.08em] transition-colors hover:text-ink ${
-                        sortKey === "totalScore" ? "text-ink" : "text-ink-faint"
-                      }`}
-                    >
-                      <span>{t("table.total")}</span>
-                      <SortCaret active={sortKey === "totalScore"} dir={sortDir} />
-                    </button>
-                    <InfoTip text={isCustomWeights ? t("weights.customTip") : tGlossary("total")} />
-                    {isCustomWeights && (
-                      <span className="rounded bg-brand/15 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-brand">
-                        {t("weights.customBadge")}
-                      </span>
-                    )}
+      {filtered.length === 0 ? (
+        <div className="rounded-[18px] border border-line bg-surface p-16 text-center text-sm text-ink-faint">{t("noResults")}</div>
+      ) : (
+        <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(272px, 1fr))" }}>
+          {rows.map((s, i) => {
+            const mos = s.intrinsicValue.marginOfSafety;
+            const mosOk = Number.isFinite(mos);
+            const total = effectiveTotal(s);
+            const isBuyCandidate = effectiveBuyCandidate(s);
+            const totalColor = scoreColor(total, 100);
+            return (
+              <div
+                key={s.ticker}
+                role="link"
+                tabIndex={0}
+                onClick={() => goToStock(s.ticker)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") goToStock(s.ticker);
+                }}
+                className="flex cursor-pointer flex-col gap-3.5 rounded-[18px] border border-line bg-surface p-[18px] transition-colors hover:border-brand-border hover:bg-surface-hover"
+              >
+                <div className="flex items-start gap-2.5">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[11px] border border-border-3 bg-surface-4 font-mono text-[11px] font-bold text-ink-muted">
+                    {s.ticker.slice(0, 2)}
                   </span>
-                </th>
-                {th("marginOfSafety", t("table.marginOfSafety"), tGlossary("marginOfSafety"), "right")}
-                <th className="w-10" />
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((s, i) => {
-                const mos = s.intrinsicValue.marginOfSafety;
-                const mosOk = Number.isFinite(mos);
-                const total = effectiveTotal(s);
-                const isBuyCandidate = effectiveBuyCandidate(s);
-                return (
-                  <tr
-                    key={s.ticker}
-                    onClick={() => router.push(`/stock/${s.ticker}`)}
-                    className="cursor-pointer border-b border-line/60 transition-colors last:border-b-0 hover:bg-surface-hover"
-                  >
-                    <td className="px-3 py-2.5">
-                      <FavoriteButton
-                        size="sm"
-                        active={favorites.has(s.ticker)}
-                        title={tFavorite(favorites.has(s.ticker) ? "remove" : "add")}
-                        className="text-ink-faint hover:text-down"
-                        onToggle={() => {
-                          if (isSignedIn === false) {
-                            router.push("/login");
-                            return;
-                          }
-                          toggle(s.ticker, s.price);
-                        }}
-                      />
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-mono text-xs tabular-nums text-ink-faint">
-                      {i + 1}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <div className="flex items-center gap-2.5">
-                        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-md border border-line bg-subtle font-mono text-[10px] font-bold text-ink-muted">
-                          {s.ticker.slice(0, 2)}
-                        </span>
-                        <span className="min-w-0">
-                          <span className="flex items-center gap-1.5">
-                            <Link
-                              href={`/stock/${s.ticker}`}
-                              className="font-mono text-[13px] font-bold text-ink hover:text-brand"
-                            >
-                              {s.ticker}
-                            </Link>
-                            {isBuyCandidate && (
-                              <span className="rounded bg-up/15 px-1 py-px text-[9px] font-bold uppercase tracking-wide text-up">
-                                Buy
-                              </span>
-                            )}
-                          </span>
-                          <span className="block max-w-[190px] truncate text-[11px] text-ink-faint">
-                            {s.companyName}
-                          </span>
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <span className="inline-block rounded border border-line bg-subtle px-1.5 py-0.5 text-[11px] text-ink-muted">
-                        {tSectors(s.sector)}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-mono text-[13px] tabular-nums text-ink">
-                      ${priceFmt.format(s.price)}
-                    </td>
-                    <td className="px-3 py-2.5 text-right font-mono text-[13px] tabular-nums text-ink-muted">
-                      {formatMarketCap(s.marketCap)}
-                    </td>
-                    {SCORE_AXES.map((axis) => {
-                      const v = s.scores[axis];
-                      // Snapshots written before coverage existed report none;
-                      // absent means the axis was scored on everything.
-                      const covered = s.coverage?.[axis] ?? 1;
-                      return (
-                        <td
-                          key={axis}
-                          className="px-3 py-2.5 text-right font-mono text-[13px] font-semibold tabular-nums"
-                          style={{ color: Number.isFinite(v) ? scoreColor(v, 100) : "var(--ink-faint)" }}
-                        >
-                          <span
-                            className={covered < 1 ? "border-b border-dotted border-warn/70 pb-px" : undefined}
-                            title={covered < 1 ? t("table.partialCoverage", { percent: Math.round(covered * 100) }) : undefined}
-                          >
-                            {Number.isFinite(v) ? v.toFixed(0) : "—"}
-                          </span>
-                        </td>
-                      );
-                    })}
-                    <td className="px-3 py-2.5">
-                      <ScoreBar score={total} max={100} strong />
-                    </td>
-                    <td
-                      className="px-3 py-2.5 text-right font-mono text-[13px] font-semibold tabular-nums"
+                  <span className="flex min-w-0 flex-col gap-0.5">
+                    <span className="flex items-center gap-1.5">
+                      <span className="font-mono text-[15px] font-bold text-ink">{s.ticker}</span>
+                      {isBuyCandidate && (
+                        <span className="rounded bg-up/15 px-1 py-px text-[9px] font-extrabold uppercase tracking-wide text-up">Buy</span>
+                      )}
+                    </span>
+                    <span className="block max-w-[150px] truncate text-[11px] text-ink-4">{s.companyName}</span>
+                  </span>
+                  <FavoriteButton
+                    size="sm"
+                    active={favorites.has(s.ticker)}
+                    title={tFavorite(favorites.has(s.ticker) ? "remove" : "add")}
+                    className="ml-auto text-ink-faint hover:text-brand"
+                    onToggle={() => favoriteToggle(s)}
+                  />
+                  <span className="font-mono text-[11px] font-semibold text-ink-6">#{i + 1}</span>
+                </div>
+
+                <div className="flex items-end justify-between">
+                  <span className="flex flex-col gap-0.5">
+                    <span className="text-[10px] font-semibold text-ink-4">{t("table.price")}</span>
+                    <span className="font-mono text-[18px] font-bold tabular-nums text-ink">${priceFmt.format(s.price)}</span>
+                  </span>
+                  <span className="flex flex-col items-end gap-0.5">
+                    <span className="text-[10px] font-semibold text-ink-4">{t("table.marginOfSafety")}</span>
+                    <span
+                      className="font-mono text-[15px] font-bold tabular-nums"
                       style={{ color: mosOk ? (mos > 0 ? "var(--up)" : "var(--down)") : "var(--ink-faint)" }}
                     >
                       {mosOk ? `${mos > 0 ? "+" : ""}${(mos * 100).toFixed(1)}%` : "N/A"}
-                    </td>
-                    <td className="pr-3 text-right">
-                      <svg
-                        viewBox="0 0 20 20"
-                        className="inline h-4 w-4 text-ink-faint"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        aria-hidden="true"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="m8 5 5 5-5 5" />
-                      </svg>
-                    </td>
-                  </tr>
-                );
-              })}
-              {filtered.length === 0 && (
-                <tr>
-                  <td colSpan={14} className="px-4 py-16 text-center text-sm text-ink-faint">
-                    {t("noResults")}
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                    </span>
+                  </span>
+                </div>
 
-        {remaining > 0 && (
-          <div className="border-t border-line bg-subtle/50 p-3 text-center">
-            <button
-              type="button"
-              onClick={() => setVisible((v) => v + PAGE_SIZE)}
-              className="rounded-md border border-line bg-surface px-4 py-2 text-xs font-semibold text-ink-muted transition-colors hover:border-line-strong hover:text-ink"
-            >
-              {t("loadMore", { count: remaining })}
-            </button>
-          </div>
-        )}
-      </div>
+                <div className="flex items-center gap-2.5 border-t border-divider pt-3">
+                  <span className="font-mono text-[22px] font-bold tracking-tight tabular-nums" style={{ color: totalColor }}>
+                    {total.toFixed(1)}
+                  </span>
+                  <span className="block h-1.5 flex-1 overflow-hidden rounded-full bg-border-2">
+                    <span className="block h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, total))}%`, background: totalColor }} />
+                  </span>
+                  <span className="rounded-[6px] border border-border-3 bg-surface-4 px-2 py-0.5 text-[10px] font-semibold text-ink-muted">
+                    {tSectors(s.sector)}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-5 gap-1.5">
+                  {SCORE_AXES.map((axis) => {
+                    const v = s.scores[axis];
+                    const covered = s.coverage?.[axis] ?? 1;
+                    const color = Number.isFinite(v) ? scoreColor(v, 100) : "var(--ink-faint)";
+                    return (
+                      <span key={axis} className="flex flex-col items-center gap-1">
+                        <span
+                          className={`font-mono text-[11px] font-bold tabular-nums ${covered < 1 ? "border-b border-dotted border-warn/70" : ""}`}
+                          style={{ color }}
+                          title={covered < 1 ? t("table.partialCoverage", { percent: Math.round(covered * 100) }) : undefined}
+                        >
+                          {Number.isFinite(v) ? v.toFixed(0) : "—"}
+                        </span>
+                        <span className="block h-[3px] w-full overflow-hidden rounded-full bg-border-2">
+                          <span className="block h-full rounded-full" style={{ width: `${Math.max(0, Math.min(100, v))}%`, background: color }} />
+                        </span>
+                        <span className="text-[9px] text-ink-faint">{tAxes(`${axis}.short`)}</span>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {remaining > 0 && (
+        <div className="flex justify-center pt-1">
+          <button
+            type="button"
+            onClick={() => setVisible((v) => v + PAGE_SIZE)}
+            className="rounded-xl border border-border-3 bg-surface-3 px-[22px] py-[11px] text-xs font-bold text-ink-2 transition-colors hover:text-ink"
+          >
+            {t("loadMore", { count: remaining })}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
