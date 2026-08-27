@@ -23,13 +23,7 @@
     "asOf": "Data as of",
     "asOfEmpty": "Not refreshed yet",
     "sourceFinancials": "Financials: SEC EDGAR",
-    "sourcePrices": "Prices: Yahoo Finance",
-    "weights": "Weight settings",
-    "darkMode": "Dark mode"
-  },
-  "theme": {
-    "toDark": "Switch to dark theme",
-    "toLight": "Switch to light theme"
+    "sourcePrices": "Prices: Yahoo Finance"
   },
   "favorite": {
     "add": "Add to favorites",

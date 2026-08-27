@@ -23,13 +23,7 @@
     "asOf": "데이터 기준일",
     "asOfEmpty": "아직 갱신 전",
     "sourceFinancials": "재무 SEC EDGAR",
-    "sourcePrices": "주가 Yahoo Finance",
-    "weights": "가중치 설정",
-    "darkMode": "다크 모드"
-  },
-  "theme": {
-    "toDark": "다크 모드로 전환",
-    "toLight": "라이트 모드로 전환"
+    "sourcePrices": "주가 Yahoo Finance"
   },
   "favorite": {
     "add": "즐겨찾기 추가",

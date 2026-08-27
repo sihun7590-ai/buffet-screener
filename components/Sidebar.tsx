@@ -56,24 +56,13 @@ export default async function Sidebar() {
         </span>
       </div>
 
-      <div className="mt-auto flex flex-col gap-1">
-        <Link
-          href="/"
-          className="flex items-center gap-2.5 rounded-[11px] px-3 py-2.5 text-[13px] font-semibold text-ink-muted transition-colors hover:bg-[#17171f] hover:text-ink"
-        >
-          <svg viewBox="0 0 20 20" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round">
-            <circle cx="10" cy="10" r="2.6" />
-            <path d="M10 3v2m0 10v2M3 10h2m10 0h2M5.2 5.2l1.4 1.4m6.8 6.8 1.4 1.4m0-9.6-1.4 1.4M6.6 13.4l-1.4 1.4" />
-          </svg>
-          <span>{tSidebar("weights")}</span>
-        </Link>
-        <div className="flex items-center justify-between rounded-[11px] px-3 py-2.5 text-[13px] font-semibold text-ink-muted">
-          <span>{tSidebar("darkMode")}</span>
-          <span className="flex h-[18px] w-8 items-center justify-end rounded-full bg-brand px-[3px]" aria-hidden="true">
-            <span className="block h-3 w-3 rounded-full bg-white" />
-          </span>
-        </div>
-      </div>
+      {/* The foot of the sidebar used to carry two more controls, both removed
+          for the same reason as the stock-detail and account nav items: a
+          "weight settings" link that was an href="/" and opened nothing (the
+          panel is opened by the dashboard's own button), and a "dark mode"
+          switch that was a div with no handler — a toggle left drawn on the
+          page after the redesign deleted ThemeToggle.tsx. A control that looks
+          operable and isn't reads as a broken site, not a missing feature. */}
     </aside>
   );
 }
