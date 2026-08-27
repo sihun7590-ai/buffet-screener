@@ -23,7 +23,12 @@ export default async function Sidebar() {
     : null;
 
   return (
-    <aside className="sticky top-0 flex h-screen w-[236px] shrink-0 flex-col gap-7 overflow-y-auto border-r border-sidebar-border bg-canvas-sidebar p-4">
+    // Hidden below lg, where 236px of fixed chrome would take nearly two
+    // thirds of a 375px phone and leave the screener itself about 140px to
+    // render 500 companies in. The three nav links move to a row under the
+    // header (MobileNav); the data-provenance card below is desktop-only,
+    // since the stock pages carry the same information inline.
+    <aside className="sticky top-0 hidden h-screen w-[236px] shrink-0 flex-col gap-7 overflow-y-auto border-r border-sidebar-border bg-canvas-sidebar p-4 lg:flex">
       <Link href="/" className="flex items-center gap-2.5 px-1.5">
         <span className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-[11px]" style={{ background: "var(--brand-grad)" }}>
           <svg viewBox="0 0 20 20" className="h-[17px] w-[17px]" fill="#fff" aria-hidden="true">

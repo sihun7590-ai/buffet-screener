@@ -67,7 +67,10 @@ export default async function BacktestPage({ params }: { params: Promise<{ local
           {headline && (
             <>
               <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-4">{t("kpi.headline")}</span>
-              <div className="grid gap-3.5" style={{ gridTemplateColumns: "repeat(4, minmax(0,1fr))" }}>
+              {/* Was a hard four columns, which on a phone squeezed each KPI
+                  into about 80px — a 26px figure wrapping onto three lines.
+                  Two columns on a phone, four once there's room. */}
+              <div className="grid grid-cols-2 gap-3.5 lg:grid-cols-4">
                 <div className="flex flex-col gap-2 rounded-[18px] border border-line bg-surface p-[18px]">
                   <span className="text-[11px] font-semibold text-ink-4">{t("kpi.totalReturn")}</span>
                   <span className="font-mono text-[26px] font-bold tabular-nums" style={{ color: headline.totalReturn >= 0 ? "var(--up)" : "var(--down)" }}>

@@ -88,6 +88,11 @@ npm run backtest   # data/backtest.json 재생성
   무엇을 하는지는 코드가 말하고, 주석은 그 선택을 한 이유·버린 대안·실제로 터졌던 사례를 적습니다.
 - 사용자에게 보이는 모든 문구는 `messages/ko.json` + `messages/en.json` 양쪽에 넣습니다. 하드코딩 금지.
 - 서버 컴포넌트가 기본. `"use client"`는 상태·이벤트·브라우저 API가 실제로 필요할 때만.
+- **고정 픽셀 폭에는 반드시 반응형 접두사를 붙이세요.** `w-[236px]`처럼 접두사 없는 폭 하나가
+  375px 화면의 63%를 먹은 적이 있습니다 (사이드바, TASKS M1). 넓은 표는 `overflow-x-auto`로 감싸고,
+  열이 여러 개인 그리드는 `grid-cols-2 lg:grid-cols-4`처럼 단계를 두거나 `auto-fit + minmax`를 쓰세요.
+- 브레이크포인트: `sm` 640px · `lg` 1024px. **사이드바는 `lg` 미만에서 숨고**
+  내비는 `components/MobileNav.tsx`의 가로줄로 옮겨갑니다. 내비 항목은 `components/navItems.ts` 한 곳에만 있습니다.
 - 외부 fetch는 실패해도 페이지 전체가 죽지 않게 합니다 (`try/catch` 후 빈 값 반환 — `lib/news.ts` 패턴).
 
 ## 배포

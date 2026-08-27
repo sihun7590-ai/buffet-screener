@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import Sidebar from "@/components/Sidebar";
 import SiteHeader from "@/components/SiteHeader";
+import MobileNav from "@/components/MobileNav";
 import "../globals.css";
 
 const manrope = Manrope({
@@ -50,6 +51,7 @@ export default async function LocaleLayout({
           <Sidebar />
           <div className="flex min-w-0 flex-1 flex-col">
             <SiteHeader />
+            <MobileNav />
             {children}
           </div>
         </NextIntlClientProvider>

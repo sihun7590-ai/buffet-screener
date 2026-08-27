@@ -47,7 +47,11 @@ export default function HeaderSearch() {
   };
 
   return (
-    <div className="relative min-w-[200px] flex-1 max-w-[380px]">
+    // min-w-0 rather than a floor: a flex item defaults to min-width:auto and
+    // refuses to shrink below its content, which on a 375px header pushed the
+    // account controls off the right edge. The field is a typeahead, so a
+    // narrow box is still usable — the results list is full width regardless.
+    <div className="relative min-w-0 flex-1 sm:max-w-[380px]">
       <svg
         viewBox="0 0 20 20"
         className="pointer-events-none absolute left-[13px] top-1/2 h-[15px] w-[15px] -translate-y-1/2 text-ink-faint"
@@ -91,8 +95,13 @@ export default function HeaderSearch() {
         &#8984;K
       </span>
 
+      {/* The list is anchored to the field but not bound to its width. Once the
+          field shrinks to ~110px on a phone, inheriting that width truncates
+          every company name to a few characters; growing rightwards from the
+          field's left edge keeps the results readable and still lands well
+          inside a 375px screen. */}
       {open && results.length > 0 && (
-        <ul className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-[11px] border border-line-strong bg-surface shadow-[0_12px_32px_rgba(0,0,0,0.5)]">
+        <ul className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 min-w-[240px] overflow-hidden rounded-[11px] border border-line-strong bg-surface shadow-[0_12px_32px_rgba(0,0,0,0.5)] sm:min-w-0">
           {results.map((r, i) => (
             <li key={r.ticker}>
               <button
