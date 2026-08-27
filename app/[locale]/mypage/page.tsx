@@ -4,11 +4,17 @@ import Panel from "@/components/Panel";
 import BackToListLink from "@/components/BackToListLink";
 import MyFavoritesList, { type MyFavoriteRow } from "@/components/MyFavoritesList";
 import WatchlistAlerts from "@/components/WatchlistAlerts";
+import PortfolioPanel from "@/components/PortfolioPanel";
+import ThesisBreakerPanel from "@/components/ThesisBreakerPanel";
+import AlertSettingsPanel from "@/components/AlertSettingsPanel";
 import { createClient } from "@/lib/supabase/server";
-import { getScoreByTicker } from "@/lib/store";
+import { getScoreByTicker, readScores } from "@/lib/store";
 import { fetchPriceHistory } from "@/lib/price";
 import { fetchScoreHistoryForTickers } from "@/lib/scoreHistoryQuery";
-import { detectAlerts, groupAlertsByTicker, type StockAlert } from "@/lib/alerts";
+import { detectAlerts, groupAlertsByTicker, normalizeAlertSettings, type StockAlert } from "@/lib/alerts";
+import { summarizePortfolio, type Holding } from "@/lib/portfolio";
+import { checkPortfolioBreakers, type BreakerRule } from "@/lib/thesisBreakers";
+import type { StockScore } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -39,10 +45,50 @@ export default async function MyPage() {
     );
   }
 
-  const { data: favRows } = await supabase
-    .from("favorites")
-    .select("ticker, price_at_favorite, favorited_at")
-    .order("favorited_at", { ascending: false });
+  // One round trip for everything this page needs from Postgres. RLS scopes
+  // each of these to the signed-in user, so none of them carries a user filter.
+  //
+  // The three tables from migration 004 are read defensively. supabase-js
+  // reports a missing table as an error object rather than throwing, so a
+  // project where the migration hasn't been run yet gets null here, falls
+  // through to empty lists below, and renders the empty states — the watchlist
+  // it already had keeps working instead of the page 500ing.
+  const [{ data: favRows }, { data: holdingRows }, { data: breakerRows }, { data: settingsRow }] = await Promise.all([
+    supabase.from("favorites").select("ticker, price_at_favorite, favorited_at").order("favorited_at", { ascending: false }),
+    supabase.from("holdings").select("ticker, shares, average_cost, note").order("ticker"),
+    supabase.from("thesis_breakers").select("id, metric, op, value").order("created_at"),
+    supabase
+      .from("alert_settings")
+      .select("total_threshold, axis_threshold, price_drop_threshold, lookback_days")
+      .maybeSingle(),
+  ]);
+
+  // A user who has never opened the settings has no row, which is not an error
+  // — normalizeAlertSettings turns null into exactly the shipped defaults.
+  const alertSettings = normalizeAlertSettings(
+    settingsRow
+      ? {
+          totalThreshold: settingsRow.total_threshold,
+          axisThreshold: settingsRow.axis_threshold,
+          priceDropThreshold: settingsRow.price_drop_threshold,
+          lookbackDays: settingsRow.lookback_days,
+        }
+      : null,
+  );
+
+  const holdings: Holding[] = (holdingRows ?? []).map((h) => ({
+    ticker: h.ticker,
+    shares: h.shares,
+    averageCost: h.average_cost,
+    note: h.note,
+  }));
+
+  const breakerRules: BreakerRule[] = (breakerRows ?? []).map((b) => ({
+    id: b.id,
+    metric: b.metric,
+    op: b.op as BreakerRule["op"],
+    value: b.value,
+  }));
 
   const rows: MyFavoriteRow[] = await Promise.all(
     (favRows ?? []).map(async (f) => {
@@ -80,9 +126,40 @@ export default async function MyPage() {
         history: history.get(row.ticker) ?? [],
         priceAtFavorite: row.priceAtFavorite,
         currentPrice: row.currentPrice,
+        settings: alertSettings,
       });
     }),
   );
+
+  // Live prices were already fetched for the favourites above; holdings reuse
+  // them where the ticker overlaps and only fetch what's left.
+  const favouritePrices = new Map(rows.map((r) => [r.ticker, r.currentPrice]));
+  const holdingPrices = new Map<string, number>(
+    await Promise.all(
+      holdings.map(async (h): Promise<[string, number]> => {
+        const known = favouritePrices.get(h.ticker);
+        if (Number.isFinite(known ?? NaN)) return [h.ticker, known!];
+        try {
+          return [h.ticker, (await fetchPriceHistory(h.ticker)).currentPrice];
+        } catch {
+          // Falls back to the snapshot price inside summarizePortfolio.
+          return [h.ticker, NaN];
+        }
+      }),
+    ),
+  );
+
+  const scoresByTicker = new Map<string, StockScore>(readScores().scores.map((s) => [s.ticker, s]));
+  const portfolio = summarizePortfolio(holdings, scoresByTicker, (ticker) => holdingPrices.get(ticker) ?? NaN);
+
+  // Breakers watch everything the user has expressed an interest in — held and
+  // merely favourited alike. Someone tracking a company they haven't bought yet
+  // still wants to know the moment the reason to buy it stopped applying.
+  const watchedTickers = [...new Set([...holdings.map((h) => h.ticker), ...rows.map((r) => r.ticker)])];
+  const watchedScores = watchedTickers.map((tk) => scoresByTicker.get(tk)).filter((s): s is StockScore => s !== undefined);
+  const firedBreakers = checkPortfolioBreakers(watchedScores, breakerRules);
+
+  const knownTickers = [...scoresByTicker.keys()].sort();
 
   const avgScore = rows.length
     ? rows.map((r) => r.totalScore).filter(Number.isFinite).reduce((sum, v, _, arr) => sum + v / arr.length, 0)
@@ -116,7 +193,17 @@ export default async function MyPage() {
         </div>
       )}
 
+      <PortfolioPanel summary={portfolio} userId={user.id} knownTickers={knownTickers} />
+
+      <ThesisBreakerPanel
+        rules={breakerRules}
+        fired={firedBreakers}
+        userId={user.id}
+        watchedCount={watchedScores.length}
+      />
+
       {rows.length > 0 && <WatchlistAlerts alerts={alerts} />}
+      <AlertSettingsPanel settings={alertSettings} userId={user.id} />
       <MyFavoritesList userId={user.id} initialRows={rows} />
     </main>
   );

@@ -94,6 +94,106 @@
       "change": "Change",
       "favoritedAt": "Favorited",
       "remove": "Remove from favorites"
+    },
+    "portfolio": {
+      "title": "My Portfolio",
+      "tip": "A watchlist says \"I'm following this\"; a portfolio says \"this much of my money is in it\". Those are different questions — a 12% loss on a 2% position and the same loss on a 40% position are not the same event, and nothing here could tell them apart before. Enter shares and average cost and the market value, return, weight and sector exposure become real numbers.",
+      "addPosition": "+ Add position",
+      "cancel": "Cancel",
+      "save": "Save",
+      "edit": "Edit",
+      "remove": "Remove",
+      "empty": "No positions yet. Use \"Add position\" above to start.",
+      "upsertNote": "Saving a ticker you already hold replaces the existing row. Lot-level tracking is a separate feature for tax reporting and isn't handled here.",
+      "unknownSector": "Unclassified",
+      "sectorExposure": "Sector exposure",
+      "axisProfile": "Portfolio axis profile",
+      "axisProfileTip": "Each company's axis scores weighted by its share of the portfolio's market value — not a plain average, which would give a $200 leftover position the same say as one that is 90% of the account.",
+      "unscored": "{tickers} aren't in the current snapshot, so they can't be scored. They count toward market value but are excluded from the weighted scores.",
+      "note": "Current price is the live quote where it could be fetched, and the last batch price where it couldn't. Taxes, commissions and dividends are not reflected.",
+      "fields": {
+        "ticker": "Ticker",
+        "shares": "Shares",
+        "averageCost": "Average cost",
+        "note": "Note",
+        "notePlaceholder": "e.g. bought in tranches through the 2024 selloff"
+      },
+      "errors": {
+        "tickerRequired": "Enter a ticker.",
+        "unknownTicker": "{ticker} isn't in this screener's universe (S&P 500).",
+        "sharesPositive": "Shares must be greater than zero.",
+        "costNonNegative": "Average cost can't be negative."
+      },
+      "summary": {
+        "marketValue": "Market value",
+        "costBasis": "Cost basis",
+        "gain": "Gain / loss",
+        "weightedScore": "Weighted score",
+        "weightedScoreTip": "Each holding's total score weighted by its share of market value. Holdings that can't be scored are left out entirely and the rest renormalised, rather than counted as zero."
+      },
+      "columns": {
+        "position": "Position",
+        "shares": "Shares",
+        "averageCost": "Avg cost",
+        "currentPrice": "Price",
+        "marketValue": "Value",
+        "gain": "Return",
+        "weight": "Weight",
+        "score": "Score"
+      }
+    },
+    "breakers": {
+      "title": "Thesis Breakers",
+      "tip": "This is not a price alert. A share falling 30% is something your broker already tells you, and it says nothing about whether the business changed. This watches the other thing: conditions you decided in advance would undo your reasoning, checked against the company's current numbers every time you open this page. The rules take the same form as the screen builder on the dashboard.",
+      "rulesTitle": "Rules",
+      "noRules": "No rules",
+      "watching": "{rules} rules · watching {count} companies",
+      "empty": "No rules yet. Load the defaults or add your own below. Rules apply to everything you hold and everything you've favorited.",
+      "loadDefaults": "Load default rules",
+      "addPrefix": "Rule",
+      "addRule": "Add",
+      "removeRule": "Delete {rule}",
+      "allClear": "Nothing has broken across the {count} companies being watched.",
+      "brokenCount": "{count} broken",
+      "ruleWas": "rule: {rule}",
+      "unmeasurable": "{count} rules couldn't be checked — this company's filing doesn't carry those figures.",
+      "note": "Nothing breaking doesn't mean nothing is wrong. These are the rules you set, checked against figures as of the last batch run.",
+      "errors": {
+        "valueRequired": "Enter a threshold.",
+        "duplicate": "That rule already exists."
+      }
+    },
+    "alertSettings": {
+      "title": "Alert thresholds",
+      "tip": "What counts as a change depends on how closely you're watching — someone holding six companies wants a finer setting than someone scanning sixty. Changing these recomputes the watchlist alerts above.",
+      "adjust": "Adjust",
+      "close": "Close",
+      "save": "Save",
+      "reset": "Reset to defaults",
+      "current": "Current — total {total} pts · single axis {axis} pts · price down {price}% · compared against {days} days ago",
+      "note": "Defaults are 5 points total, 12 per axis, a 25% price fall, and 30 days. Thirty days is roughly the gap between quarterly filings landing; anything tighter mostly reports the share price nudging the valuation axis around.",
+      "fields": {
+        "totalThreshold": {
+          "label": "Total score",
+          "unit": "pts",
+          "tip": "Report a move of at least this many points in the total score. Lower means more alerts."
+        },
+        "axisThreshold": {
+          "label": "Single axis",
+          "unit": "pts",
+          "tip": "Report a move of at least this many points in any one of the five axes. Catches a business whose quality is eroding while the total holds steady."
+        },
+        "priceDropThreshold": {
+          "label": "Price drop",
+          "unit": "%",
+          "tip": "Report a fall of at least this much from the price when you favorited it. Falls only — a rally is already reported from the other direction by the margin-of-safety alerts."
+        },
+        "lookbackDays": {
+          "label": "Compare against",
+          "unit": "days",
+          "tip": "How far back to compare. Uses the most recent record older than this."
+        }
+      }
     }
   },
   "dashboard": {

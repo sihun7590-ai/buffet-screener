@@ -66,6 +66,14 @@ npm run backtest   # data/backtest.json 재생성
   (`bg-surface`, `text-ink-muted`, `border-line`, ...)으로 정의하고 컴포넌트는 토큰 유틸리티만 씁니다.
   (현재 일부 그라디언트만 예외적으로 인라인 — TASKS.md 참고)
 
+## 조건/지표를 추가할 때
+
+- 스크리너 조건 검색(`lib/strategy.ts`)과 Thesis Breaker(`lib/thesisBreakers.ts`)는
+  **하나의 지표 레지스트리(`STRATEGY_METRICS`)를 공유**합니다. 지표를 추가하면 양쪽에 동시에 생깁니다.
+  레지스트리를 복제하지 마세요 — 갈라지는 순간 같은 규칙이 두 곳에서 다른 뜻을 갖게 됩니다.
+- 값의 단위는 **표시 단위**로 통일돼 있습니다 (퍼센트는 0.15가 아니라 15, 시가총액은 십억 달러).
+  DB에도 표시 단위로 저장합니다. 한쪽만 바꾸면 100배 틀린 규칙이 조용히 만들어집니다.
+
 ## 스코어링을 건드릴 때
 
 - 계산식을 바꾸면 `lib/scoring.ts`의 `SCORING_VERSION`을 **반드시** 올리세요.

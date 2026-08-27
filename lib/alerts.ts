@@ -50,18 +50,57 @@ const magnitude = (a: StockAlert) => (RATIO_KINDS.has(a.kind) ? Math.abs(a.delta
 
 const DAY = 86_400_000;
 
-// Compare against the newest point at least this old. A month is roughly the
-// gap between quarterly filings landing, which is what actually moves these
-// scores; anything tighter would mostly report the share price nudging the
-// valuation axis around.
-const MIN_LOOKBACK_DAYS = 30;
+// The comparison point is the newest one at least `lookbackDays` old. A month
+// is roughly the gap between quarterly filings landing, which is what actually
+// moves these scores; anything tighter would mostly report the share price
+// nudging the valuation axis around. Below the thresholds, a change is noise —
+// prices move every axis a little through the valuation criteria, and flagging
+// every wobble trains people to ignore the panel entirely.
+//
+// These are defaults now rather than constants: what counts as noise depends on
+// how closely someone is watching, and a person holding six companies wants a
+// finer setting than one scanning sixty. A signed-in user's saved values come
+// from public.alert_settings (migration 004); everyone else, and every caller
+// that doesn't care, gets exactly the numbers this shipped with.
+export interface AlertSettings {
+  /** Points of total-score movement worth reporting. */
+  totalThreshold: number;
+  /** Points of single-axis movement worth reporting. */
+  axisThreshold: number;
+  /** Decimal — 0.25 is a 25% fall from the entry price. */
+  priceDropThreshold: number;
+  /** How far back to compare against, in days. */
+  lookbackDays: number;
+}
 
-// Below these, the change is noise — prices move every axis a little through
-// the valuation criteria, and flagging every wobble trains people to ignore
-// the panel entirely.
-const TOTAL_THRESHOLD = 5;
-const AXIS_THRESHOLD = 12;
-const PRICE_DROP_THRESHOLD = 0.25;
+export const DEFAULT_ALERT_SETTINGS: AlertSettings = {
+  totalThreshold: 5,
+  axisThreshold: 12,
+  priceDropThreshold: 0.25,
+  lookbackDays: 30,
+};
+
+// Guard rails for values arriving from the database. A zero or negative
+// threshold would fire on every company on every load, which is indistinguishable
+// from the feature being broken.
+export function normalizeAlertSettings(partial: Partial<AlertSettings> | null | undefined): AlertSettings {
+  const d = DEFAULT_ALERT_SETTINGS;
+  const positive = (v: unknown, fallback: number, max: number) =>
+    typeof v === "number" && Number.isFinite(v) && v > 0 && v <= max ? v : fallback;
+  return {
+    totalThreshold: positive(partial?.totalThreshold, d.totalThreshold, 100),
+    axisThreshold: positive(partial?.axisThreshold, d.axisThreshold, 100),
+    // Strictly under 1: a 100% fall is a delisting, not an alert threshold.
+    priceDropThreshold:
+      typeof partial?.priceDropThreshold === "number" &&
+      Number.isFinite(partial.priceDropThreshold) &&
+      partial.priceDropThreshold > 0 &&
+      partial.priceDropThreshold < 1
+        ? partial.priceDropThreshold
+        : d.priceDropThreshold,
+    lookbackDays: positive(partial?.lookbackDays, d.lookbackDays, 3650),
+  };
+}
 
 export interface AlertInput {
   score: StockScore;
@@ -69,6 +108,7 @@ export interface AlertInput {
   priceAtFavorite?: number;
   currentPrice?: number;
   now?: Date;
+  settings?: AlertSettings;
 }
 
 /**
@@ -88,7 +128,15 @@ function pointBefore(history: ScoreHistoryPoint[], days: number, now: Date): Sco
   return best;
 }
 
-export function detectAlerts({ score, history, priceAtFavorite, currentPrice, now = new Date() }: AlertInput): StockAlert[] {
+export function detectAlerts({
+  score,
+  history,
+  priceAtFavorite,
+  currentPrice,
+  now = new Date(),
+  settings = DEFAULT_ALERT_SETTINGS,
+}: AlertInput): StockAlert[] {
+  const { totalThreshold, axisThreshold, priceDropThreshold, lookbackDays } = settings;
   const alerts: StockAlert[] = [];
   const base = (kind: AlertKind, severity: AlertSeverity, from: number, to: number, since: ScoreHistoryPoint) => ({
     ticker: score.ticker,
@@ -101,7 +149,7 @@ export function detectAlerts({ score, history, priceAtFavorite, currentPrice, no
     sinceBackfilled: since.isBackfilled,
   });
 
-  const reference = pointBefore(history, MIN_LOOKBACK_DAYS, now);
+  const reference = pointBefore(history, lookbackDays, now);
 
   if (reference) {
     // A score computed under a different formula version differs partly
@@ -128,7 +176,7 @@ export function detectAlerts({ score, history, priceAtFavorite, currentPrice, no
       }
 
       const totalDelta = score.totalScore - reference.total;
-      if (Math.abs(totalDelta) >= TOTAL_THRESHOLD) {
+      if (Math.abs(totalDelta) >= totalThreshold) {
         alerts.push(
           base(totalDelta < 0 ? "totalDrop" : "totalRise", totalDelta < 0 ? "warn" : "info", reference.total, score.totalScore, reference),
         );
@@ -139,7 +187,7 @@ export function detectAlerts({ score, history, priceAtFavorite, currentPrice, no
         const after = score.scores[axis];
         if (!Number.isFinite(before) || !Number.isFinite(after)) continue;
         const delta = after - before;
-        if (Math.abs(delta) < AXIS_THRESHOLD) continue;
+        if (Math.abs(delta) < axisThreshold) continue;
         alerts.push({ ...base(delta < 0 ? "axisDrop" : "axisRise", delta < 0 ? "warn" : "info", before, after, reference), axis });
       }
     }
@@ -158,7 +206,7 @@ export function detectAlerts({ score, history, priceAtFavorite, currentPrice, no
     Number.isFinite(currentPrice ?? NaN)
   ) {
     const change = (currentPrice! - priceAtFavorite) / priceAtFavorite;
-    if (change <= -PRICE_DROP_THRESHOLD) {
+    if (change <= -priceDropThreshold) {
       alerts.push({
         ticker: score.ticker,
         kind: "priceDrop",

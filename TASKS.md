@@ -44,9 +44,32 @@ Phase 3·4는 이번 범위 밖입니다. 뺀 이유는 ROADMAP에 적혀 있습
 
 ### Phase 2 — Supabase 스키마 추가
 
-- [ ] **P2-5. Portfolio Tracking** — 보유수량·평균단가
-- [ ] **P2-6. Thesis Breaker 사용자 정의**
-- [ ] **P2-7. Alert 임계값 사용자 설정**
+> ⚠️ **이 세 기능은 [`supabase/migrations/004_portfolio_alerts_breakers.sql`](supabase/migrations/004_portfolio_alerts_breakers.sql)을
+> Supabase SQL Editor에서 실행해야 동작합니다.** 실행 전에는 빈 상태로 표시되고 저장이 실패하며,
+> **기존 관심종목 기능은 그대로 동작합니다** (테이블 부재를 에러 객체로 받아 빈 배열로 처리 — `mypage/page.tsx`).
+
+- [x] **P2-5. Portfolio Tracking** — `lib/portfolio.ts` + `components/PortfolioPanel.tsx` + `holdings` 테이블
+  - 보유수량·평균단가·메모 → 평가금액 · 수익률 · **비중** · 섹터 노출 · 포트폴리오 5축 프로필
+  - 관심종목과 **별도 테이블**. 관심종목은 "지켜본다", 보유는 "돈이 들어가 있다" — 섞으면 평가금액에 구경만 한 종목이 들어감
+  - 축 프로필은 **평가금액 가중평균** (단순평균이면 자투리 종목이 90% 종목과 같은 무게를 가짐)
+  - 점수 없는 종목은 0점이 아니라 **아예 제외 후 나머지 재정규화**
+  - 현재가: 실시간 조회 → 실패 시 스냅샷 가격 → 그것도 없으면 매입단가
+  - 검증: 비중 합 1.0, 섹터 비중 합 1.0, 빈 포트폴리오 0 나눗셈 없음, 미등록 티커 폴백 전부 통과
+
+- [x] **P2-6. Thesis Breaker 사용자 정의** — `lib/thesisBreakers.ts` + `components/ThesisBreakerPanel.tsx` + `thesis_breakers` 테이블
+  - **조건 형식이 P1-4 조건 검색과 동일** (`lib/strategy.ts`의 지표 레지스트리를 그대로 재사용)
+    → 지표를 추가하면 양쪽에 동시에 생기고, 규칙 하나가 두 곳에서 같은 뜻을 가짐
+  - 보유 종목 + 관심종목 **전체**에 적용. 위반 개수 많은 순 정렬
+  - **"측정 불가"를 따로 표시** — 데이터가 없어서 안 걸린 것과 괜찮아서 안 걸린 것은 화면상 구분이 안 되므로
+  - 기본 규칙 5종 제공 (전체 498종목 중 294개에서 발동 — 워치리스트용 "확인해보라" 신호이지 매도 신호가 아님. INTC가 5개 전부 위반)
+  - ⚠️ 규칙은 **사용자 전역**. 종목별 개별 규칙은 별도 UI가 필요해 넣지 않음
+
+- [x] **P2-7. Alert 임계값 사용자 설정** — `lib/alerts.ts` 파라미터화 + `components/AlertSettingsPanel.tsx` + `alert_settings` 테이블
+  - 하드코딩 상수 4개(`TOTAL_THRESHOLD` 등) → `AlertSettings` 인터페이스 + `DEFAULT_ALERT_SETTINGS`
+  - `normalizeAlertSettings()`가 DB 값을 방어 — 0·음수·NaN·1 이상 비율·비현실적 값은 전부 기본값으로 되돌림
+    (임계값 0이면 매 로드마다 전 종목 발동 = 기능 고장과 구분 불가)
+  - 설정 행이 없는 사용자는 **기존과 완전히 동일한 기본값** (종합 5점 · 축 12점 · 주가 25% · 30일)
+  - 검증: 8가지 경계 입력 전부 의도대로 처리
 
 ---
 

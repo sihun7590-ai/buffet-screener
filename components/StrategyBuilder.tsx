@@ -8,9 +8,9 @@ import {
   STRATEGY_METRICS,
   isValidSavedStrategies,
   type Condition,
-  type Operator,
   type SavedStrategy,
 } from "@/lib/strategy";
+import ConditionControls from "./ConditionControls";
 import InfoTip from "./InfoTip";
 
 // Same reasoning as the weight sliders' storage: a screen someone is trying out
@@ -39,7 +39,6 @@ export default function StrategyBuilder({
   missingData: number;
 }) {
   const t = useTranslations("dashboard.strategy");
-  const tMetric = useTranslations("dashboard.strategy.metric");
 
   const [saved, setSaved] = useState<SavedStrategy[]>([]);
   const [loaded, setLoaded] = useState(false);
@@ -95,12 +94,6 @@ export default function StrategyBuilder({
     setName("");
   };
 
-  const unitSuffix = (metricId: string) => {
-    const m = METRIC_BY_ID.get(metricId);
-    if (!m) return "";
-    return t(`unit.${m.unit}`);
-  };
-
   return (
     <div className="rounded-[18px] border border-line bg-surface p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -146,38 +139,14 @@ export default function StrategyBuilder({
               <span className="w-8 shrink-0 text-[10px] font-bold uppercase tracking-[0.08em] text-ink-faint">
                 {i === 0 ? t("where") : t("and")}
               </span>
-              <select
-                value={c.metric}
-                onChange={(e) => changeMetric(c.key, e.target.value)}
-                aria-label={t("metricLabel")}
-                className="h-9 min-w-[150px] flex-1 rounded-[10px] border border-line-strong bg-surface-3 px-2.5 text-[12px] text-ink"
-              >
-                {STRATEGY_METRICS.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {tMetric(m.id)}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={c.op}
-                onChange={(e) => update(c.key, { op: e.target.value as Operator })}
-                aria-label={t("operatorLabel")}
-                className="h-9 w-[62px] shrink-0 rounded-[10px] border border-line-strong bg-surface-3 px-2 text-center font-mono text-[13px] text-ink"
-              >
-                <option value="gte">≥</option>
-                <option value="lte">≤</option>
-              </select>
-              <span className="flex h-9 shrink-0 items-center rounded-[10px] border border-line-strong bg-surface-3 pr-2.5">
-                <input
-                  type="number"
-                  value={Number.isFinite(c.value) ? c.value : ""}
-                  onChange={(e) => update(c.key, { value: Number(e.target.value) })}
-                  aria-label={t("valueLabel")}
-                  step="any"
-                  className="h-full w-[76px] bg-transparent px-2.5 text-right font-mono text-[13px] tabular-nums text-ink outline-none"
-                />
-                <span className="font-mono text-[11px] text-ink-faint">{unitSuffix(c.metric)}</span>
-              </span>
+              <ConditionControls
+                metric={c.metric}
+                op={c.op}
+                value={c.value}
+                onMetricChange={(metric) => changeMetric(c.key, metric)}
+                onOpChange={(op) => update(c.key, { op })}
+                onValueChange={(value) => update(c.key, { value })}
+              />
               <button
                 type="button"
                 onClick={() => remove(c.key)}
