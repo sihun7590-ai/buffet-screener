@@ -18,10 +18,8 @@
   },
   "sidebar": {
     "dashboard": "Screener",
-    "stockDetail": "Stock Detail",
     "backtest": "Backtest",
     "myPage": "My Watchlist",
-    "account": "Account",
     "asOf": "Data as of",
     "asOfEmpty": "Not refreshed yet",
     "sourceFinancials": "Financials: SEC EDGAR",

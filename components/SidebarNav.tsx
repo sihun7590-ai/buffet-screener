@@ -3,31 +3,23 @@
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 
-// Icon paths and routes lifted straight from the design handoff's nav list —
-// see design_handoff_screener_redesign/README.md "Sidebar" section.
+// Icon paths and routes from the design handoff's nav list — see
+// design_handoff_screener_redesign/README.md "Sidebar" section.
+//
+// Two of the handoff's five entries are gone, both because they had nowhere to
+// go. "Stock detail" pointed at "/" since there is no canonical detail route,
+// so it lit up on a stock page and sent you to the dashboard from anywhere
+// else. "Account" pointed at /login, which every visitor has already passed —
+// proxy.ts gates the whole site — and signing out lives in the header. A nav
+// item that cannot take you somewhere new is a button that lies.
 const ITEMS = [
   { id: "dashboard", href: "/", icon: "M3.5 10 10 4l6.5 6M5.5 9v7h9V9", match: (p: string) => p === "/" },
-  {
-    id: "stockDetail",
-    // No single canonical "detail" route to link to — this only lights up
-    // while already on a stock page; clicking it from elsewhere sends you to
-    // the dashboard to pick one, which is the nearest sensible fallback.
-    href: "/",
-    icon: "M3.5 15.5 7.5 9l3 3L16.5 4",
-    match: (p: string) => p.startsWith("/stock/"),
-  },
   { id: "backtest", href: "/backtest", icon: "M4 16V8m4 8V4m4 12v-6m4 6V6", match: (p: string) => p.startsWith("/backtest") },
   {
     id: "myPage",
     href: "/mypage",
     icon: "M10 16.5S3.8 12.4 3.8 8A3.6 3.6 0 0 1 10 5.6 3.6 3.6 0 0 1 16.2 8c0 4.4-6.2 8.5-6.2 8.5Z",
     match: (p: string) => p.startsWith("/mypage"),
-  },
-  {
-    id: "account",
-    href: "/login",
-    icon: "M10 4.5a2.8 2.8 0 1 1 0 5.6 2.8 2.8 0 0 1 0-5.6ZM4.5 16.5c0-3 2.5-4.4 5.5-4.4s5.5 1.4 5.5 4.4",
-    match: (p: string) => p.startsWith("/login"),
   },
 ] as const;
 

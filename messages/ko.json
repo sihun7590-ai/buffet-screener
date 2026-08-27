@@ -18,10 +18,8 @@
   },
   "sidebar": {
     "dashboard": "스크리너",
-    "stockDetail": "종목 상세",
     "backtest": "백테스트",
     "myPage": "MY 관심종목",
-    "account": "계정",
     "asOf": "데이터 기준일",
     "asOfEmpty": "아직 갱신 전",
     "sourceFinancials": "재무 SEC EDGAR",
