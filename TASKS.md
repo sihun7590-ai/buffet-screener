@@ -114,12 +114,12 @@ Phase 3·4는 이번 범위 밖입니다. 뺀 이유는 ROADMAP에 적혀 있습
   - 영향 범위: `lib/types.ts`, `lib/sec.ts` (import 및 5개 지역변수)
   - 순수 리네이밍 — 동작 무변화, `SCORING_VERSION` 불필요
 
-- [ ] **T6. `useTheme.ts` 유명무실** — `components/useTheme.ts`
-  - 리디자인에서 `ThemeToggle.tsx` 삭제 + layout의 인라인 테마 스크립트 제거
-  - 결과: `data-theme`를 **쓰는 코드가 없어** `useTheme()`은 항상 `"dark"` 반환, `applyTheme()`는 호출자 0
-  - 주석은 아직 존재하지 않는 토글을 설명 중 (`useTheme.ts:7-10`, `:21-22`)
-  - **버그 아님** — `TradingViewChart`가 "dark"를 받는 결과는 맞음
-  - 선택지: (a) 주석만 현실에 맞게 고침 (b) 훅을 지우고 `TradingViewChart`에 "dark" 상수 (c) 그대로 둠
+- [x] **T6. `useTheme.ts` 제거 완료** (2026-08-27) — 위 (b)안 채택
+  - `components/useTheme.ts` **파일 삭제**. `TradingViewChart`가 `CHART_THEME = "dark"` 상수를 직접 사용
+  - 그 훅은 아무도 쓰지 않는 `data-theme` 속성을 `MutationObserver`로 구독하고 있었음 (항상 `"dark"` 반환)
+  - `theme`가 effect 의존성 배열에서도 빠짐 — 값이 변한 적이 없으므로 동작 무변화
+  - 라이트 테마가 돌아올 경우 어디에 다시 연결하면 되는지 `TradingViewChart.tsx:38-44` 주석에 기록
+  - 확인: 저장소 전체에 `useTheme`/`applyTheme` 참조 0건, `data-theme`은 설명용 주석 2곳만 남음
 
 - [x] **T15. 사이드바의 죽은 컨트롤 정리 완료** (2026-08-27)
   - 제거: **종목상세**(`href="/"`, 정식 상세 경로 없음) · **계정**(`/login`, 사이트 전체가 이미 로그인 게이트 뒤)

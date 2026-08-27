@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { useTheme } from "./useTheme";
 import ChartUnavailable from "./ChartUnavailable";
 
 declare global {
@@ -34,8 +33,17 @@ function loadTradingViewScript(): Promise<void> {
 
 // Embeds TradingView's free "Advanced Chart" widget — gives us daily/weekly/
 // monthly candles and a full drawing toolbar (trend lines, channels,
-// Fibonacci, ...) for free, without building any of that ourselves. The
-// widget can't restyle itself after creation, so a theme switch rebuilds it.
+// Fibonacci, ...) for free, without building any of that ourselves.
+//
+// The theme is the literal "dark" because app/globals.css defines exactly one
+// palette. This used to read a `data-theme` attribute through a useTheme hook,
+// which kept returning "dark" forever after the redesign removed the toggle
+// that wrote it — a subscription to an attribute nobody sets. If a light theme
+// comes back, this constant and the token reads in the effect below are where
+// it hooks in; the widget can't restyle itself after creation, so whatever
+// feeds it has to go in the effect's dependencies to force a rebuild.
+const CHART_THEME = "dark";
+
 export default function TradingViewChart({
   symbol,
   locale = "en",
@@ -47,7 +55,6 @@ export default function TradingViewChart({
 }) {
   const containerId = `tv-chart-${useId().replace(/:/g, "")}`;
   const containerRef = useRef<HTMLDivElement>(null);
-  const theme = useTheme();
   const [failed, setFailed] = useState(false);
   // Bumping this re-runs the effect, which is what "try again" needs: the
   // loader clears its cached promise on failure, so a fresh attempt really
@@ -72,7 +79,7 @@ export default function TradingViewChart({
           symbol,
           interval: "D",
           timezone: "Etc/UTC",
-          theme,
+          theme: CHART_THEME,
           style: "1",
           locale,
           backgroundColor: surface,
@@ -92,7 +99,7 @@ export default function TradingViewChart({
     return () => {
       cancelled = true;
     };
-  }, [symbol, locale, theme, containerId, attempt]);
+  }, [symbol, locale, containerId, attempt]);
 
   if (failed) {
     // The troubleshooting steps are taller than the chart, so this pane grows
