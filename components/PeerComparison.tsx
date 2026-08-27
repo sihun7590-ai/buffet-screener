@@ -47,8 +47,19 @@ export default async function PeerComparison({ comparison }: { comparison: Compa
     Number.isFinite(v)
       ? new Intl.NumberFormat(locale, { notation: "compact", maximumFractionDigits: 1, style: "currency", currency: "USD" }).format(v)
       : na;
+  const usd = (v: number) =>
+    Number.isFinite(v)
+      ? new Intl.NumberFormat(locale, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(v)
+      : na;
   const day = (iso: string) =>
     iso ? new Intl.DateTimeFormat(locale, { year: "2-digit", month: "short" }).format(new Date(iso)) : na;
+
+  // Growth rates and margin of safety are the columns where the sign is the
+  // headline: a shrinking business and a growing one at the same magnitude
+  // mean opposite things, and reading that off a minus sign in a 12-point
+  // monospace column is exactly what people miss.
+  const signTone = (v: number) =>
+    !Number.isFinite(v) ? "text-ink-muted" : v > 0 ? "text-up" : v < 0 ? "text-down" : "text-ink-muted";
 
   const label = (r: PeerRank) => (r.metric === "total" ? tStock("stats.total") : tAxes(`${r.metric}.name`));
 
@@ -102,15 +113,24 @@ export default async function PeerComparison({ comparison }: { comparison: Compa
         ))}
       </div>
 
+      {/* Thirteen columns don't fit any phone and most laptops, so the table
+          scrolls sideways inside its own box rather than forcing the page to.
+          The company column is sticky so a reader who has scrolled to EPS
+          growth still knows whose row they're on. */}
       <div className="overflow-x-auto border-t border-line">
-        <table className="w-full min-w-[640px] border-collapse">
+        <table className="w-full min-w-[1080px] border-collapse">
           <thead>
             <tr className="border-b border-line text-[10px] uppercase tracking-[0.1em] text-ink-faint">
-              <th className="px-3 py-2 text-left font-semibold">{t("columns.company")}</th>
+              <th className="sticky left-0 z-10 bg-surface px-3 py-2 text-left font-semibold">{t("columns.company")}</th>
               <th className="px-3 py-2 text-right font-semibold">{t("columns.marketCap")}</th>
               <th className="px-3 py-2 text-right font-semibold">{t("columns.roe")}</th>
+              <th className="px-3 py-2 text-right font-semibold">{t("columns.roic")}</th>
+              <th className="px-3 py-2 text-right font-semibold">{t("columns.revenueGrowth")}</th>
+              <th className="px-3 py-2 text-right font-semibold">{t("columns.epsGrowth")}</th>
+              <th className="px-3 py-2 text-right font-semibold">{t("columns.fcfMargin")}</th>
               <th className="px-3 py-2 text-right font-semibold">{t("columns.debtToEquity")}</th>
               <th className="px-3 py-2 text-right font-semibold">{t("columns.pe")}</th>
+              <th className="px-3 py-2 text-right font-semibold">{t("columns.fairValue")}</th>
               <th className="px-3 py-2 text-right font-semibold">{t("columns.marginOfSafety")}</th>
               <th className="px-3 py-2 text-right font-semibold">{t("columns.total")}</th>
               <th className="px-3 py-2 text-right font-semibold">{t("columns.period")}</th>
@@ -119,7 +139,14 @@ export default async function PeerComparison({ comparison }: { comparison: Compa
           <tbody className="divide-y divide-line">
             {comparison.rows.map((row) => (
               <tr key={row.ticker} className={rowTone(row)}>
-                <td className="whitespace-nowrap px-3 py-2 text-left">
+                <td
+                  className="sticky left-0 z-10 whitespace-nowrap px-3 py-2 text-left"
+                  // A sticky cell has to paint its own background or the
+                  // columns scrolling underneath show through the ticker.
+                  style={{
+                    background: row.isSelf ? "color-mix(in oklab, var(--brand) 10%, var(--surface))" : "var(--surface)",
+                  }}
+                >
                   {row.isSelf ? (
                     <span className="font-mono text-[12px] font-bold text-brand">{row.ticker}</span>
                   ) : (
@@ -134,11 +161,14 @@ export default async function PeerComparison({ comparison }: { comparison: Compa
                 </td>
                 <Cell className="text-ink-muted">{cap(row.marketCap)}</Cell>
                 <Cell className="text-ink-muted">{pct(row.roe)}</Cell>
+                <Cell className="text-ink-muted">{pct(row.roic)}</Cell>
+                <Cell className={signTone(row.revenueCagr)}>{pct(row.revenueCagr)}</Cell>
+                <Cell className={signTone(row.epsCagr)}>{pct(row.epsCagr)}</Cell>
+                <Cell className="text-ink-muted">{pct(row.fcfMargin)}</Cell>
                 <Cell className="text-ink-muted">{num(row.debtToEquity)}</Cell>
                 <Cell className="text-ink-muted">{num(row.currentPe, 1)}</Cell>
-                <Cell className={Number.isFinite(row.marginOfSafety) && row.marginOfSafety > 0 ? "text-up" : "text-ink-muted"}>
-                  {pct(row.marginOfSafety)}
-                </Cell>
+                <Cell className="text-ink-muted">{usd(row.fairValue)}</Cell>
+                <Cell className={signTone(row.marginOfSafety)}>{pct(row.marginOfSafety)}</Cell>
                 <Cell>
                   <span style={{ color: scoreColor(row.totalScore, 100) }}>{num(row.totalScore, 1)}</span>
                 </Cell>

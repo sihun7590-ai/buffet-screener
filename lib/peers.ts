@@ -30,6 +30,15 @@ export interface PeerRank {
   sectorBest: number;
 }
 
+// Every field here is read back out of `criteria` rather than recomputed, so a
+// number in this table is the same number the criteria table shows on that
+// company's own page. Nothing is derived a second way.
+//
+// Two metrics that would belong here are absent on purpose: price/free-cash-
+// flow and EV/EBITDA. Neither survives into data/scores.json — no criterion
+// needs them — and inventing them here would mean either a second, differently
+// sourced calculation or a change to lib/scoring.ts and a full 30-minute
+// refresh of all 503 tickers. Neither is worth it for two columns.
 export interface PeerRow {
   ticker: string;
   companyName: string;
@@ -37,8 +46,13 @@ export interface PeerRow {
   totalScore: number;
   isSelf: boolean;
   roe: number;
+  roic: number;
+  revenueCagr: number;
+  epsCagr: number;
+  fcfMargin: number;
   debtToEquity: number;
   currentPe: number;
+  fairValue: number;
   marginOfSafety: number;
   periodEnd: string;
   /** Lowest axis coverage — a peer we could barely read is a weak comparison. */
@@ -69,8 +83,16 @@ function toRow(s: StockScore, isSelf: boolean): PeerRow {
     totalScore: s.totalScore,
     isSelf,
     roe: criterionValue(s, "roe", "roeAvg"),
+    roic: criterionValue(s, "roic", "roicAvg"),
+    revenueCagr: criterionValue(s, "revenueCagr", "revenueCagr"),
+    epsCagr: criterionValue(s, "epsCagr", "epsCagr"),
+    fcfMargin: criterionValue(s, "fcfMargin", "fcfMargin"),
     debtToEquity: criterionValue(s, "debtToEquity", "debtEquity"),
     currentPe: criterionValue(s, "peRelative", "currentPe"),
+    // Negative or zero intrinsic value means the model didn't apply (see the
+    // owner-earnings note in lib/scoring.ts), not that the company is worth
+    // nothing. Printing "-$63" in a comparison table would be worse than a dash.
+    fairValue: (s.intrinsicValue?.intrinsicValuePerShare ?? NaN) > 0 ? s.intrinsicValue.intrinsicValuePerShare : NaN,
     marginOfSafety: s.intrinsicValue?.marginOfSafety ?? NaN,
     periodEnd: s.dataSource?.periodEnd ?? "",
     minCoverage: s.coverage ? Math.min(...SCORE_AXES.map((a) => s.coverage[a] ?? 1)) : 1,

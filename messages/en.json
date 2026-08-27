@@ -130,6 +130,67 @@
       "partialCoverage": "Graded on the {percent}% of this axis the filing supplied. The dotted underline marks this."
     },
     "noResults": "No stocks match these filters.",
+    "strategy": {
+      "button": "Build a screen",
+      "title": "Screen by your own conditions",
+      "tip": "Where the weight sliders change how the scores are combined, this sets which underlying numbers a company has to clear. Conditions combine with AND — only companies meeting every one of them remain. Each figure is the same one printed in the criteria tables on a company's own page, so you can always check why something was filtered out.",
+      "presetsLabel": "Start from:",
+      "preset": {
+        "qualityValue": "Quality + value",
+        "deepValue": "Deep value",
+        "qualityGrowth": "Quality growth",
+        "fortress": "Balance-sheet fortress"
+      },
+      "empty": "No conditions yet. Pick one of the examples above, or add your own below.",
+      "where": "Where",
+      "and": "And",
+      "addCondition": "+ Add condition",
+      "removeCondition": "Remove this condition",
+      "clear": "Clear all",
+      "metricLabel": "Metric",
+      "operatorLabel": "Comparison",
+      "valueLabel": "Threshold",
+      "matchCount": "{count} match",
+      "missingData": "{count} unmeasurable",
+      "missingDataTip": "Companies whose filings don't carry one of the figures you asked about, so the condition can't be applied at all. They didn't fail the screen — the question couldn't be answered — and they're excluded from the results.",
+      "namePlaceholder": "Strategy name",
+      "save": "Save",
+      "savedLabel": "Saved:",
+      "deleteSaved": "Delete {name}",
+      "unit": {
+        "percent": "%",
+        "ratio": "×",
+        "score": "pts",
+        "currency": "$",
+        "count": "yrs"
+      },
+      "metric": {
+        "totalScore": "Total score",
+        "quality": "Quality score",
+        "growth": "Growth score",
+        "health": "Financial health score",
+        "consistency": "Consistency score",
+        "valuation": "Valuation score",
+        "roe": "ROE (5-yr average)",
+        "roic": "ROIC (5-yr average)",
+        "grossMargin": "Gross margin",
+        "operatingMargin": "Operating margin",
+        "fcfMargin": "FCF margin",
+        "revenueCagr": "Revenue growth (CAGR)",
+        "epsCagr": "EPS growth (CAGR)",
+        "fcfCagr": "FCF growth (CAGR)",
+        "debtToEquity": "Debt / equity",
+        "interestCoverage": "Interest coverage",
+        "currentRatio": "Current ratio",
+        "netDebtToEbitda": "Net debt / EBITDA",
+        "pe": "P/E",
+        "peg": "PEG",
+        "marginOfSafety": "Margin of safety",
+        "lossYears": "Loss-making years",
+        "marketCap": "Market cap ($B)",
+        "price": "Share price"
+      }
+    },
     "weights": {
       "button": "Adjust weights",
       "title": "Adjust weights",
@@ -196,6 +257,71 @@
     "criteriaTable": {
       "actualValue": "Actual",
       "threshold": "Threshold"
+    },
+    "fairValue": {
+      "title": "Fair Value (Multiple Methods)",
+      "tip": "A single valuation method on screen looks more certain than it is — move the DCF growth assumption by two points and the answer moves 30%. So four methods are shown separately alongside their weighted blend. How far apart they land (the range bar below) is itself the reading: estimates clustered together mean something; estimates 3x apart mean no single number here is worth trusting.",
+      "methodCount": "{count} methods applied",
+      "currentPrice": "Current price",
+      "weighted": "Weighted fair value",
+      "weightedTip": "A weighted blend of the four methods (DCF 40% · own P/E 25% · Graham 20% · sector P/E 15%). When a method's inputs are missing, its weight is redistributed proportionally across the rest.",
+      "marginOfSafety": "Margin of safety",
+      "status": "Valuation",
+      "statusValue": {
+        "undervalued": "Undervalued",
+        "fair": "Fairly valued",
+        "overvalued": "Overvalued"
+      },
+      "lowest": "Low {value}",
+      "highest": "High {value}",
+      "priceMarker": "Price {value}",
+      "wideSpread": "These methods disagree by {ratio}×. At that distance they are effectively measuring different things, so the blended figure should not be read as a target price. Look at each method's assumptions below and judge which one fits this company.",
+      "note": "All four methods are computed from the scoring data already on this page — no new external data, and the Buffett Score itself is unaffected by any of it. P/FCF and EV/EBITDA are excluded because the snapshot doesn't store those figures; including them would mean changing the scoring logic and recomputing all 503 tickers.",
+      "methodUnavailable": "The filing doesn't carry what this method needs, so it wasn't computed. Its weight went to the other methods.",
+      "columns": {
+        "method": "Method",
+        "value": "Fair value",
+        "marginOfSafety": "Margin of safety",
+        "weight": "Weight"
+      },
+      "method": {
+        "dcf": "DCF (discounted owner earnings)",
+        "historicalPe": "Own historical P/E",
+        "sectorPe": "Sector average P/E",
+        "graham": "Graham number"
+      },
+      "assumptions": {
+        "dcf": "Owner earnings {owner}/share · growth {growth}/yr · discount {discount} · terminal {terminal}",
+        "historicalPe": "Own 5-year average P/E of {pe}× earnings per share of {eps}",
+        "sectorPe": "Sector average P/E of {pe}× earnings per share of {eps}",
+        "graham": "√(22.5 × EPS × book value per share). Graham's rule of thumb, from 1949."
+      },
+      "reverseDcf": {
+        "label": "Reverse DCF —",
+        "body": "For today's price to be right, owner earnings would have to grow {implied} a year for the next five years. The forward DCF assumed {assumed}. Where the implied rate exceeds the assumption, the market is expecting this company to grow faster than it has."
+      }
+    },
+    "thesis": {
+      "title": "Investment Thesis (Bull / Bear)",
+      "tip": "No language model wrote any of this. It is derived by rule from the scoring criteria at the bottom of this page: a criterion earning 75% or more of its points becomes a strength, 35% or less a weakness. They are ordered by how much each one actually decided of the 100-point total — so what matters most comes first, rather than what reads most dramatically.",
+      "bull": "Bull Case",
+      "bear": "Bear Case",
+      "risks": "Key Risks",
+      "watch": "What to Watch",
+      "watchNote": "These sit between the pass and fail lines, close enough that the next filing could move them either way.",
+      "bullEmpty": "No criterion earned 75% or more of its points.",
+      "bearEmpty": "No criterion fell to 35% or less of its points.",
+      "inconclusive": "Neither case is clear. Most criteria land in the middle band, so this company does not resolve to one side.",
+      "method": "Criteria we could not measure appear on neither side. A number the filing does not carry is not the company's failing, so it is not counted against it. Every figure here can be checked against the criteria tables below.",
+      "risk": {
+        "negativeEquity": "Book equity is negative. Both heavy buyback franchises and genuinely distressed companies land here, and the score cannot tell them apart. Worth checking directly.",
+        "lossYears": "{years} of the {total} fiscal years on record were losses.",
+        "highLeverage": "Net debt is {value}× EBITDA. Above roughly 3× this becomes a burden in a downturn.",
+        "negativeOwnerEarnings": "Owner earnings per share are {value} — negative. Capital spending exceeds the cash coming in (routine for regulated utilities), which means the DCF intrinsic value model does not apply here at all.",
+        "dilution": "Share count grew {value}. Existing holders own a smaller slice regardless of how the business performed.",
+        "aboveIntrinsicValue": "The current price is {value} above estimated intrinsic value. There is no margin of safety.",
+        "lowCoverage": "Only {percent}% of the {axis} axis could be read from the filing, so that axis score rests on thin evidence."
+      }
     },
     "news": {
       "title": "Recent News (last 30 days)",
@@ -384,8 +510,13 @@
       "company": "Company",
       "marketCap": "Market cap",
       "roe": "ROE",
+      "roic": "ROIC",
+      "revenueGrowth": "Rev growth",
+      "epsGrowth": "EPS growth",
+      "fcfMargin": "FCF margin",
       "debtToEquity": "D/E",
       "pe": "P/E",
+      "fairValue": "Fair value",
       "marginOfSafety": "Margin of safety",
       "total": "Total",
       "period": "Period"

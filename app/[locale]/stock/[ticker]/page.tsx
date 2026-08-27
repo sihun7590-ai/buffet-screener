@@ -13,7 +13,11 @@ import DataSourceNote from "@/components/DataSourceNote";
 import PeerComparison from "@/components/PeerComparison";
 import InsiderActivity from "@/components/InsiderActivity";
 import DcaSimulator from "@/components/DcaSimulator";
+import ThesisPanel from "@/components/ThesisPanel";
+import FairValuePanel from "@/components/FairValuePanel";
 import { fetchScoreHistory } from "@/lib/scoreHistoryQuery";
+import { computeFairValue } from "@/lib/fairValue";
+import { buildThesis } from "@/lib/thesis";
 import { comparePeers } from "@/lib/peers";
 import { getScoreByTicker, readScores } from "@/lib/store";
 import { AXIS_WEIGHTS, SCORE_AXES } from "@/lib/types";
@@ -191,6 +195,11 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
         <DataSourceNote provenance={score.dataSource} generatedAt={generatedAt} />
       </Panel>
 
+      {/* Sits directly under the breakdown because it answers the question the
+          breakdown raises — five axis bars say what the score is, this says
+          which criteria drove it and in which direction. */}
+      <ThesisPanel thesis={buildThesis(score)} />
+
       {/* Two points is the minimum that can show a direction; below that a
           chart would be a dot, so the panel simply doesn't appear. */}
       {history.length >= 2 && (
@@ -212,58 +221,16 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
 
       {dcaPrices.length >= 2 && <DcaSimulator prices={dcaPrices} currentPrice={score.price} />}
 
-      <Panel
-        title={
-          <span className="flex items-center gap-1.5">
-            {t("dcf.title")}
-            <InfoTip text={tGlossary("marginOfSafety")} />
-          </span>
-        }
-      >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-lg border border-line bg-subtle px-4 py-3">
-            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
-              {t("dcf.intrinsicValue")}
-              <InfoTip text={tGlossary("intrinsicValue")} />
-            </div>
-            <div className="mt-1.5 font-mono text-xl font-bold tabular-nums text-ink">
-              {ivOk ? usdFmt(iv.intrinsicValuePerShare) : tCommon("notAvailable")}
-            </div>
-          </div>
-          <div className="rounded-lg border border-line bg-subtle px-4 py-3">
-            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
-              {t("dcf.currentPrice")}
-              <InfoTip text={tGlossary("currentPrice")} />
-            </div>
-            <div className="mt-1.5 font-mono text-xl font-bold tabular-nums text-ink">{usdFmt(iv.currentPrice)}</div>
-          </div>
-          <div className="rounded-lg border border-line bg-subtle px-4 py-3">
-            <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-ink-faint">
-              {t("dcf.marginOfSafety")}
-              <InfoTip text={tGlossary("marginOfSafety")} />
-            </div>
-            <div
-              className="mt-1.5 font-mono text-xl font-bold tabular-nums"
-              style={{ color: ivOk ? mosColor : "var(--ink-faint)" }}
-            >
-              {ivOk ? pctFmt(iv.marginOfSafety) : tCommon("notAvailable")}
-            </div>
-          </div>
-        </div>
-        {!ivOk && Number.isFinite(iv.ownerEarningsPerShare) && iv.ownerEarningsPerShare <= 0 && (
-          <p className="mt-4 rounded-lg border border-warn/40 bg-warn/10 px-3 py-2.5 text-[12px] leading-relaxed text-warn">
-            {t("dcf.negativeOwnerEarnings")}
-          </p>
-        )}
-        <p className="mt-4 text-[11px] leading-relaxed text-ink-faint">
-          {t("dcf.ownerEarningsNote", {
-            value: Number.isFinite(iv.ownerEarningsPerShare) ? usdFmt(iv.ownerEarningsPerShare) : t("dcf.noShareData"),
-            growth: pctFmt(iv.growthRateUsed),
-            discount: pctFmt(iv.discountRate),
-            terminal: pctFmt(iv.terminalGrowthRate),
-          })}
-        </p>
-      </Panel>
+      {/* Replaces the single-DCF panel this page used to carry. That panel's
+          three figures are all still here — as the first row and the DCF row —
+          alongside three more methods and what they disagree about. */}
+      <FairValuePanel summary={computeFairValue(score)} />
+
+      {!ivOk && Number.isFinite(iv.ownerEarningsPerShare) && iv.ownerEarningsPerShare <= 0 && (
+        <Panel>
+          <p className="text-[12px] leading-relaxed text-warn">{t("dcf.negativeOwnerEarnings")}</p>
+        </Panel>
+      )}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {SCORE_AXES.map((axis) => (

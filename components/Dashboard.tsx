@@ -14,10 +14,12 @@ import {
   normalizeWeights,
   type SliderWeights,
 } from "@/lib/customWeights";
+import { evaluateStrategy, type Condition } from "@/lib/strategy";
 import { scoreColor } from "./ScoreBar";
 import ScoreGauge from "./ScoreGauge";
 import FavoriteButton from "./FavoriteButton";
 import InfoTip from "./InfoTip";
+import StrategyBuilder from "./StrategyBuilder";
 
 // Local to this browser only — the whole point is a quick "what if I weighted
 // this differently" that costs nothing to try, not a preference tied to an
@@ -102,6 +104,14 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
   const [sliders, setSliders] = useState<SliderWeights>(DEFAULT_SLIDER_WEIGHTS);
   const [weightsLoaded, setWeightsLoaded] = useState(false);
   const [weightsPanelOpen, setWeightsPanelOpen] = useState(false);
+
+  // Conditions are not persisted the way the weight sliders are. A screen is
+  // something you build, look at, and move on from; restoring one silently on
+  // the next visit would leave someone staring at 11 results wondering where
+  // the other 487 went. Saving one by name is explicit, and lives in the
+  // builder itself.
+  const [conditions, setConditions] = useState<Condition[]>([]);
+  const [strategyPanelOpen, setStrategyPanelOpen] = useState(false);
 
   // Read after mount, not in the initial state, so the first render matches
   // the server's (default weights) and only flips to a saved preference once
@@ -195,21 +205,31 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
   );
   const topMarginValue = topMarginOfSafety[0]?.intrinsicValue.marginOfSafety ?? 0;
 
+  // Conditions run before the filter bar so the "N matched / M unmeasurable"
+  // readout in the builder describes the whole universe against the screen,
+  // not whatever the sector dropdown happens to be showing.
+  const strategy = useMemo(
+    () => evaluateStrategy(scores, conditions, effectiveTotal),
+    [scores, conditions, effectiveTotal],
+  );
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return scores
+    return strategy.matched
       .filter((s) => sector === ALL_SECTORS || s.sector === sector)
       .filter((s) => effectiveTotal(s) >= minScore)
       .filter((s) => !buyOnly || effectiveBuyCandidate(s))
       .filter((s) => !q || s.ticker.toLowerCase().includes(q) || s.companyName.toLowerCase().includes(q))
       .sort((a, b) => compare(a, b, sortKey, sortDir, effectiveTotal));
-  }, [scores, sector, minScore, buyOnly, query, sortKey, sortDir, effectiveTotal, effectiveBuyCandidate]);
+  }, [strategy, sector, minScore, buyOnly, query, sortKey, sortDir, effectiveTotal, effectiveBuyCandidate]);
 
   // A narrowed result set should start from the top again, not deep in a
   // "load more" run from the previous filter. Adjusted during render — React's
   // documented alternative to an effect for "reset state when a value changes"
   // — so there's no extra commit where `visible` still reflects the old filter.
-  const filterSignature = `${query}|${sector}|${minScore}|${buyOnly}`;
+  const filterSignature = `${query}|${sector}|${minScore}|${buyOnly}|${conditions.length}|${conditions
+    .map((c) => `${c.metric}${c.op}${c.value}`)
+    .join(",")}`;
   const [prevFilterSignature, setPrevFilterSignature] = useState(filterSignature);
   if (filterSignature !== prevFilterSignature) {
     setPrevFilterSignature(filterSignature);
@@ -218,7 +238,7 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
 
   const rows = filtered.slice(0, visible);
   const remaining = filtered.length - rows.length;
-  const filtersActive = query !== "" || sector !== ALL_SECTORS || minScore !== 0 || buyOnly;
+  const filtersActive = query !== "" || sector !== ALL_SECTORS || minScore !== 0 || buyOnly || conditions.length > 0;
 
   const exportCsv = () => {
     const header = ["rank", "ticker", "company", "sector", "price", "marketCap", ...SCORE_AXES, "total", "marginOfSafety"];
@@ -280,6 +300,24 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
             </svg>
             {t("weights.button")}
             {isCustomWeights && <span className="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden="true" />}
+          </button>
+          <button
+            type="button"
+            onClick={() => setStrategyPanelOpen((v) => !v)}
+            aria-pressed={strategyPanelOpen}
+            className={`flex h-[38px] items-center gap-2 rounded-[11px] border px-3.5 text-xs font-semibold transition-colors ${
+              strategyPanelOpen || conditions.length > 0
+                ? "border-brand-border bg-brand-soft text-brand-text-2"
+                : "border-line-strong bg-surface-2 text-ink-2 hover:text-ink"
+            }`}
+          >
+            <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 4h14l-5.5 6.5V16L8.5 14v-3.5z" />
+            </svg>
+            {t("strategy.button")}
+            {conditions.length > 0 && (
+              <span className="font-mono tabular-nums text-brand-text">{conditions.length}</span>
+            )}
           </button>
           <button
             type="button"
@@ -507,6 +545,7 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
               setSector(ALL_SECTORS);
               setMinScore(0);
               setBuyOnly(false);
+              setConditions([]);
             }}
             className="h-9 px-1 text-xs font-medium text-ink-faint underline-offset-2 transition-colors hover:text-ink hover:underline"
           >
@@ -554,6 +593,15 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
             ))}
           </div>
         </div>
+      )}
+
+      {(strategyPanelOpen || conditions.length > 0) && (
+        <StrategyBuilder
+          conditions={conditions}
+          onChange={setConditions}
+          matchCount={strategy.matched.length}
+          missingData={strategy.missingData}
+        />
       )}
 
       {filtered.length === 0 ? (

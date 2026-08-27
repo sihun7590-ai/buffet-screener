@@ -130,6 +130,67 @@
       "partialCoverage": "공시에 없는 항목이 있어 측정된 {percent}%만으로 채점했습니다. 점선 표시는 이 뜻입니다."
     },
     "noResults": "조건에 맞는 종목이 없습니다.",
+    "strategy": {
+      "button": "조건 검색",
+      "title": "나만의 조건으로 검색",
+      "tip": "가중치 조정이 '점수를 어떻게 합칠지'를 바꾸는 기능이라면, 이건 '어떤 수치를 통과해야 하는지'를 직접 정하는 기능입니다. 조건은 모두 AND로 묶입니다 — 걸어둔 조건을 전부 만족하는 종목만 남습니다. 모든 수치는 종목 상세 페이지의 채점 항목에 그대로 나오는 값이라, 왜 걸러졌는지 언제든 확인할 수 있습니다.",
+      "presetsLabel": "예시:",
+      "preset": {
+        "qualityValue": "우량 + 저평가",
+        "deepValue": "깊은 저평가",
+        "qualityGrowth": "우량 성장",
+        "fortress": "재무 요새"
+      },
+      "empty": "조건이 없습니다. 위 예시를 눌러 시작하거나, 아래에서 직접 추가하세요.",
+      "where": "조건",
+      "and": "그리고",
+      "addCondition": "+ 조건 추가",
+      "removeCondition": "이 조건 삭제",
+      "clear": "전체 지우기",
+      "metricLabel": "지표",
+      "operatorLabel": "비교",
+      "valueLabel": "기준값",
+      "matchCount": "{count}개 종목 통과",
+      "missingData": "{count}개 측정 불가",
+      "missingDataTip": "공시에 해당 수치가 아예 없어서 조건을 적용할 수 없는 종목 수입니다. 조건을 만족하지 못한 것이 아니라 판단 자체가 불가능한 경우이며, 결과에서 제외했습니다.",
+      "namePlaceholder": "전략 이름",
+      "save": "저장",
+      "savedLabel": "저장한 전략:",
+      "deleteSaved": "{name} 삭제",
+      "unit": {
+        "percent": "%",
+        "ratio": "배",
+        "score": "점",
+        "currency": "$",
+        "count": "년"
+      },
+      "metric": {
+        "totalScore": "종합 점수",
+        "quality": "사업의 질 점수",
+        "growth": "성장성 점수",
+        "health": "재무 안정성 점수",
+        "consistency": "일관성 점수",
+        "valuation": "저평가 점수",
+        "roe": "ROE (5년 평균)",
+        "roic": "ROIC (5년 평균)",
+        "grossMargin": "매출총이익률",
+        "operatingMargin": "영업이익률",
+        "fcfMargin": "FCF 마진",
+        "revenueCagr": "매출 성장률 (연평균)",
+        "epsCagr": "EPS 성장률 (연평균)",
+        "fcfCagr": "FCF 성장률 (연평균)",
+        "debtToEquity": "부채비율 (D/E)",
+        "interestCoverage": "이자보상배율",
+        "currentRatio": "유동비율",
+        "netDebtToEbitda": "순부채 / EBITDA",
+        "pe": "PER",
+        "peg": "PEG",
+        "marginOfSafety": "안전마진",
+        "lossYears": "적자 연도 수",
+        "marketCap": "시가총액 (십억 달러)",
+        "price": "주가"
+      }
+    },
     "weights": {
       "button": "가중치 조정",
       "title": "가중치 조정",
@@ -196,6 +257,71 @@
     "criteriaTable": {
       "actualValue": "실제값",
       "threshold": "기준"
+    },
+    "fairValue": {
+      "title": "내재가치 추정 (여러 방법)",
+      "tip": "가치평가 방법 하나만 보여주면 그 숫자가 실제보다 확실해 보입니다. DCF는 성장률 가정을 2%p만 바꿔도 결과가 30% 움직입니다. 그래서 서로 다른 방법 네 가지를 각각 보여주고, 가중평균을 함께 냅니다. 방법들이 서로 얼마나 어긋나는지(아래 범위 막대)가 그 자체로 중요한 정보입니다 — 다 비슷하면 신뢰할 만하고, 3배씩 벌어지면 어느 숫자도 믿을 게 못 됩니다.",
+      "methodCount": "{count}개 방법 적용",
+      "currentPrice": "현재 주가",
+      "weighted": "가중평균 내재가치",
+      "weightedTip": "네 방법에 각각 가중치를 두고 평균했습니다 (DCF 40% · 자체 PER 25% · 그레이엄 20% · 섹터 PER 15%). 측정 불가한 방법이 있으면 나머지 방법들에 비율대로 다시 배분합니다.",
+      "marginOfSafety": "안전마진",
+      "status": "평가",
+      "statusValue": {
+        "undervalued": "저평가",
+        "fair": "적정",
+        "overvalued": "고평가"
+      },
+      "lowest": "최저 {value}",
+      "highest": "최고 {value}",
+      "priceMarker": "현재가 {value}",
+      "wideSpread": "방법 간 결과가 {ratio}배 차이 납니다. 이 정도로 벌어지면 사실상 서로 다른 것을 재고 있는 것이므로, 가중평균값을 목표주가처럼 받아들이지 마세요. 아래 각 방법의 가정을 직접 보고 어느 쪽이 이 회사에 맞는지 판단하시는 편이 낫습니다.",
+      "note": "네 방법 모두 이 페이지의 채점 데이터에서 계산했습니다. 새로 가져온 외부 데이터는 없고, 버핏 점수 자체는 이 계산의 영향을 받지 않습니다. P/FCF와 EV/EBITDA는 현재 스냅샷에 해당 수치가 저장되지 않아 제외했습니다 — 넣으려면 채점 로직을 바꾸고 503종목 전체를 다시 계산해야 합니다.",
+      "methodUnavailable": "이 방법에 필요한 수치가 공시에 없어 계산하지 못했습니다. 가중치는 나머지 방법에 재배분됐습니다.",
+      "columns": {
+        "method": "방법",
+        "value": "내재가치",
+        "marginOfSafety": "안전마진",
+        "weight": "가중치"
+      },
+      "method": {
+        "dcf": "DCF (주주이익 할인)",
+        "historicalPe": "자체 과거 PER",
+        "sectorPe": "섹터 평균 PER",
+        "graham": "그레이엄 넘버"
+      },
+      "assumptions": {
+        "dcf": "주당 주주이익 {owner} · 성장률 연 {growth} · 할인율 {discount} · 영구성장률 {terminal}",
+        "historicalPe": "자체 5년 평균 PER {pe}배 × 주당순이익 {eps}",
+        "sectorPe": "섹터 평균 PER {pe}배 × 주당순이익 {eps}",
+        "graham": "√(22.5 × 주당순이익 × 주당순자산). 그레이엄이 1949년에 제시한 경험식입니다."
+      },
+      "reverseDcf": {
+        "label": "역산 DCF —",
+        "body": "지금 주가가 정당화되려면 향후 5년간 주주이익이 연 {implied}씩 늘어야 합니다. 실제 DCF 계산에 쓴 가정은 연 {assumed}입니다. 요구 성장률이 가정보다 높다면, 시장은 이 회사가 과거보다 빠르게 성장할 것으로 보고 있다는 뜻입니다."
+      }
+    },
+    "thesis": {
+      "title": "투자 논리 (강점 / 약점)",
+      "tip": "아래 내용은 AI가 쓴 글이 아니라, 이 페이지 하단의 채점 항목에서 규칙으로 뽑아낸 것입니다. 각 항목이 배점의 75% 이상을 받았으면 강점, 35% 이하면 약점으로 분류합니다. 순서는 그 항목이 종합 점수 100점 중 실제로 좌우한 크기 순입니다 — 그래서 '자극적인 항목'이 아니라 '중요한 항목'이 위에 옵니다.",
+      "bull": "강점 (Bull Case)",
+      "bear": "약점 (Bear Case)",
+      "risks": "주요 위험 요인",
+      "watch": "지켜볼 지표",
+      "watchNote": "합격선과 탈락선 사이에 있어 다음 공시에서 어느 쪽으로든 뒤집힐 수 있는 항목입니다.",
+      "bullEmpty": "배점의 75% 이상을 받은 항목이 없습니다.",
+      "bearEmpty": "배점의 35% 이하로 떨어진 항목이 없습니다.",
+      "inconclusive": "강점도 약점도 뚜렷하지 않습니다. 대부분의 항목이 중간 구간에 몰려 있어, 이 회사는 어느 한쪽으로 정리되지 않습니다.",
+      "method": "측정하지 못한 항목은 어느 쪽에도 넣지 않았습니다. 공시에 숫자가 없는 것은 회사의 잘못이 아니므로 약점으로 세지 않습니다. 모든 수치의 출처와 기준은 아래 채점 항목 표에서 그대로 확인할 수 있습니다.",
+      "risk": {
+        "negativeEquity": "자기자본이 마이너스입니다. 자사주를 대규모로 매입한 우량 기업과 실제로 부실한 기업이 모두 여기에 해당하며, 점수만으로는 둘을 구분할 수 없습니다. 직접 확인이 필요합니다.",
+        "lossYears": "확인 가능한 {total}개 회계연도 중 {years}개 연도가 적자입니다.",
+        "highLeverage": "순부채가 EBITDA의 {value}배입니다. 통상 3배를 넘으면 불황기에 부담이 됩니다.",
+        "negativeOwnerEarnings": "주당 주주이익이 {value}로 마이너스입니다. 설비투자가 벌어들이는 현금을 넘어선다는 뜻이며(규제 유틸리티에서 흔합니다), 이 경우 DCF 내재가치 모델 자체가 적용되지 않습니다.",
+        "dilution": "발행주식수가 {value} 늘었습니다. 사업과 무관하게 기존 주주의 지분이 그만큼 희석됩니다.",
+        "aboveIntrinsicValue": "현재 주가가 추정 내재가치보다 {value} 높습니다. 안전마진이 없습니다.",
+        "lowCoverage": "{axis} 축은 공시에서 읽을 수 있는 항목이 {percent}%뿐이라, 이 축의 점수는 근거가 얇습니다."
+      }
     },
     "news": {
       "title": "최근 뉴스 (최근 30일)",
@@ -384,8 +510,13 @@
       "company": "종목",
       "marketCap": "시가총액",
       "roe": "ROE",
+      "roic": "ROIC",
+      "revenueGrowth": "매출성장",
+      "epsGrowth": "EPS성장",
+      "fcfMargin": "FCF마진",
       "debtToEquity": "부채비율",
       "pe": "PER",
+      "fairValue": "내재가치",
       "marginOfSafety": "안전마진",
       "total": "종합",
       "period": "기간"
