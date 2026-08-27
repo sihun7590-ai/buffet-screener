@@ -2,20 +2,6 @@
   "framework": "nextjs",
   "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": {
-      "description": "Supabase 프로젝트 URL. supabase.com → 프로젝트 설정 → Connect → App Frameworks에서 확인",
-      "required": true
-    },
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": {
-      "description": "Supabase 공개 API 키 (로그인/즐겨찾기). supabase.com → 프로젝트 설정 → API Keys → anon key에서 확인",
-      "required": true
-    },
-    "SUPABASE_SERVICE_ROLE_KEY": {
-      "description": "Supabase 관리자 키 (점수 히스토리 적재용). 배포에는 필수 아님 — 스케줄 배치(GitHub Actions)에서만 필요. 브라우저에 노출되면 DB 우회 접근이 가능하므로 절대 NEXT_PUBLIC_ 접두사를 붙이면 안 됨.",
-      "required": false
-    }
-  },
   "regions": ["icn1"],
   "crons": []
 }
