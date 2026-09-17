@@ -20,6 +20,8 @@ import ScoreGauge from "./ScoreGauge";
 import FavoriteButton from "./FavoriteButton";
 import InfoTip from "./InfoTip";
 import StrategyBuilder from "./StrategyBuilder";
+import LockedFeature from "./LockedFeature";
+import { canAccess, type Feature, type Tier } from "@/lib/entitlements";
 
 // Local to this browser only — the whole point is a quick "what if I weighted
 // this differently" that costs nothing to try, not a preference tied to an
@@ -76,6 +78,19 @@ function csvCell(v: number | string, formatter?: (v: number) => string): string 
   return formatter ? formatter(v) : String(v);
 }
 
+// A locked toolbar action. Rendered as a plain label, not a disabled button: a
+// greyed button invites a click and then does nothing, which reads as broken.
+// This says what the action is and which plan has it, and doesn't pretend to be
+// pressable.
+function LockedHeaderButton({ label, feature }: { label: string; feature: Feature }) {
+  return (
+    <span className="flex h-[38px] items-center gap-2 rounded-[11px] border border-dashed border-line-strong px-3 text-xs font-semibold text-ink-faint">
+      {label}
+      <LockedFeature feature={feature} variant="inline" />
+    </span>
+  );
+}
+
 function SortCaret({ dir }: { dir: SortDir }) {
   return (
     <svg viewBox="0 0 12 12" className="h-2.5 w-2.5 shrink-0" aria-hidden="true">
@@ -84,7 +99,12 @@ function SortCaret({ dir }: { dir: SortDir }) {
   );
 }
 
-export default function Dashboard({ scores }: { scores: StockScore[] }) {
+export default function Dashboard({ scores, tier }: { scores: StockScore[]; tier: Tier }) {
+  // UI gating only. The data a tier can't see was already stripped on the
+  // server (redactScore in app/[locale]/page.tsx) — hiding a button here is
+  // for clarity, not security.
+  const can = (feature: Feature) => canAccess(tier, feature);
+  const showValuation = can("fairValue");
   const t = useTranslations("dashboard");
   const tAxes = useTranslations("axes");
   const tFavorite = useTranslations("favorite");
@@ -180,7 +200,6 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
       universe: scores.length,
       buyCandidates: scores.filter(effectiveBuyCandidate).length,
       avgScore: avg,
-      undervalued: scores.filter((s) => s.intrinsicValue.marginOfSafety > 0).length,
     };
   }, [scores, effectiveTotal, effectiveBuyCandidate]);
 
@@ -285,6 +304,7 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
           <p className="max-w-[620px] text-[13px] leading-relaxed text-ink-muted">{t("subtitle")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {can("customWeights") ? (
           <button
             type="button"
             onClick={() => setWeightsPanelOpen((v) => !v)}
@@ -301,6 +321,10 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
             {t("weights.button")}
             {isCustomWeights && <span className="h-1.5 w-1.5 rounded-full bg-brand" aria-hidden="true" />}
           </button>
+          ) : (
+            <LockedHeaderButton label={t("weights.button")} feature="customWeights" />
+          )}
+          {can("strategyBuilder") ? (
           <button
             type="button"
             onClick={() => setStrategyPanelOpen((v) => !v)}
@@ -319,6 +343,10 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
               <span className="font-mono tabular-nums text-brand-text">{conditions.length}</span>
             )}
           </button>
+          ) : (
+            <LockedHeaderButton label={t("strategy.button")} feature="strategyBuilder" />
+          )}
+          {can("csvExport") ? (
           <button
             type="button"
             onClick={exportCsv}
@@ -329,6 +357,9 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
             </svg>
             {t("csvExport")}
           </button>
+          ) : (
+            <LockedHeaderButton label={t("csvExport")} feature="csvExport" />
+          )}
         </div>
       </div>
 
@@ -380,9 +411,13 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
                 </button>
                 <div className="ml-auto flex flex-col items-end gap-1">
                   <span className="font-mono text-[22px] font-bold tabular-nums text-ink">${priceFmt.format(topBuyCandidate.price)}</span>
-                  <span className="font-mono text-[12px] font-semibold text-up">
-                    +{(topBuyCandidate.intrinsicValue.marginOfSafety * 100).toFixed(1)}%
-                  </span>
+                  {showValuation ? (
+                    <span className="font-mono text-[12px] font-semibold text-up">
+                      +{(topBuyCandidate.intrinsicValue.marginOfSafety * 100).toFixed(1)}%
+                    </span>
+                  ) : (
+                    <LockedFeature feature="fairValue" variant="inline" />
+                  )}
                 </div>
               </div>
               <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(60px, 1fr))" }}>
@@ -413,6 +448,11 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
             <span className="text-[13px] font-bold text-ink-2">{t("widgets.topMarginOfSafety")}</span>
             <InfoTip text={t("widgets.topMarginOfSafetyTip")} />
           </div>
+          {!showValuation && (
+            <div className="flex flex-1 items-center justify-center py-4">
+              <LockedFeature feature="fairValue" variant="inline" />
+            </div>
+          )}
           <div className="flex flex-col gap-0.5">
             {topMarginOfSafety.map((s, i) => (
               <button
@@ -521,7 +561,7 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
             onChange={(e) => setSortKey(e.target.value as SortKey)}
             className="h-9 cursor-pointer rounded-[10px] border border-line-strong bg-surface-3 px-2.5 text-[13px] text-ink-2 transition-colors hover:text-ink focus:border-brand focus:outline-none focus:ring-1 focus:ring-brand"
           >
-            {SORT_OPTIONS.map((key) => (
+            {SORT_OPTIONS.filter((key) => showValuation || key !== "marginOfSafety").map((key) => (
               <option key={key} value={key}>
                 {t(`sort.${key}`)}
               </option>
@@ -556,7 +596,7 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
         <span className="ml-auto font-mono text-xs tabular-nums text-ink-muted">{t("tickerCount", { count: filtered.length })}</span>
       </div>
 
-      {weightsPanelOpen && (
+      {can("customWeights") && weightsPanelOpen && (
         <div className="rounded-[18px] border border-line bg-surface p-4">
           <div className="flex items-center justify-between gap-3">
             <h3 className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.12em] text-ink-muted">
@@ -595,7 +635,7 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
         </div>
       )}
 
-      {(strategyPanelOpen || conditions.length > 0) && (
+      {can("strategyBuilder") && (strategyPanelOpen || conditions.length > 0) && (
         <StrategyBuilder
           conditions={conditions}
           onChange={setConditions}
@@ -655,12 +695,16 @@ export default function Dashboard({ scores }: { scores: StockScore[] }) {
                   </span>
                   <span className="flex flex-col items-end gap-0.5">
                     <span className="text-[10px] font-semibold text-ink-4">{t("table.marginOfSafety")}</span>
-                    <span
-                      className="font-mono text-[15px] font-bold tabular-nums"
-                      style={{ color: mosOk ? (mos > 0 ? "var(--up)" : "var(--down)") : "var(--ink-faint)" }}
-                    >
-                      {mosOk ? `${mos > 0 ? "+" : ""}${(mos * 100).toFixed(1)}%` : "N/A"}
-                    </span>
+                    {showValuation ? (
+                      <span
+                        className="font-mono text-[15px] font-bold tabular-nums"
+                        style={{ color: mosOk ? (mos > 0 ? "var(--up)" : "var(--down)") : "var(--ink-faint)" }}
+                      >
+                        {mosOk ? `${mos > 0 ? "+" : ""}${(mos * 100).toFixed(1)}%` : "N/A"}
+                      </span>
+                    ) : (
+                      <LockedFeature feature="fairValue" variant="inline" />
+                    )}
                   </span>
                 </div>
 

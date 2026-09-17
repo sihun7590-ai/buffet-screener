@@ -28,6 +28,9 @@ import { fetchPriceHistory } from "@/lib/price";
 import type { PricePoint } from "@/lib/dca";
 import { fetchExchangeName, toTradingViewSymbol } from "@/lib/tradingview";
 import universe from "@/data/universe.json";
+import LockedFeature from "@/components/LockedFeature";
+import { canAccess, type Feature } from "@/lib/entitlements";
+import { getViewerTier } from "@/lib/supabase/entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -58,17 +61,24 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
   const tCommon = await getTranslations("common");
   const tSectors = await getTranslations("sectors");
   const tSource = await getTranslations("dataSource");
-  const { generatedAt, scores: allScores } = readScores();
-  const peers = comparePeers(allScores, score.ticker);
+  const tier = await getViewerTier();
+  const can = (feature: Feature) => canAccess(tier, feature);
 
+  const { generatedAt, scores: allScores } = readScores();
+  const peers = can("peerComparison") ? comparePeers(allScores, score.ticker) : null;
+
+  // Locked panels don't fetch their data. Beyond not rendering it, there's no
+  // reason to spend a request to SEC's Form 4 index or the score history table
+  // on a panel the viewer will see as a lock — and not fetching it is the
+  // surest way it can't leak into the page.
   const meta = (universe as { ticker: string; wikiTitle: string | null }[]).find((u) => u.ticker === ticker);
   const [summary, news, insiderTransactions, exchangeName, history, priceHistory] = await Promise.all([
     meta?.wikiTitle ? fetchCompanySummary(meta.wikiTitle, locale) : Promise.resolve(null),
     fetchRecentNews(ticker),
-    fetchInsiderTransactions(ticker),
+    can("insiderTrading") ? fetchInsiderTransactions(ticker) : Promise.resolve([]),
     fetchExchangeName(ticker),
-    fetchScoreHistory(ticker),
-    safePriceHistory(ticker),
+    can("scoreHistory") ? fetchScoreHistory(ticker) : Promise.resolve([]),
+    can("dcaSimulator") ? safePriceHistory(ticker) : Promise.resolve(null),
   ]);
   const tvSymbol = toTradingViewSymbol(ticker, exchangeName);
 
@@ -134,15 +144,27 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
           </span>
           <span className="flex flex-col gap-1">
             <span className="text-[10px] font-bold uppercase tracking-[0.06em] text-ink-4">{t("dcf.intrinsicValue")}</span>
-            <span className="font-mono text-[26px] font-bold tabular-nums text-brand-text">
-              {ivOk ? usdFmt(iv.intrinsicValuePerShare) : tCommon("notAvailable")}
-            </span>
+            {can("fairValue") ? (
+              <span className="font-mono text-[26px] font-bold tabular-nums text-brand-text">
+                {ivOk ? usdFmt(iv.intrinsicValuePerShare) : tCommon("notAvailable")}
+              </span>
+            ) : (
+              <span className="flex h-[39px] items-center">
+                <LockedFeature feature="fairValue" variant="inline" />
+              </span>
+            )}
           </span>
           <span className="flex flex-col gap-1">
             <span className="text-[10px] font-bold uppercase tracking-[0.06em] text-ink-4">{t("dcf.marginOfSafety")}</span>
-            <span className="font-mono text-[26px] font-bold tabular-nums" style={{ color: ivOk ? mosColor : "var(--ink-faint)" }}>
-              {ivOk ? pctFmt(iv.marginOfSafety) : tCommon("notAvailable")}
-            </span>
+            {can("fairValue") ? (
+              <span className="font-mono text-[26px] font-bold tabular-nums" style={{ color: ivOk ? mosColor : "var(--ink-faint)" }}>
+                {ivOk ? pctFmt(iv.marginOfSafety) : tCommon("notAvailable")}
+              </span>
+            ) : (
+              <span className="flex h-[39px] items-center">
+                <LockedFeature feature="fairValue" variant="inline" />
+              </span>
+            )}
           </span>
           <StockFavoriteButton ticker={score.ticker} price={score.price} variant="prominent" />
         </div>
@@ -198,10 +220,11 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
       {/* Sits directly under the breakdown because it answers the question the
           breakdown raises — five axis bars say what the score is, this says
           which criteria drove it and in which direction. */}
-      <ThesisPanel thesis={buildThesis(score)} />
+      {can("thesis") ? <ThesisPanel thesis={buildThesis(score)} /> : <LockedFeature feature="thesis" />}
 
       {/* Two points is the minimum that can show a direction; below that a
           chart would be a dot, so the panel simply doesn't appear. */}
+      {!can("scoreHistory") && <LockedFeature feature="scoreHistory" />}
       {history.length >= 2 && (
         <Panel
           title={
@@ -215,33 +238,39 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
         </Panel>
       )}
 
-      {peers && <PeerComparison comparison={peers} />}
+      {can("peerComparison") ? peers && <PeerComparison comparison={peers} /> : <LockedFeature feature="peerComparison" />}
 
       <PriceChartPanel symbol={tvSymbol} locale={locale} />
 
-      {dcaPrices.length >= 2 && <DcaSimulator prices={dcaPrices} currentPrice={score.price} />}
+      {can("dcaSimulator")
+        ? dcaPrices.length >= 2 && <DcaSimulator prices={dcaPrices} currentPrice={score.price} />
+        : <LockedFeature feature="dcaSimulator" />}
 
       {/* Replaces the single-DCF panel this page used to carry. That panel's
           three figures are all still here — as the first row and the DCF row —
           alongside three more methods and what they disagree about. */}
-      <FairValuePanel summary={computeFairValue(score)} />
+      {can("fairValue") ? <FairValuePanel summary={computeFairValue(score)} /> : <LockedFeature feature="fairValue" />}
 
-      {!ivOk && Number.isFinite(iv.ownerEarningsPerShare) && iv.ownerEarningsPerShare <= 0 && (
+      {can("fairValue") && !ivOk && Number.isFinite(iv.ownerEarningsPerShare) && iv.ownerEarningsPerShare <= 0 && (
         <Panel>
           <p className="text-[12px] leading-relaxed text-warn">{t("dcf.negativeOwnerEarnings")}</p>
         </Panel>
       )}
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {SCORE_AXES.map((axis) => (
-          <CriteriaTable
-            key={axis}
-            title={tAxes(`${axis}.name`)}
-            titleTip={tAxes(`${axis}.tip`)}
-            criteria={score.criteria.filter((c) => c.axis === axis)}
-          />
-        ))}
-      </div>
+      {can("criteriaDetail") ? (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {SCORE_AXES.map((axis) => (
+            <CriteriaTable
+              key={axis}
+              title={tAxes(`${axis}.name`)}
+              titleTip={tAxes(`${axis}.tip`)}
+              criteria={score.criteria.filter((c) => c.axis === axis)}
+            />
+          ))}
+        </div>
+      ) : (
+        <LockedFeature feature="criteriaDetail" />
+      )}
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
         {summary && (
@@ -279,7 +308,7 @@ export default async function StockDetailPage({ params }: { params: Promise<{ lo
         </Panel>
       </div>
 
-      <InsiderActivity transactions={insiderTransactions} />
+      {can("insiderTrading") ? <InsiderActivity transactions={insiderTransactions} /> : <LockedFeature feature="insiderTrading" />}
 
       <footer className="mt-auto border-t border-line pt-4 text-[11px] leading-relaxed text-ink-faint">
         {tCommon("disclaimer")}

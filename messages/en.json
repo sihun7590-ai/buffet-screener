@@ -749,5 +749,33 @@
       "value": "Value"
     },
     "emptyState": "No purchases under these settings — check the start date."
+  },
+  "paywall": {
+    "tier": {
+      "free": "Free",
+      "pro": "Pro",
+      "premium": "Premium"
+    },
+    "inlineTitle": "Available on the {plan} plan",
+    "panelBody": "This is part of the {plan} plan. Paid plans are coming soon.",
+    "feature": {
+      "screener": "Screener",
+      "watchlist": "Watchlist",
+      "criteriaDetail": "Scoring criteria detail",
+      "fairValue": "Fair value · margin of safety",
+      "thesis": "Investment thesis (bull / bear)",
+      "peerComparison": "Peer comparison",
+      "scoreHistory": "Score history",
+      "insiderTrading": "Insider trading",
+      "dcaSimulator": "Dollar-cost averaging simulator",
+      "customWeights": "Custom weights",
+      "watchlistAlerts": "Watchlist alerts",
+      "alertSettings": "Alert thresholds",
+      "thesisBreakers": "Thesis breakers",
+      "portfolio": "My portfolio",
+      "backtest": "Backtest",
+      "strategyBuilder": "Screen builder",
+      "csvExport": "CSV export"
+    }
   }
 }

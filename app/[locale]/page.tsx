@@ -2,6 +2,8 @@ import { getTranslations } from "next-intl/server";
 import Dashboard from "@/components/Dashboard";
 import DataSourceNote from "@/components/DataSourceNote";
 import { readScores } from "@/lib/store";
+import { redactScore } from "@/lib/entitlements";
+import { getViewerTier } from "@/lib/supabase/entitlement";
 
 // scores.json changes whenever `npm run refresh` runs; read it fresh on
 // every request instead of baking it into the build.
@@ -11,7 +13,11 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "dashboard" });
   const tc = await getTranslations({ locale, namespace: "common" });
-  const { scores, generatedAt, source } = readScores();
+  const { scores: allScores, generatedAt, source } = readScores();
+  const tier = await getViewerTier();
+  // Redacted here, on the server, because Dashboard is a client component and
+  // every field it receives is in the page payload whether or not it renders.
+  const scores = allScores.map((s) => redactScore(s, tier));
 
   return (
     <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8">
@@ -35,7 +41,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
           })}
         </div>
       ) : (
-        <Dashboard scores={scores} />
+        <Dashboard scores={scores} tier={tier} />
       )}
 
       <footer className="mt-auto flex flex-col gap-2 border-t border-line pt-4 text-[11px] leading-relaxed text-ink-faint">

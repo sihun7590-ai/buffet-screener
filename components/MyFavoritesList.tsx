@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import LockedFeature from "./LockedFeature";
 import { createClient } from "@/lib/supabase/client";
 import Panel from "./Panel";
 import { scoreColor } from "./ScoreBar";
@@ -19,7 +20,16 @@ export interface MyFavoriteRow {
   favoritedAt: string;
 }
 
-export default function MyFavoritesList({ userId, initialRows }: { userId: string; initialRows: MyFavoriteRow[] }) {
+export default function MyFavoritesList({
+  userId,
+  initialRows,
+  showValuation = true,
+}: {
+  userId: string;
+  initialRows: MyFavoriteRow[];
+  /** False when the viewer's tier excludes fair value; the rows arrive with it already stripped. */
+  showValuation?: boolean;
+}) {
   const t = useTranslations("mypage");
   const tCommon = useTranslations("common");
   const locale = useLocale();
@@ -90,12 +100,16 @@ export default function MyFavoritesList({ userId, initialRows }: { userId: strin
               </span>
               <span className="flex flex-col items-end gap-0.5">
                 <span className="text-[10px] text-ink-4">{t("card.marginOfSafety")}</span>
-                <span
-                  className="font-mono text-[14px] font-bold tabular-nums"
-                  style={{ color: mosOk ? (r.marginOfSafety > 0 ? "var(--up)" : "var(--down)") : "var(--ink-faint)" }}
-                >
-                  {mosOk ? `${r.marginOfSafety > 0 ? "+" : ""}${(r.marginOfSafety * 100).toFixed(1)}%` : tCommon("notAvailable")}
-                </span>
+                {showValuation ? (
+                  <span
+                    className="font-mono text-[14px] font-bold tabular-nums"
+                    style={{ color: mosOk ? (r.marginOfSafety > 0 ? "var(--up)" : "var(--down)") : "var(--ink-faint)" }}
+                  >
+                    {mosOk ? `${r.marginOfSafety > 0 ? "+" : ""}${(r.marginOfSafety * 100).toFixed(1)}%` : tCommon("notAvailable")}
+                  </span>
+                ) : (
+                  <LockedFeature feature="fairValue" variant="inline" />
+                )}
               </span>
             </div>
 

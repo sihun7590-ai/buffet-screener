@@ -66,6 +66,16 @@ npm run backtest   # data/backtest.json 재생성
   (`bg-surface`, `text-ink-muted`, `border-line`, ...)으로 정의하고 컴포넌트는 토큰 유틸리티만 씁니다.
   (현재 일부 그라디언트만 예외적으로 인라인 — TASKS.md 참고)
 
+## 유료 등급을 건드릴 때
+
+- **어떤 기능이 어느 등급인지는 `lib/entitlements.ts`의 `FEATURES` 한 곳에만 둡니다.** 컴포넌트에 `tier === "pro"` 같은 비교를 쓰지 말고 `canAccess(tier, "기능")`을 쓰세요.
+- **새 기능을 만들면 `FEATURES`에 등록하고 게이트를 거세요.** 등록 안 하면 페이월을 켜도 누구에게나 열려 있습니다.
+- **클라이언트 컴포넌트에 넘기는 데이터는 서버에서 먼저 잘라내세요** (`redactScore` 패턴). 버튼·패널을 숨기는 것만으로는
+  props가 페이지 페이로드에 그대로 실려 개발자 도구로 보입니다. 잠긴 패널은 데이터 fetch 자체를 하지 마세요.
+- **`PAYWALL_ENABLED`를 결제 연동 전에 켜지 마세요.** 기존 사용자가 돈 낼 방법도 없이 기능을 잃습니다.
+- **`user_entitlements`에 사용자 쓰기 정책(insert/update)을 추가하지 마세요.** 그 순간 누구나 콘솔에서 자기를 premium으로 만들 수 있습니다. 쓰기는 service_role(결제 웹훅)만.
+- 잠금 카드(`components/LockedFeature.tsx`)에 **결제가 실제로 동작하기 전까지 구매 버튼을 넣지 마세요.**
+
 ## 조건/지표를 추가할 때
 
 - 스크리너 조건 검색(`lib/strategy.ts`)과 Thesis Breaker(`lib/thesisBreakers.ts`)는

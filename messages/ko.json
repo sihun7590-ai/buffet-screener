@@ -749,5 +749,33 @@
       "value": "평가금액"
     },
     "emptyState": "이 조건으로는 매수 내역이 없습니다 — 시작일을 확인해주세요."
+  },
+  "paywall": {
+    "tier": {
+      "free": "Free",
+      "pro": "Pro",
+      "premium": "Premium"
+    },
+    "inlineTitle": "{plan} 플랜 기능입니다",
+    "panelBody": "{plan} 플랜에서 제공되는 기능입니다. 유료 플랜은 준비 중입니다.",
+    "feature": {
+      "screener": "스크리너",
+      "watchlist": "관심종목",
+      "criteriaDetail": "채점 항목 상세",
+      "fairValue": "내재가치 · 안전마진",
+      "thesis": "투자 논리 (강점 / 약점)",
+      "peerComparison": "동종업계 비교",
+      "scoreHistory": "점수 변화 기록",
+      "insiderTrading": "내부자 거래",
+      "dcaSimulator": "적립식 투자 시뮬레이터",
+      "customWeights": "가중치 조정",
+      "watchlistAlerts": "관심종목 변화 알림",
+      "alertSettings": "알림 기준 설정",
+      "thesisBreakers": "투자 논리 붕괴 감시",
+      "portfolio": "내 포트폴리오",
+      "backtest": "백테스트",
+      "strategyBuilder": "조건 검색",
+      "csvExport": "CSV 내보내기"
+    }
   }
 }

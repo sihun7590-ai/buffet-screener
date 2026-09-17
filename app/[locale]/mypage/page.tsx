@@ -15,6 +15,9 @@ import { detectAlerts, groupAlertsByTicker, normalizeAlertSettings, type StockAl
 import { summarizePortfolio, type Holding } from "@/lib/portfolio";
 import { checkPortfolioBreakers, type BreakerRule } from "@/lib/thesisBreakers";
 import type { StockScore } from "@/lib/types";
+import LockedFeature from "@/components/LockedFeature";
+import { canAccess, type Feature } from "@/lib/entitlements";
+import { getViewerTier } from "@/lib/supabase/entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -53,14 +56,22 @@ export default async function MyPage() {
   // project where the migration hasn't been run yet gets null here, falls
   // through to empty lists below, and renders the empty states — the watchlist
   // it already had keeps working instead of the page 500ing.
+  //
+  // Tables behind a locked feature aren't queried at all.
+  const tier = await getViewerTier();
+  const can = (feature: Feature) => canAccess(tier, feature);
+  const skipped = Promise.resolve({ data: null });
+
   const [{ data: favRows }, { data: holdingRows }, { data: breakerRows }, { data: settingsRow }] = await Promise.all([
     supabase.from("favorites").select("ticker, price_at_favorite, favorited_at").order("favorited_at", { ascending: false }),
-    supabase.from("holdings").select("ticker, shares, average_cost, note").order("ticker"),
-    supabase.from("thesis_breakers").select("id, metric, op, value").order("created_at"),
-    supabase
-      .from("alert_settings")
-      .select("total_threshold, axis_threshold, price_drop_threshold, lookback_days")
-      .maybeSingle(),
+    can("portfolio") ? supabase.from("holdings").select("ticker, shares, average_cost, note").order("ticker") : skipped,
+    can("thesisBreakers") ? supabase.from("thesis_breakers").select("id, metric, op, value").order("created_at") : skipped,
+    can("watchlistAlerts")
+      ? supabase
+          .from("alert_settings")
+          .select("total_threshold, axis_threshold, price_drop_threshold, lookback_days")
+          .maybeSingle()
+      : skipped,
   ]);
 
   // A user who has never opened the settings has no row, which is not an error
@@ -105,7 +116,9 @@ export default async function MyPage() {
         sector: score?.sector ?? "",
         totalScore: score?.totalScore ?? NaN,
         isBuyCandidate: score?.isBuyCandidate ?? false,
-        marginOfSafety: score?.intrinsicValue.marginOfSafety ?? NaN,
+        // Stripped rather than hidden: MyFavoritesList is a client component,
+        // so anything in these rows reaches the browser.
+        marginOfSafety: can("fairValue") ? (score?.intrinsicValue.marginOfSafety ?? NaN) : NaN,
         priceAtFavorite: f.price_at_favorite,
         currentPrice,
         favoritedAt: f.favorited_at,
@@ -116,8 +129,8 @@ export default async function MyPage() {
   // One query for the whole list, then compare each company against its own
   // past. The favourite price is the other half: it's the only record of what
   // the holding looked like when the user decided they cared.
-  const history = await fetchScoreHistoryForTickers(rows.map((r) => r.ticker));
-  const alerts: StockAlert[] = groupAlertsByTicker(
+  const history = can("watchlistAlerts") ? await fetchScoreHistoryForTickers(rows.map((r) => r.ticker)) : new Map();
+  const alerts: StockAlert[] = !can("watchlistAlerts") ? [] : groupAlertsByTicker(
     rows.flatMap((row) => {
       const score = getScoreByTicker(row.ticker);
       if (!score) return [];
@@ -193,18 +206,33 @@ export default async function MyPage() {
         </div>
       )}
 
-      <PortfolioPanel summary={portfolio} userId={user.id} knownTickers={knownTickers} />
+      {can("portfolio") ? (
+        <PortfolioPanel summary={portfolio} userId={user.id} knownTickers={knownTickers} />
+      ) : (
+        <LockedFeature feature="portfolio" />
+      )}
 
-      <ThesisBreakerPanel
-        rules={breakerRules}
-        fired={firedBreakers}
-        userId={user.id}
-        watchedCount={watchedScores.length}
-      />
+      {can("thesisBreakers") ? (
+        <ThesisBreakerPanel
+          rules={breakerRules}
+          fired={firedBreakers}
+          userId={user.id}
+          watchedCount={watchedScores.length}
+        />
+      ) : (
+        <LockedFeature feature="thesisBreakers" />
+      )}
 
-      {rows.length > 0 && <WatchlistAlerts alerts={alerts} />}
-      <AlertSettingsPanel settings={alertSettings} userId={user.id} />
-      <MyFavoritesList userId={user.id} initialRows={rows} />
+      {can("watchlistAlerts") ? (
+        <>
+          {rows.length > 0 && <WatchlistAlerts alerts={alerts} />}
+          <AlertSettingsPanel settings={alertSettings} userId={user.id} />
+        </>
+      ) : (
+        <LockedFeature feature="watchlistAlerts" />
+      )}
+
+      <MyFavoritesList userId={user.id} initialRows={rows} showValuation={can("fairValue")} />
     </main>
   );
 }

@@ -5,6 +5,9 @@ import Panel from "@/components/Panel";
 import InfoTip from "@/components/InfoTip";
 import { readBacktest } from "@/lib/backtestStore";
 import { sharpeRatio, trailingReturn, yearlyReturns, type StrategyId } from "@/lib/backtest";
+import LockedFeature from "@/components/LockedFeature";
+import { canAccess } from "@/lib/entitlements";
+import { getViewerTier } from "@/lib/supabase/entitlement";
 
 // data/backtest.json changes whenever `npm run backtest` runs; read it fresh
 // on every request instead of baking it into the build (same reasoning as
@@ -21,6 +24,21 @@ export default async function BacktestPage({ params }: { params: Promise<{ local
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "backtest" });
   const tCommon = await getTranslations({ locale, namespace: "common" });
+
+  // The whole page is one feature, so a locked viewer gets the title — enough
+  // to know what this is — and the lock, without the backtest file being read.
+  if (!canAccess(await getViewerTier(), "backtest")) {
+    return (
+      <main className="mx-auto flex w-full max-w-[1400px] flex-1 flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8">
+        <BackToListLink />
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-[26px] font-extrabold tracking-tight text-ink">{t("title")}</h1>
+          <p className="max-w-3xl text-[13px] leading-relaxed text-ink-muted">{t("subtitle")}</p>
+        </div>
+        <LockedFeature feature="backtest" />
+      </main>
+    );
+  }
 
   const result = readBacktest();
 
